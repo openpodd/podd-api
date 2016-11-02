@@ -1,0 +1,124 @@
+{% extends 'supervisors/base_supervisors.html' %}
+
+{% block sidebar %}
+{% include 'supervisors/snippets/supervisors_sidebar.html' with action="investigation_report" %}
+{% endblock %}
+
+{% block supervisors_content %}
+    <h2 class="h-title">รายงานการสืบสวนโรค</h2>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} bg-danger">
+        {{ message }}
+    </div>
+    {% endfor %}
+{% endif %}
+
+<div class="investigation-form">
+    <form class="form-edit" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="row">
+            <div class="col-xs-2 columns">
+              <label for="id_report" class="right inline">{{ form.report.label }}</label>
+            </div>
+            <div class="col-xs-10 columns">
+                {{ form.report.errors }}
+                {{ form.report }}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-2 columns">
+              <label for="id_note" class="right inline">{{ form.note.label }}</label>
+            </div>
+            <div class="col-xs-10 columns">
+                {{ form.note.errors }}
+                {{ form.note }}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-2 columns">
+              <label for="id_investigation_date" class="right inline">{{ form.investigation_date.label }}</label>
+            </div>
+            <div class="col-xs-10 columns">
+                    {{ form.investigation_date.errors }}
+                    <div class="col-xs-11 date-columns">
+                        {{ form.investigation_date }}
+                        <label for="id_investigation_date" class="render-datepicker postfix">
+                        </label>
+                    </div>
+                    <label for="id_investigation_date" class="no_style_label">
+                        <div class="col-xs-1 date-columns calendar">
+                            <span class="glyphicon glyphicon-calendar" aria-hidden="true"></span>
+                        </div>
+                    </label>
+		        </div>
+
+        </div>
+
+        <div class="row">
+            <div class="col-xs-2 columns">
+              <label for="id_upload_file" class="right inline">{{ form.file.label }}</label>
+            </div>
+            <div class="col-xs-10 columns">
+                {{ form.file.errors }}
+                {{ form.file }}
+                {% if file %}<strong>url: <a href="{{ file }}" target="_blank">{{ file }}</a></strong>{% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-2 columns">
+              <label for="id_result" class="right inline">{{ form.result.label }}</label>
+            </div>
+            <div class="col-xs-10 columns">
+                {{ form.result.errors }}
+                {% for radio in form.result %}
+                    <div class="result-radio">
+                        {{ radio }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <a href="{% url 'supervisors_report_investigation' %}" class="btn btn-default">กลับ</a>
+        <button type="submit" class="btn btn-primary">บันทึก</button>
+
+        {% if edit %}
+            <button id="delete" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal">ลบการสืบสวนโรค?</button>
+            <div class="modal fade" id="deleteModal" role="dialog">
+                <div class="modal-dialog modal-md">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal">&times;</button>
+                      <h4 class="modal-title">ลบ</h4>
+                    </div>
+                    <div class="modal-body">
+                      <p>คุณต้องการลบการสืบสวนโรค? </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">ไม่</button>
+                        <a href="{% url 'supervisors_report_investigation_delete' investigation.id %}" class="btn btn-danger">ใช่</a>
+                    </div>
+                  </div>
+                </div>
+            </div>
+        {% endif %}
+
+
+    </form>
+</div>
+{% endblock %}
+
+
+{% block js %}
+<script>
+    $('.datepicker').datepicker({
+        'format': 'dd/mm/yyyy'
+    });
+
+</script>
+{% endblock %}

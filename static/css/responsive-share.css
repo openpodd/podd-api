@@ -1,0 +1,73 @@
+@media only screen and (max-width: 768px) {
+  .content-container {
+    max-width: initial;
+    min-width: initial;
+    padding: 0 10px;
+  }
+  .section-content {
+    padding: 0;
+  }
+  .content-wrapper {
+    flex-direction: column-reverse;
+    -webkit-flex-direction: column-reverse;
+  }
+  .about-app { margin-top: 3em; padding: 0 10px;}
+  .main-menu li {
+    display: block;
+    margin-left: 0;
+    text-align: right;
+  }
+  html { height: auto;}
+  body { 
+    padding-bottom: 180px; 
+    min-height: initial;
+    background-size: contain;
+  }
+
+  .link-app a {
+    float: none;
+    display: inline-block;
+  }
+
+  .link-app {
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .footer-sector { text-align: center;}
+}
+
+@media only screen and (max-width: 768px) {
+  h1.logo { 
+    padding: 10px 0;
+    align-self: center;
+    -webkit-align-self: center;
+    line-height: 0;
+  }
+  .logo img { width: 140px !important;}
+  .main-menu { margin: 0;}
+  .main-menu li a {
+    font-size: 15px;
+    font-weight: normal;
+  }
+}
+
+@media only screen and (max-width: 380px) {
+  .iphone-bg {
+    background: none;
+    width: auto;
+    height: auto;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    padding-top: 0;
+  }
+  .device {
+    width: auto;
+    height: auto;
+    margin-left: 0;
+    padding-right: 0;
+    border-radius: 5px;
+    max-width: 420px;
+    min-width: 280px;
+  }
+}

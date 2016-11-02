@@ -1,0 +1,70 @@
+{% extends 'supervisors/base_supervisors.html' %}
+{% load supervisors_tags %}
+
+{% block sidebar %}
+{% include 'supervisors/snippets/supervisors_sidebar.html' with action="authority" %}
+{% endblock %}
+
+{% block supervisors_content %}
+
+<h2 class="h-title pull-left">Authorities</h2>
+
+<div class="btn-download pull-right">
+    <a class="btn btn-primary" href="/supervisors/authorities/invitation-code/print/" target="_blank">
+        <span class="glyphicon glyphicon-download" aria-hidden="true"></span> รหัสลงทะเบียนแต่ละพื้นที่
+    </a>
+    <a class="btn btn-primary" href="/supervisors/users/authorities/export/">
+        <span class="glyphicon glyphicon-download" aria-hidden="true"></span> รายชื่อองค์กรและอาสา
+    </a>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<h4 class="clear">การสร้างองค์กร</h4>
+<div class="well">
+    <div class="row">
+        <div class="col-md-4">
+            <p>1. ดาว์นโหลดแบบฟอร์มและกรอกรายละเอียด</p>
+            <a class="btn btn-default btn-sm" target="_blank" href="https://docs.google.com/spreadsheets/d/10YbzPZbmfn8UGv_OKeApdTLdN63vkJi2IBEiE6dQlMQ/edit#gid=0">
+                <span class="glyphicon glyphicon-download" aria-hidden="true"></span> แบบฟอร์มสำหรับการสร้างองค์กร
+            </a>
+        </div>
+        <div class="col-md-8">
+            <p>2. นำไฟล์มาอัพโหลดเพื่อสร้างองค์กรใหม่ (เฉพาะ .xls เท่านั้น) </p>
+            <form action="." method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <p><input name="file" type="file"/></p>
+                <p><input class="btn btn-default btn-sm" type="submit" /></p>
+            </form>
+        </div>
+    </div>
+</div>
+
+<h4>รายชื่อองค์กร</h4>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>รหัสองค์กร</th>
+            <th>ชื่อ</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for authotity in authorities %}
+        <tr>
+            <td>{{ authotity.code }} {% if not authotity.code %}-{% endif%}</td>
+            <td><a href="{% url 'supervisors_authorities_edit' authotity.id %}">{{ authotity.name }}</a></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td class="text-center" colspan="5">ไม่พบองค์กร</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

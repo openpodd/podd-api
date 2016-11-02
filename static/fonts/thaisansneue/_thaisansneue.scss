@@ -1,0 +1,46 @@
+@font-face {
+		font-family: 'thaisans_neuebold';
+		src: url('odmbase/fonts/thaisansneue/thaisansneue-bold-webfont.eot');
+		src: url('odmbase/fonts/thaisansneue/thaisansneue-bold-webfont.eot?#iefix') format('embedded-opentype'),
+		url('odmbase/fonts/thaisansneue/thaisansneue-bold-webfont.woff') format('woff'),
+		url('odmbase/fonts/thaisansneue/thaisansneue-bold-webfont.ttf') format('truetype'),
+		url('odmbase/fonts/thaisansneue/thaisansneue-bold-webfont.svg#thaisans_neuebold') format('svg');
+		font-weight: 100;
+		font-style: normal;
+}
+
+@font-face {
+		font-family: 'thaisans_neue_lightregular';
+		src: url('odmbase/fonts/thaisansneue/thaisansneue-light-webfont.eot');
+		src: url('odmbase/fonts/thaisansneue/thaisansneue-light-webfont.eot?#iefix') format('embedded-opentype'),
+		url('odmbase/fonts/thaisansneue/thaisansneue-light-webfont.woff') format('woff'),
+		url('odmbase/fonts/thaisansneue/thaisansneue-light-webfont.ttf') format('truetype'),
+		url('odmbase/fonts/thaisansneue/thaisansneue-light-webfont.svg#thaisans_neue_lightregular') format('svg');
+		font-weight: 100;
+		font-style: normal;
+}
+
+@font-face {
+		font-family: 'thaisans_neueregular';
+		src: url('odmbase/fonts/thaisansneue/thaisansneue-regular-webfont.eot');
+		src: url('odmbase/fonts/thaisansneue/thaisansneue-regular-webfont.eot?#iefix') format('embedded-opentype'),
+		url('odmbase/fonts/thaisansneue/thaisansneue-regular-webfont.woff') format('woff'),
+		url('odmbase/fonts/thaisansneue/thaisansneue-regular-webfont.ttf') format('truetype'),
+		url('odmbase/fonts/thaisansneue/thaisansneue-regular-webfont.svg#thaisans_neueregular') format('svg');
+		font-weight: 100;
+		font-style: normal;
+}
+
+
+@mixin thaisans-bold {
+	font-family: 'thaisans_neuebold', 'Helvetica Neue', Helvetica,Arial,sans-serif;
+}
+
+@mixin thaisans-reg {
+	font-family: 'thaisans_neueregular', 'Helvetica Neue', Helvetica,Arial,sans-serif;
+	-webkit-font-smoothing: antialiased;
+}
+
+@mixin thaisans-light {
+	font-family: 'thaisans_neue_lightregular', 'Helvetica Neue', Helvetica,Arial,sans-serif;
+}

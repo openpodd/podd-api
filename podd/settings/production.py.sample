@@ -1,0 +1,31 @@
+
+from .base import *
+
+DEBUG = True
+TEMPLATE_DEBUG = DEBUG
+
+SECRET_KEY = 'REPLACE_WITH_YOUR_OWN_SECRET_KEY'
+
+EMAIL_HOST = "localhost"
+EMAIL_PORT = 1025
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": "podd",
+        "USER": "podd",
+        "PASSWORD": "podd",
+        "HOST": "localhost",
+        "PORT": "",
+    }
+}
+
+EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
+MAILGUN_ACCESS_KEY = 'ACCESS-KEY-NEED-TO-BE-REPLACE'
+MAILGUN_SERVER_NAME = 'cmonehealth.org'
+
+# raven
+RAVEN_CONFIG = {
+    'dsn': '{{ SENTRY_DSN_HERE }}',
+    'site': 'PODD Django'
+}

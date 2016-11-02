@@ -1,0 +1,82 @@
+{% extends 'supervisors/base_supervisors.html' %}
+{% load supervisors_tags %}
+
+{% block sidebar %}
+{% include 'supervisors/snippets/supervisors_sidebar.html' with action=status %}
+{% endblock %}
+
+{% block supervisors_content %}
+<h2 class="h-title pull-left">อาสาสมัคร</h2>
+
+{% if selected_area %}
+
+<ol class="breadcrumb">
+    <li><a href="{% url 'supervisors_users' %}">ผู้ใช้</a></li>
+    {% with selected_area.get_ancestors as ancestors %}
+        {% for area in ancestors %}
+        <li><a href="{% url 'supervisors_users_by_area_and_status' status area.id %}">{{ area.name }}</a></li>
+        {% endfor %}
+    {% endwith %}
+    <li class="active">{{ selected_area }}</li>
+</ol>
+{% endif %}
+
+<a class="btn btn-primary btn-download pull-right" href="/summary/list-volunteer/?status={{ status|upper }}">
+    <span class="glyphicon glyphicon-download" aria-hidden="true"></span> ดาวน์โหลดรายชื่อ {{ status }} ทั้งหมด
+</a>
+
+    <div role="tabpanel">
+
+  <!-- Nav tabs -->
+  <!-- <ul class="nav nav-tabs" role="tablist"> -->
+
+    <!--<li role="presentation" class="pull-right active"><a href="#by-area" aria-controls="by-area" role="tab" data-toggle="tab">รายชื่อตามพื้นที่</a></li>-->
+    <!-- <li role="presentation" class="pull-right active"><a href="#by-user" aria-controls="by-user" role="tab" data-toggle="tab">รายชื่อทั้งหมด</a></li> -->
+  <!-- </ul> -->
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <!-- TAB: GROUP BY AREA -->
+
+
+    <!-- TAB: LIST ALL USERS -->
+    <div role="tabpanel" class="tab-pane fade in active" id="by-user">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ชื่อบัญชีผู้ใช้</th>
+                    <th>ชื่อ</th>
+                    <th>พื้นที่</th>
+                    {% if status == 'volunteer' %}
+                    <th>สถานะ</th>
+                    <th>เบอร์โทรศัพท์โครงการ</th>
+                    <!-- <th>Serial Number(IMEI)</th> -->
+                    {% else %}
+                    <th>เบอร์โทรศัพท์ติดต่อ</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td><a href="{% url 'supervisors_users_edit' user.id %}">{{ user.username }}</a></td>
+                    <td>{{ user.get_full_name }}</td>
+                    <td>{{ user|display_user_reportable_administration_area }}</td>
+                    {% if status == 'volunteer' %}
+                    <td>{{ user.get_status_display }}</td>
+                    <td>{{ user.project_mobile_number|default:"-" }}</td>
+                    <!-- <td>{{ user.serial_number }}</td> -->
+                    {% else %}
+                    <td>{{ user.telephone|default:"-" }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+  </div>
+
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="login">
+    <div class="login-inner">
+        <img src="{{ STATIC_URL }}images/logo-large.png" alt="Logo" class="logo-img">
+        <form class="form-horizontal" role="form" method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="form-group">
+                <div class="alert alert-danger" role="alert">
+                    <strong>เกิดข้อผิดพลาด</strong> กรุณาตรวจสอบชื่อบัญชีและรหัสผ่านของคุณอีกครั้ง
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}" class="sr-only">{{ form.username.label }}</label>
+                {{ form.username }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.password.id_for_label }}" class="sr-only">{{ form.password.label }}</label>
+                {{ form.password }}
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-success btn-login btn-block">Log in</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

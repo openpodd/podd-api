@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<!--[if IE 9]><html class="lt-ie10" lang="en" > <![endif]-->
+<html class="no-js" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>{% block title %}ระบบจัดการข้อมูล{% endblock %}</title>
+    <meta name="description" content="ผ่อดีดี - โครงการนำร่อง การเฝ้าระวังและควบคุมโรคระบาดสัตว์ที่ติดต่อถึงคน หรือที่กระทบรายได้ชาวบ้าน โดยองค์กรปกครองส่วนท้องถินและชุมชน ด้วยเทคโนโลยีดิจิทัล"/>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block css %}{% endblock %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}libs/bootstrap-3.3.2/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}libs/datepicker/css/datepicker.css"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/styles.css"/>
+
+    <script src="{{ STATIC_URL }}js/jquery.min.js"></script>
+    <script src="{{ STATIC_URL }}libs/bootstrap-3.3.2/js/bootstrap.min.js"></script>
+    <script src="{{ STATIC_URL }}libs/datepicker/js/bootstrap-datepicker.js"></script>
+    {% block head_js %}{% endblock %}
+</head>
+<body class="bg-gray">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            <a href="{% url 'supervisors_users' %}"><img src="{{ STATIC_URL }}images/logo-onehealth.svg" alt="" class="navbar-brand logo"></a>
+            <a class="navbar-brand" href="{% url 'supervisors_users' %}">
+                ระบบจัดการข้อมูล
+            </a>
+            </div>
+            {% if user.is_authenticated %}
+            <div id="navbar" class="collapse navbar-collapse">
+                <ul class="nav navbar-nav hidden-md hidden-lg hidden-sm">
+                    <li {% if action == "volunteer" %}class="active"{% endif %}>
+                        <a href="{% url 'supervisors_users_by_status' 'volunteer' %}">อาสาสมัคร{% if action == "volunteer" %}<span class="sr-only">(current)</span>{% endif %}</a>
+                    </li>
+                    <li {% if action == "additional-volunteer" %}class="active"{% endif %}>
+                        <a href="{% url 'supervisors_users_by_status' 'additional-volunteer' %}">อาสาสมัครเพิ่มเติม{% if action == "additional-volunteer" %}<span class="sr-only">(current)</span>{% endif %}</a>
+                    </li>
+                    <li {% if action == "additional-volunteer-dodd" %}class="active"{% endif %}>
+                        <a href="{% url 'supervisors_users_by_status' 'additional-volunteer-dodd' %}">อาสาสมัครดูดีดี{% if action == "additional-volunteer-dodd" %}<span class="sr-only">(current)</span>{% endif %}</a>
+                    </li>
+                    <li {% if action == "podd" %}class="active"{% endif %}>
+                        <a href="{% url 'supervisors_users_by_status' 'podd' %}">ทีมวิจัย{% if action == "podd" %}<span class="sr-only">(current)</span>{% endif %}</a>
+                    </li>
+                    <li {% if action == "livestock" %}class="active"{% endif %}>
+                        <a href="{% url 'supervisors_users_by_status' 'livestock' %}">ปศุสัตว์{% if action == "livestock" %}<span class="sr-only">(current)</span>{% endif %}</a>
+                    </li>
+                    <li {% if action == "public-health" %}class="active"{% endif %}>
+                        <a href="{% url 'supervisors_users_by_status' 'public-health' %}">สาธารณสุข{% if action == "public-health" %}<span class="sr-only">(current)</span>{% endif %}</a>
+                    </li>
+
+                    <li {% if action == "authority" %}class="active"{% endif %}>
+                        <a href="{% url 'supervisors_authorities' %}">องค์กร{% if action == "authority" %}<span class="sr-only">(current)</span>{% endif %}</a>
+                    </li>
+
+                    <li {% if action == "log_report" %}class="active"{% endif %}>
+                        <a href="{% url 'supervisors_logs_reports' %}">Log Reports{% if action == "log_report" %}<span class="sr-only">(current)</span>{% endif %}</a>
+                    </li>
+                    <li {% if action == "log_user" %}class="active"{% endif %}>
+                        <a href="{% url 'supervisors_logs_users' %}">Log Users{% if action == "log_user" %}<span class="sr-only">(current)</span>{% endif %}</a>
+                    </li>
+
+                    <li {% if action == "investigation_report" %}class="active"{% endif %}>
+                        <a href="{% url 'supervisors_report_investigation' %}">รายการสืบสวนโรค{% if action == "investigation_report" %}<span class="sr-only">(current)</span>{% endif %}</a>
+                    </li>
+                    <li {% if action == "lab_cause" %}class="active"{% endif %}>
+                        <a href="{% url 'supervisors_report_laboratory_cause' %}"><small><span class="glyphicon glyphicon-asterisk" aria-hidden="true"></span> รายการสาเหตุการเกิดโรค{% if action == "lab_cause" %}<span class="sr-only">(current)</span>{% endif %}</small></a>
+                    </li>
+                    <li {% if action == "lab_report" %}class="active"{% endif %}>
+                        <a href="{% url 'supervisors_report_laboratory' %}">รายการผลแลป{% if action == "lab_report" %}<span class="sr-only">(current)</span>{% endif %}</a>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="{% url 'accounts_logout' %}">Log out</a></li>
+                </ul>
+            </div><!--/.nav-collapse -->
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        {% block content %}{% endblock %}
+    </div>
+
+    {% block js %}{% endblock %}
+</body>
+</html>

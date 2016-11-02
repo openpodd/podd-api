@@ -1,0 +1,23 @@
+{% load i18n admin_static %}
+<h3>{% blocktrans with filter_title=title %} By {{ filter_title }} {% endblocktrans %}</h3>
+<form method="GET" action="">
+    {{ spec.form.media }}
+    {{ spec.form.as_p }}
+    <p>
+    <input class="btn-daterange" type="submit" value="Filter">
+    </p>
+</form>
+
+<script type="text/javascript">
+    (function($) {
+        $('.btn-daterange').click(function (e) {
+            e.preventDefault();
+            var search = window.location.search;
+            if (search) {
+                window.location = window.location.search + '&date__gte=' + $('input[name="date__gte"]').val() + '&date__lte=' + $('input[name="date__lte"]').val();
+            } else {
+                $('.btn-daterange').parent('form').submit();
+            }
+        });
+    })(django.jQuery);
+</script>

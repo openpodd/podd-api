@@ -1,0 +1,57 @@
+{% extends 'supervisors/base_supervisors.html' %}
+{% load supervisors_tags %}
+
+{% block sidebar %}
+{% include 'supervisors/snippets/supervisors_sidebar.html' with action="lab_report" %}
+{% endblock %}
+
+{% block supervisors_content %}
+<h2 class="h-title pull-left">Report Laboratory Cases</h2>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<a class="btn btn-primary btn-download pull-right" href="{% url 'supervisors_report_laboratory_create' %}" class="btn btn-default"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> เพิ่มรายการผลแลป</a>
+
+<div role="tabpanel">
+
+  <div class="tab-content">
+
+    <div role="tabpanel" class="tab-pane fade in active" id="by-user">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th class="col-md-1">No.</th>
+                    <th class="col-md-1">เลขที่รายงาน</th>
+                    <th class="col-md-4">รายละเอียดรายงาน</th>
+                    <th class="col-md-2">เลขที่ตัวอย่าง</th>
+                    <th class="col-md-4">รายละเอียดตัวอย่าง</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for case in cases %}
+                <tr>
+                    <td><a href="{% url 'supervisors_report_laboratory_edit' case.id %}">#{{ case.id }}</a></td>
+                    <td>{{ case.report.id }}</td>
+                    <td>{{ case.report.rendered_form_data|safe }}</td>
+                    <td>{{ case.case_no }}</td>
+                    <td>{{ case.note }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td class="text-center" colspan="5">ไม่พบรายการผลแลป</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+  </div>
+
+</div>
+
+
+{% endblock %}

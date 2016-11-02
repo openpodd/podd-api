@@ -1,0 +1,57 @@
+{% extends 'supervisors/base_supervisors.html' %}
+
+{% block sidebar %}
+{% include 'supervisors/snippets/supervisors_sidebar.html' with action="users" %}
+{% endblock %}
+
+{% block supervisors_content %}
+<h2 class="h-title">แก้ไขข้อมูลผู้ใช้: {{ user.get_full_name|default:user.username }}</h2>
+
+<ol class="breadcrumb">
+    <li><a href="{% url 'supervisors_users' %}">ผู้ใช้</a></li>
+    {% with user.administration_area.get_ancestors as ancestors %}
+        {% for area in ancestors %}
+        <li><a href="{% url 'supervisors_users_by_area' area.id %}">{{ area.name }}</a></li>
+        {% endfor %}
+    {% endwith %}
+    {% if user.administration_area %}
+    <li><a href="{% url 'supervisors_users_by_area' user.administration_area.id %}">{{ user.administration_area.name }}</a></li>
+    {% endif %}
+    <li class="active">แก้ไขข้อมูล: {{ user.get_full_name|default:user.username }}</li>
+</ol>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+
+<form class="form-edit" method="post">
+    {% csrf_token %}
+
+    <div class="form-group">
+        <label>ชื่อบัญชีผู้ใช้</label>
+        <p class="form-control-static">{{ user.username }}</p>
+    </div>
+
+    <div class="form-group">
+        <label>รหัสผ่าน</label>
+        <p class="form-control-static">{{ user.display_password|default:"ไม่เปิดเผย" }}</p>
+    </div>
+
+    {% for field in form %}
+    <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}
+        <div class="alert alert-danger" role="alert">{{ error }}</div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-default">Submit</button>
+</form>
+
+
+{% endblock %}

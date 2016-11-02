@@ -1,0 +1,166 @@
+{% extends 'supervisors/base_supervisors.html' %}
+{% load supervisors_tags %}
+
+{% block sidebar %}
+{% include 'supervisors/snippets/supervisors_sidebar.html' with action="lab_cause" %}
+{% endblock %}
+
+{% block supervisors_content %}
+<h2 class="h-title">Report Laboratory Causes</h2>
+
+{% if messages %}
+<div id="message">
+    {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+
+<div role="tabpanel">
+
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="left">
+    </li>
+    <li role="presentation" class="pull-right active"><a href="#by-user" aria-controls="by-user" role="tab" data-toggle="tab">รายการทั้งหมด</a></li>
+  </ul>
+
+  <div class="tab-content">
+
+    <div role="tabpanel" class="tab-pane fade in active" id="by-user">
+        <br/>
+        <ul id="cause_add_panel" class="list-group">
+          <li class="list-group-item">
+              <label for="id_cause" class="right inline" >เชื้อเพิ่มเติม: </label>
+              <!--<span id="cause_remove" class="glyphicon glyphicon-remove pull-right"></span>-->
+
+              <ul id="cause_add_error"><li><small>ไม่สามารถเพิ่มได้: cause is already exist.</small></li></ul>
+
+              <div class="row" style="margin: 0;">
+                   <div class="col-xs-10 columns date-columns">
+                       <input type="text" name="cause" class="form-control inline">
+                   </div>
+                   <div class="col-xs-2 columns date-columns calendar lab-calendar" id="cause_add_button">
+                      <span class="glyphicon glyphicon-edit"></span> <strong>เพิ่ม</strong>
+                   </div>
+                   <small>ตัวอย่าง: E.coli, Newcastle, etc.</small>
+              </div>
+          </li>
+        </ul>
+
+        <h1 class="page-header"></h1>
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <!--<th>No.</th>-->
+                    <th>เชื้อ</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="cause_list">
+                {% for cause in causes %}
+                <tr>
+                    <!--<td>#{{ cause.id }}.</td>-->
+                    <td>{{ cause.name }}</td>
+                    <td width="50px">
+                        <a href="{% url 'supervisors_report_laboratory_cause_delete' cause.id %}">
+                            <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td class="text-center" colspan="5">ไม่พบรายการ</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+    </div>
+
+  </div>
+
+</div>
+
+
+{% endblock %}
+
+{% block js %}
+<script>
+    $(document).ready(function() {
+
+        // using jQuery
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        var csrftoken = getCookie('csrftoken');
+
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        });
+
+        var causes_length = {{ causes|length }};
+
+        $('#cause_add_error').hide();
+        $('#cause_add_button').click(function() {
+
+            var cause = $('input[name=cause]').val();
+
+            $.ajax({
+                type: 'POST',
+                url: '/animalCauses/',
+                data: {
+                    name:  cause
+                },
+                success: function(result) {
+                    causes_length++;
+
+                    var cause_list = '<tr>' +
+                        '<td>' + result.name +'</td>' +
+                        '<td width="50px"><a href="' + result.id + '/delete/"><span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span></a></td>' +
+                        '</tr>';
+
+                     console.log(cause_list)
+                    if ({% if causes|length == 0 %}true{% else %}false{% endif %} && causes_length === 1) {
+                        $('#cause_list').html();
+                        $('#cause_list').html(cause_list);
+                    } else {
+                        $('#cause_list tr:last-child').after(cause_list);
+                    }
+                    $('input[name=cause]').val('');
+                    $('#cause_add_error').hide();
+                    $('#message').hide();
+
+                },
+                failure: function(errMsg) {
+                    $('#cause_add_error').show();
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    $('#cause_add_error').show();
+                },
+            });
+
+        });
+
+
+    });
+
+</script>
+{% endblock %}

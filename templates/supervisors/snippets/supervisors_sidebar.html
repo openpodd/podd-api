@@ -1,0 +1,49 @@
+<ul class="nav nav-sidebar">
+    {% if request.user.is_superuser %}
+    <li><span class="title">ข้อมูลผู้ใช้</span></li>
+    <!-- <li>
+        <ul class="nav nav-sidebar nav-sidebar-inner"> -->
+            <li {% if action == "volunteer" %}class="active"{% endif %}>
+                <a href="{% url 'supervisors_users_by_status' 'volunteer' %}">อาสาสมัคร{% if action == "volunteer" %}<span class="sr-only">(current)</span>{% endif %}</a>
+            </li>
+            <li {% if action == "additional-volunteer" %}class="active"{% endif %}>
+                <a href="{% url 'supervisors_users_by_status' 'additional-volunteer' %}">อาสาสมัครเพิ่มเติม{% if action == "additional-volunteer" %}<span class="sr-only">(current)</span>{% endif %}</a>
+            </li>
+            <li {% if action == "additional-volunteer-dodd" %}class="active"{% endif %}>
+                <a href="{% url 'supervisors_users_by_status' 'additional-volunteer-dodd' %}">อาสาสมัครดูดีดี{% if action == "additional-volunteer-dodd" %}<span class="sr-only">(current)</span>{% endif %}</a>
+            </li>
+            <li {% if action == "podd" %}class="active"{% endif %}>
+                <a href="{% url 'supervisors_users_by_status' 'podd' %}">ทีมวิจัย{% if action == "podd" %}<span class="sr-only">(current)</span>{% endif %}</a>
+            </li>
+            <li {% if action == "livestock" %}class="active"{% endif %}>
+                <a href="{% url 'supervisors_users_by_status' 'livestock' %}">ปศุสัตว์{% if action == "livestock" %}<span class="sr-only">(current)</span>{% endif %}</a>
+            </li>
+            <li {% if action == "public-health" %}class="active"{% endif %}>
+                <a href="{% url 'supervisors_users_by_status' 'public-health' %}">สาธารณสุข{% if action == "public-health" %}<span class="sr-only">(current)</span>{% endif %}</a>
+            </li>
+
+            <li {% if action == "authority" %}class="active"{% endif %}>
+                <a href="{% url 'supervisors_authorities' %}">องค์กร{% if action == "authority" %}<span class="sr-only">(current)</span>{% endif %}</a>
+            </li>
+
+          <!-- </ul>
+    </li> -->
+    <li><span class="title">ประวัติ</span></li>
+    <li {% if action == "log_report" %}class="active"{% endif %}>
+        <a href="{% url 'supervisors_logs_reports' %}">Log Reports{% if action == "log_report" %}<span class="sr-only">(current)</span>{% endif %}</a>
+    </li>
+    <li {% if action == "log_user" %}class="active"{% endif %}>
+        <a href="{% url 'supervisors_logs_users' %}">Log Users{% if action == "log_user" %}<span class="sr-only">(current)</span>{% endif %}</a>
+    </li>
+    {% endif %}
+    <li><span class="title">ผลแลป</li>
+    <li {% if action == "investigation_report" %}class="active"{% endif %}>
+        <a href="{% url 'supervisors_report_investigation' %}">รายการสืบสวนโรค{% if action == "investigation_report" %}<span class="sr-only">(current)</span>{% endif %}</a>
+    </li>
+    <li {% if action == "lab_cause" %}class="active"{% endif %}>
+        <a href="{% url 'supervisors_report_laboratory_cause' %}"><small><span class="glyphicon glyphicon-asterisk" aria-hidden="true"></span> รายการสาเหตุการเกิดโรค{% if action == "lab_cause" %}<span class="sr-only">(current)</span>{% endif %}</small></a>
+    </li>
+    <li {% if action == "lab_report" %}class="active"{% endif %}>
+        <a href="{% url 'supervisors_report_laboratory' %}">รายการผลแลป{% if action == "lab_report" %}<span class="sr-only">(current)</span>{% endif %}</a>
+    </li>
+</ul>

@@ -1,0 +1,58 @@
+{% extends 'supervisors/base_supervisors.html' %}
+{% load supervisors_tags %}
+
+{% block sidebar %}
+{% include 'supervisors/snippets/supervisors_sidebar.html' with action="investigation_report" %}
+{% endblock %}
+
+{% block supervisors_content %}
+<h2 class="h-title pull-left">Report Investigations</h2>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}{% endif %}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<a class="btn btn-primary btn-download pull-right" href="{% url 'supervisors_report_investigation_create' %}" class="btn btn-default"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> เพิ่มรายการการสืบสวนโรค</a>
+
+<div role="tabpanel">
+
+
+  <div class="tab-content">
+
+    <div role="tabpanel" class="tab-pane fade in active" id="by-user">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>วันที่สืบสวน</th>
+                    <th>เลขที่รายงาน</th>
+                    <th>รายละเอียดรายงาน</th>
+                    <th>ไฟล์แนบ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for investigation in investigations %}
+                <tr>
+                    <td><a href="{% url 'supervisors_report_investigation_edit' investigation.id %}">#{{ investigation.id }}</a></td>
+                    <td>{{ investigation.investigation_date|date:"d/m/Y" }}</td>
+                    <td>{{ investigation.report.id }}</td>
+                    <td>{{ investigation.report.rendered_form_data|safe }}</td>
+                    <td>{% if investigation.file %}<a href="{{ investigation.file }}" target="_blank">{{ investigation.file }}</a>{% else %}-{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td class="text-center" colspan="5">ไม่พบรายการการสืบสวนโรค</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+  </div>
+
+</div>
+
+
+{% endblock %}

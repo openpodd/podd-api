@@ -1,0 +1,12 @@
+{{ template_rendered }}
+
+โดย {{ report.created_by.get_full_name }}
+เบอร์โทรติดต่อ {{ report.created_by.project_mobile_number }} หรือ {{ report.created_by.telephone }}
+เมื่อวันที่ {{ report.date|date:"j F Y H:i" }}
+เหตุเกิดวันที่ {{ report.incident_date|date:"j F Y" }}
+
+สามารถดูรายละเอียดเพิ่มเติมได้ที่ http://www.cmonehealth.org/dashboard/#/reports/{{ report.id }}
+{% if report.images.count %}รูปภาพประกอบ{% endif %}
+{% for image in report.images.all %}
+- {{ image.image_url }}
+{% endfor %}

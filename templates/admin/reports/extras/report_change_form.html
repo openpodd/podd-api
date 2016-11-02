@@ -1,0 +1,84 @@
+
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script type="text/javascript">
+
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = (cookies[i].trim());
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        var csrftoken = getCookie('csrftoken');
+
+        function publish() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (xhttp.readyState == 4 && xhttp.status == 200) {
+                    document.getElementById('publish_success').style.display = 'block';
+                } else if (xhttp.readyState == 4) {
+                    document.getElementById('publish_error').style.display = 'block';
+                }
+            };
+            xhttp.open("POST", "/reports/{{ original.pk }}/publish/", true);
+            xhttp.setRequestHeader("X-CSRFToken", csrftoken);
+            xhttp.send();
+        }
+
+        function unpublish() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (xhttp.readyState == 4 && xhttp.status == 200) {
+                    document.getElementById('unpublish_success').style.display = 'block';
+                } else if (xhttp.readyState == 4) {
+                    document.getElementById('unpublish_error').style.display = 'block';
+                }
+            };
+            xhttp.open("POST", "/reports/{{ original.pk }}/unpublish/", true);
+            xhttp.setRequestHeader("X-CSRFToken", csrftoken);
+            xhttp.send();
+        }
+
+
+    </script>
+{% endblock %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    <ul class="messagelist publish">
+        <li id="publish_success" class="success" style="display: none;">The report "{{ original }}" has been published successfully. </li>
+        <li id="publish_error" class="error" style="display: none;">The report "{{ original }}" error occurred. </li>
+
+        <li id="unpublish_success" class="success" style="display: none;">The report "{{ original }}" has been un-published successfully. </li>
+        <li id="unpublish_error" class="error" style="display: none;">The report "{{ original }}" error occurred. </li>
+    </ul>
+
+{% endblock %}
+
+{% block form_top %}
+
+{% if request.user.is_superuser %}
+    <div style="
+        display: list-item;
+        margin-top: 10px;
+        margin-bottom: 15px;
+        clear: both;
+    ">
+        <a id="publish" class="button default" style="float: left" onclick="publish()">Add to publish feed</a>
+        <a id="unpublish" class="button default" style="float: left; margin-left: 5px" onclick="unpublish()">Remove from publish feed</a>
+    </div>
+    {% endif %}
+
+{% endblock %}

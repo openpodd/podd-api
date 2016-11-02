@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+	<meta name="description" content="{% block description %}{% endblock description %}">
+
+	<meta property="og:url" content="{{ current_url }}">
+	<meta property="og:site_name" content="{{ site_name }}">
+	<meta property="og:title" content="{{ title }}">
+	<meta property="og:description" content="{{ description }}">
+	<meta property="og:type" content="website" />
+	<meta property="og:image" content="{{ thumbnail }}">
+
+
+	<meta name="twitter:site" content="{{ current_url }}">
+	<meta name="twitter:title" content="{{ title }}">
+	<meta name="twitter:description" content="{{ description }}">
+	<meta name="twitter:card" content="{{ thumbnail }}">
+	<meta name="twitter:image:src" content="{{ thumbnail }}">
+
+  <meta property="al:android:url" content="cmonehealth://dodd">
+  <meta property="al:android:package" content="org.cm.podd.urban.report">
+  <meta property="al:android:app_name" content="ดูดีดี">
+
+	<base href="/">
+	<title>{{ title }}</title>
+
+	<style>
+			@font-face {
+							font-family: 'thaisans_neuebold';
+							src: url('static/fonts/thaisansneue/thaisansneue-bold-webfont.eot');
+							src: url('static/fonts/thaisansneue/thaisansneue-bold-webfont.eot?#iefix') format('embedded-opentype'),
+							url('static/fonts/thaisansneue/thaisansneue-bold-webfont.woff') format('woff'),
+							url('static/fonts/thaisansneue/thaisansneue-bold-webfont.ttf') format('truetype'),
+							url('static/fonts/thaisansneue/thaisansneue-bold-webfont.svg#thaisans_neuebold') format('svg');
+							font-weight: 100;
+							font-style: normal;
+			}
+
+			@font-face {
+							font-family: 'thaisans_neue_lightregular';
+							src: url('static/fonts/thaisansneue/thaisansneue-light-webfont.eot');
+							src: url('static/fonts/thaisansneue/thaisansneue-light-webfont.eot?#iefix') format('embedded-opentype'),
+							url('static/fonts/thaisansneue/thaisansneue-light-webfont.woff') format('woff'),
+							url('static/fonts/thaisansneue/thaisansneue-light-webfont.ttf') format('truetype'),
+							url('static/fonts/thaisansneue/thaisansneue-light-webfont.svg#thaisans_neue_lightregular') format('svg');
+							font-weight: 100;
+							font-style: normal;
+			}
+
+			@font-face {
+							font-family: 'thaisans_neueregular';
+							src: url('static/fonts/thaisansneue/thaisansneue-regular-webfont.eot');
+							src: url('static/fonts/thaisansneue/thaisansneue-regular-webfont.eot?#iefix') format('embedded-opentype'),
+							url('static/fonts/thaisansneue/thaisansneue-regular-webfont.woff') format('woff'),
+							url('static/fonts/thaisansneue/thaisansneue-regular-webfont.ttf') format('truetype'),
+							url('static/fonts/thaisansneue/thaisansneue-regular-webfont.svg#thaisans_neueregular') format('svg');
+							font-weight: 100;
+							font-style: normal;
+			}
+
+			body {
+					background: #fefefe url(/static/images/share/bg-share-footer.png) repeat-x 0 bottom;
+					height: 100%;
+					padding: 0;
+					margin: 0;
+					color: #555;
+					font-family: "Sukhumvit Set",'thaisans_neuebold','Helvetica Neue', Helvetica,Arial,sans-serif;
+					font-weight: 100;
+					min-height: 1150px;
+			}
+
+			a {
+				text-decoration: none;
+				color: #555;
+			}
+			a:hover, a:focus, a:active {
+				text-decoration: underline;
+			}
+			p { font-size: 18px;}
+			h1, h2 {
+					font-family: "Sukhumvit Set",'thaisans_neuebold','Helvetica Neue', Helvetica,Arial,sans-serif;
+					font-weight: 300;
+			}
+
+			h2 { font-size: 32px;line-height: 42px;}
+
+			.font-bold {
+				font-family: "Sukhumvit Set",'thaisans_neuebold','Helvetica Neue', Helvetica,Arial,sans-serif;
+			}
+
+			.header-section {
+				background-color: #fafafa;
+				margin-bottom: 30px;
+				border-bottom: 1px solid #eee;
+			}
+
+			.header-section .content-container {
+				display: flex;
+				display: -webkit-flex;
+				flex-direction: row;
+				-webkit-flex-direction: row;
+				align-items: center;
+				-webkit-align-items: center;
+				justify-content: space-between;
+				-webkit-justify-content: space-between;
+			}
+
+			.main-menu li {
+				display: inline-block;
+				margin-left: 60px;
+				font-weight: bold;
+				font-size: 18px;
+			}
+
+			.content-container {
+					max-width: 960px;
+					margin: 0 auto;
+					padding: 0 20px;
+			}
+
+			.logo {
+					padding: 15px 0 5px;
+				  text-align: center;
+				  font-size: 25px;
+			}
+
+			h1.logo  {
+					margin: 0;
+			}
+
+			.about-app {
+				max-width: 400px;
+			}
+
+			.link-app {
+				margin-top: 50px;
+			}
+			.link-app a {
+				float: left;
+				margin: 10px 10px 0 0;
+			}
+
+			.link-app a:hover {
+				opacity: 0.8;
+			}
+
+
+			.iphone-bg {
+				background: url({{iphone_bg}}) no-repeat;
+				width: 350px;
+				height: 632px;
+				padding-top: 108px;
+				float: right;
+			}
+
+			.device {
+				width: 297px;
+				background-color: #efefef;
+				height: 530px;
+				overflow-y: auto;
+				margin-left: 28px;
+				border-radius: 2px;
+			}
+			.device .feed-item-wrapper * {
+				display: flex;
+				display: -webkit-flex;
+			}
+
+			.feed-item-wrapper {
+				background-color: #FFFFFF;
+				margin: 5px 5px 15px 5px;
+				-webkit-box-shadow: 0px 0px 5px 0px rgba(204,204,204,1);
+				-moz-box-shadow: 0px 0px 5px 0px rgba(204,204,204,1);
+				box-shadow: 0px 0px 5px 0px rgba(204,204,204,1);
+			}
+			.container {
+				background-color: #eee;
+				display: block;
+				width: 100%;
+			}
+
+			.feed_type_container {
+				padding: 5px 10px;
+				flex-direction: row;
+			}
+			.feed_type_icon {
+				height: 50px;
+				width: 50px;
+				justify-content: flex-start;
+			}
+			.feed_type_description {
+				flex: 70;
+				margin-left: 8px;
+				flex-direction: column;
+				-webkit-flex-direction: column;
+				align-self: center;
+				-webkit-align-self: center;
+			}
+
+			.title_feed {
+				font-size: 16px;
+			}
+			.text_white {
+				color: #fff;
+			}
+			.text_special_bolder {
+				font-weight: 500;
+				font-family: "Sukhumvit Set",'thaisans_neuebold','Helvetica Neue', Helvetica,Arial,sans-serif;
+			}
+			.text_special_bold {
+				font-weight: 200;
+				font-family: "Sukhumvit Set",'thaisans_neuebold','Helvetica Neue', Helvetica,Arial,sans-serif;
+			}
+			.text_special {
+				font-weight: 100;
+				font-family: "Sukhumvit Set",'thaisans_neuebold','Helvetica Neue', Helvetica,Arial,sans-serif;
+				text-align: right;
+			}
+			.text {
+				color: #999;
+				font-size: 12px;
+			}
+
+			.sub_title_feed {
+				margin-top: -3px;
+			}
+
+			.feed-post-detail {
+				flex-direction: row;
+				-webkit-flex-direction: row;
+				padding: 10px;
+				overflow: hidden;
+				align-items: center;
+				-webkit-align-items: center;
+			}
+
+			.avatar {
+				overflow: hidden;
+				align-items: center;
+				-webkit-align-items: center;
+				justify-content: center;
+				-webkit-justify-content: center;
+				border-radius: 50%;
+			}
+			.display_name {
+				font-size: 14px;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				width: 55px;
+				text-overflow: ellipsis;
+				-o-text-overflow: ellipsis;
+				-webkit-text-overflow: ellipsis;
+			}
+
+			.name-date-wrapper {
+				flex-direction: row;
+				-webkit-flex-direction: row;
+				justify-content: space-between;
+				-webkit-justify-content: space-between;
+				align-items: center;
+				-webkit-align-items: center;
+				padding-left: 5px;
+			}
+
+			.info-reporter {
+				flex: 90;
+				-webkit-flex: 90;
+				margin-left: 5px;
+				flex-direction: column;
+				-webkit-flex-direction: column;
+			}
+
+			.feed-post-detail .display_name {display: inline-block !important;}
+			.info-area {
+				flex-direction: row;
+				-webkit-flex-direction: row;
+				height: 25px;
+				align-items: center;
+				-webkit-align-items: center;
+			}
+			.support_toolbar {
+				flex-direction: row;
+				-webkit-flex-direction: row;
+				justify-content: space-around;
+				-justify-content: space-around;
+				align-items: center;
+				-webkit-align-items: center;
+				margin: 10px 0 0;
+			}
+			.support_count {
+				flex-direction: row;
+				-webkit-flex-direction: row;
+				align-items: center;
+				-webkit-align-items: center;
+				flex: 1.8;
+				width: 155px;
+			}
+			.text_support {
+				font-size: 12px;
+				color: #ccc;
+				font-family: "Sukhumvit Set",'thaisans_neuebold','Helvetica Neue', Helvetica,Arial,sans-serif;
+			}
+
+			.comment-toolbar {
+				flex-direction: row;
+				-webkit-flex-direction: row;
+				justify-content: space-between;
+				-webkit-justify-content: space-between;
+				align-items: center;
+				-webkit-align-items: center;
+				margin-top: 10px;
+				padding: 10px;
+				border-top: 1px solid #ccc;
+				flex: 1;
+				-webkit-flex: 1;
+			}
+			.comment_count {
+				flex-direction: row;
+				-webkit-flex-direction: row;
+				flex: 1;
+				-webkit-flex: 1;
+			}
+			.comment_action {
+				height: 20px;
+				flex-direction: row;
+				-webkit-flex-direction: row;
+				align-items: center;
+				-webkit-align-item: center;
+			}
+			.action {
+				margin-left: 20px;
+			}
+
+			.icon {
+				width: 12px;
+				height: 12px;
+				color: #ccc;
+				opacity: 0.4;
+			}
+
+			.support-count-wrapper {
+				flex-direction: column;
+				-webkit-flex-direction: column;
+				flex: 1;
+				-webkit-flex: 1;
+				align-items: center;
+				-webkit-align-items: center;
+				border-right-width: 1px;
+				border-color: #999;
+			}
+
+			.support-wrapper {
+				height: 20px;
+				align-items: center;
+				-webkit-align-items: center;
+			}
+
+			.text-support {
+				font-size: 12px;
+				color: #ccc;
+				font-family: "Sukhumvit Set",'thaisans_neuebold','Helvetica Neue', Helvetica,Arial,sans-serif;
+				margin-left: 5px;
+			}
+
+			.support-count {
+				flex: 1.6;
+				-webkit-flex: 1.6;
+			}
+
+			.social-wrapper {
+				flex-direction: column;
+				-webkit-flex-direction: column;
+			}
+			.description-wrapper {
+				padding: 0 10px;
+				flex-direction: column;
+				-webkit-flex-dirextion: column;
+				margin-top: 5px;
+			}
+			.description-wrapper p {
+				margin: 0;
+				color: #666;
+				font-size: 15px;
+			}
+			.type-detail {
+				margin-bottom: 15px;
+			}
+
+			.btn-blue {
+				font-family: "Sukhumvit Set",'thaisans_neuebold','Helvetica Neue', Helvetica,Arial,sans-serif;
+				font-weight: 500;
+				background-color: #36BDD0;
+				width: 100%;
+				border-radius: 18px;
+				color: #fff;
+				align-items: center;
+				justify-content: center;
+				-webkit-align-items: center;
+				-webkit-justify-content: center;
+				height: 33px;
+				box-sizing: border-box;
+				margin-right: 10px;
+			}
+
+			.support-btn-wrapper {
+				flex: 1;
+				-webkit-flex: 1;
+			}
+
+			.device{
+				padding-right: 1px;
+			}
+			.iphone-bg {
+				margin-right: 1px;
+			}
+
+			h2.app-title { margin-top: 0;}
+			.content-wrapper {
+				display: flex;
+				display: -webkit-flex;
+				flex-direction: row;
+				align-items: center;
+				-webkit-align-items: center;
+				justify-content: space-between;
+				-webkit-justify-content: space-between;
+			}
+			.footer-sector { margin-top: 20px;}
+			.device::-webkit-scrollbar {
+				width: 5px;
+				height: 2em;
+			}
+			.device::-webkit-scrollbar-button {
+				background: #fff;
+			}
+			.device::-webkit-scrollbar-track-piece {
+				background: #fff;
+			}
+			.device::-webkit-scrollbar-thumb {
+				background: #ccc;
+			}​
+			.device::-webkit-scrollbar {
+				width: 5px;
+				height: 2em;
+			}
+			.device::-webkit-scrollbar-button {
+				background: #fff;
+			}
+			.device::-webkit-scrollbar-track-piece {
+				background: #fff;
+			}
+			.device::-webkit-scrollbar-thumb {
+				background: #ccc;
+			}​
+
+
+	</style>
+	<link href="/static/css/responsive-share.css" rel="stylesheet">
+</head>
+<body>
+	<div class="header-section">
+		<div class="content-container">
+			<h1 class="logo"><img src="../static/images/share/logo@2x.png" style="width: 203px; height: auto;"/></h1>
+
+				<ul class="main-menu font-bold">
+					<li><a href="http://cmonehealth.org">ติดต่อเรา</a></li>
+				</ul>
+
+		</div>
+	</div>
+	<div class="content-container section-content">
+		<div class="content-wrapper">
+			<div class="about-app">
+			    <h2 class="app-title">ดูดีดี by PODD <br />แอปพลิเคชั่นดูแลชุมชน </h2>
+			    <p class="app-description">
+			       สุขภาพชุมชนของเราเป็นสิ่งสำคัญ คุณก็เป็นส่วนหนึ่งในการร่วมดูแลได้ ร่วมด้วยช่วยกันรายงาน บอกปัญหาให้ทุกคนรู้ เพียงถ่ายรูป และส่งรายละเอียดผ่านแอปพลิเคชั่น ปัญหาที่คุณพบอาจจะมีเพื่อนคนอื่นประสบเหมือนกันอยู่ มาพูดคุยและช่วยเหลือกัน
+			    </p>
+			    <div class="link-app">
+			        <a href="https://itunes.apple.com/th/app/du-di-di/id1052065042?ls=1&mt=8" target="_blank">
+			            <img src="{{ appstore_icon }}" alt="" style="width: 140px; height: auto;"/>
+			        </a>
+			        <a href="https://play.google.com/store/apps/details?id=org.cm.podd.urban.report&ah=pNQweKsRDUQC7DygEnyT8hsS77c" target="_blank">
+			            <img src="{{ playstore_icon }}" alt="" style="width: 140px; height: auto;"/>
+			        </a>
+			    </div>
+
+			</div>
+			<div class="iphone-bg">
+			    <div class="device">
+
+					{% for report in report_list %}
+					<div class="feed-item-wrapper">
+						<!-- HEADER -->
+						<div class="header feed_type_container" style="background-color: {{ report.feed_header_color }};">
+							<img class="feed_type_icon" src="{{ report.feed_icon }}" alt="">
+							<div class="feed_type_description">
+								<div class="title_feed text_white text_special_bolder">
+									{{ report.reportTypeName }}
+								</div>
+							</div>
+						</div>
+
+						<!-- Photos -->
+						<div class="media">
+							<div class="container">
+								<div style="width: 100%; height: 247px; background-image: url('{{ report.thumbnail }}'); background-size: cover; background-position: center;">
+
+								</div>
+							</div>
+						</div>
+
+						<!-- Info -->
+						<div class="feed-post-detail">
+							<div class="avatar-wrapper">
+								<img class="avatar" src="{{ report.avatar }}" alt="" style="width: 50px; height: 50px;">
+							</div>
+							<div class="info-reporter">
+								<div class="name-date-wrapper">
+									<div class="text_special_bolder display_name">
+										{{ report.display_name }}
+									</div>
+									<div class="text_special text render_datetime">
+										<time datetime="{{ report.created_at|date:'c' }}">
+											{{ report.created_at|date:"Y-m-d H:i" }}
+										</time>
+									</div>
+								</div>
+								<div class="info-area">
+									<img class="icon" src="{{ room_icon }}" alt="" style="width: 25px; height: auto;">
+									<div style="color: #999; font-size: 13px; flex: 1">
+										{{ report.administrationAreaName }}
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="description-wrapper">
+							<div class="text_special_bolder type-detail">
+								{{ report.formDataExplanation|striptags }}
+							</div>
+							{% if report.remark %}
+							<p>
+								{{ report.remark|striptags }}
+							</p>
+							{% endif %}
+						</div>
+						<div class="social-wrapper">
+							<div class="support_toolbar">
+								<div class="support-count">
+									<div class="support-count-wrapper" style="border-right: 1px solid #ccc">
+										<span class="text_special_bold" style="font-size: 25px;">{{ report.meTooCount|default:'0' }}</span>
+										<div class="support-wrapper">
+											<img class="icon" src="{{ thumb_up_icon }}" style="width: 18px; height: auto;">
+											<span class="text-support">ประสบด้วย</span>
+										</div>
+									</div>
+
+									<div class="support-count-wrapper">
+										<span class="text_special_bold" style="font-size: 25px;">{{ report.likeCount|default:'0' }}</span>
+										<div class="support-wrapper">
+											<img class="icon" src="{{ favorite_icon }}" alt="" style="width: 18px; height: auto;">
+											<span class="text-support">ให้กำลังใจ</span>
+										</div>
+									</div>
+								</div>
+								<div class="support-btn-wrapper">
+								  <div class="btn-blue">
+									<span>สนับสนุน</span>
+								  </div>
+								</div>
+							</div>
+
+							<!-- Comment -->
+							<div class="comment-toolbar">
+								<div class="comment_count">
+									<span class="text_special_bold">
+										{{ report.commentCount|default:0}} ความคิดเห็น
+									</span>
+								</div>
+
+								<div class="comment_action">
+								  <div class="TouchableOpacity">
+									  <img src="{{ comment_icon }}" alt="">
+								  </div>
+								  <div class="TouchableOpacity action">
+									  <img src="{{ share_icon }}" alt="">
+								  </div>
+								</div>
+							</div>
+						</div>
+						<!-- Social -->
+					</div>
+					{% endfor %}
+
+
+			    </div>
+			</div>
+
+
+		</div>
+
+	</div>
+	<div class="footer-sector">
+		<div class="content-container">
+			© 2015 DODD
+		</div>
+	</div>
+
+	<script type="text/javascript">
+		var dates = document.getElementsByClassName('render_datetime');
+
+		for (i = 0; i < dates.length; i++) {
+			var dom = dates[i];
+			var timeElement = dom.getElementsByTagName('time');
+			var dt = new Date(Date.parse(timeElement[0].getAttribute('datetime')));
+			dom.innerHTML = dt.toLocaleDateString('th-TH', {day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric'})
+		}
+	</script>
+
+</body>
+</html>

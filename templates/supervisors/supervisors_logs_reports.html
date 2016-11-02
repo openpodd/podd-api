@@ -1,0 +1,64 @@
+{% extends 'supervisors/base_supervisors.html' %}
+
+{% block sidebar %}
+{% include 'supervisors/snippets/supervisors_sidebar.html' with action="log_report" %}
+{% endblock %}
+
+{% block supervisors_content %}
+<h2 class="h-title">Logs {% if log_header %}: {{ log_header }}{% endif %}</h2>
+
+{% if log_header %}
+<ol class="breadcrumb">
+    <li>Logs</li>
+    <li><a href="{% url 'supervisors_logs_reports' %}">Reports</a></li>
+    <li class="active">Log: {{ log_header }}</li>
+</ol>
+{% endif %}
+
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Report ID</th>
+            <th>ประเภทรายงาน</th>
+            <th>เหตุการณ์</th>
+            <th>โดย</th>
+            <th>เวลา</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+            <td><a href="{% url 'supervisors_logs_reports_by_report' log.object_id1 %}">{{ log.object_id1 }}</a></td>
+            <td>{{ log.object1.type }}</td>
+            <td>{{ log.render }}</td>
+            <td><a href="{% url 'supervisors_logs_reports_by_user' log.created_by.id %}">{{ log.created_by.get_full_name }}</a></td>
+            <td>{{ log.created_at }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td class="text-center" colspan="5">ไม่พบรายงาน</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if logs %}
+<nav>
+    <ul class="pager">
+        {% if logs.has_previous %}
+        <li class="previous">
+            <a href="?page={{ logs.previous_page_number }}"><span aria-hidden="true">&larr;</span> Next</a>
+        </li>
+        {% endif %}
+        {% if logs.has_next %}
+        <li class="next">
+            <a href="?page={{ logs.next_page_number }}">Previous <span aria-hidden="true">&rarr;</span></a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+
+{% endblock %}
