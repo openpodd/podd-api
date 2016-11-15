@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 
 import datetime
 from django.forms import model_to_dict
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 import facebook
 import json
@@ -29,6 +31,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import action, api_view, authentication_classes, permission_classes, detail_route, link
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
+import xlwt
 
 from accounts import tasks
 from accounts.models import Configuration, UserDevice, User, Authority, UserCode, GroupInvite, AuthorityInvite
@@ -38,7 +41,8 @@ from accounts.serializers import (UserDeviceSerializer, UserListESSerializer, Us
                                   UserCommonDetailSerializer, AuthorityInviteSerializer)
 from accounts.pub_tasks import publish_user_profile
 from common.constants import (GROUP_WORKING_TYPE_REPORT_TYPE, USER_STATUS_VOLUNTEER,
-    USER_STATUS_PODD, USER_STATUS_LIVESTOCK, USER_STATUS_PUBLIC_HEALTH, USER_STATUS_VOLUNTEER, USER_STATUS_ADDITION_VOLUNTEER)
+    USER_STATUS_PODD, USER_STATUS_LIVESTOCK, USER_STATUS_PUBLIC_HEALTH, USER_STATUS_VOLUNTEER, USER_STATUS_ADDITION_VOLUNTEER,
+                              USER_STATUS_CHOICES)
 from common.functions import (filter_permitted_administration_areas_and_descendants, 
     upload_to_s3, resize_and_crop, publish_gcm_message, decode_generate_key, generate_username,
     get_public_authority, publish_apns_message, filter_permitted_report_types, filter_permitted_users, filter_permitted_authority)
@@ -1174,11 +1178,7 @@ def get_invitation(request):
     data = request.DATA.copy()
 
 
-    trainer_authority = request.user.authority_users.all()
-    if trainer_authority:
-        trainer_authority = trainer_authority[0]
-    else:
-        trainer_authority = None
+    trainer_authority = request.user.get_my_authority()
 
     if data.get('authorityId'):
         authority = get_object_or_404(Authority, id=data.get('authorityId'))
@@ -1190,3 +1190,47 @@ def get_invitation(request):
 
     invite = authority.get_invite(status=data.get('status'), trainer_status=request.user.status, trainer_authority=trainer_authority)
     return Response(model_to_dict(invite))
+
+
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated, ))
+def all_invitation(request):
+    #data = request.DATA.copy()
+
+
+    #trainer_authority = request.user.get_my_authority()
+
+    queryset = Authority.objects.all()
+    if not request.user.is_staff:
+        authority_ids = filter_permitted_authority(request.user, subscribes=True)
+        queryset = queryset.filter(id__in=authority_ids)
+
+    workbook = xlwt.Workbook()
+    for user_status, name in USER_STATUS_CHOICES:
+
+        if not name:
+            continue
+
+        sheet = workbook.add_sheet(name)
+
+        sheet.write(0, 0, u'พื้นที่')
+        sheet.write(0, 1, u'รหัส')
+
+        row = 1
+        for authority in queryset:
+
+            invite = authority.get_invite(
+                status=request.GET.get('status') or USER_STATUS_VOLUNTEER,
+                trainer_status=user_status,
+                trainer_authority=authority
+            )
+
+            sheet.write(row, 0, authority.name)
+            sheet.write(row, 1, invite.code)
+            row += 1
+
+    response = HttpResponse(content_type="application/ms-excel")
+    response['Content-Disposition'] = 'attachment; filename=%s' % 'all-invitation-codes.xls'
+    workbook.save(response)
+
+    return response

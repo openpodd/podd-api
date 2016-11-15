@@ -2,6 +2,7 @@
 import copy
 import datetime
 from random import randint
+from django.core.exceptions import ValidationError
 import uuid 
 import json
 
@@ -689,7 +690,7 @@ class AuthorityInvite(DomainMixin):
 
         try:
             super(AuthorityInvite, self).save(*args, **kwargs)
-        except IntegrityError:
+        except (IntegrityError, ValidationError):
             self.code = self.generate_code()
             self.save(*args, **kwargs)
 
