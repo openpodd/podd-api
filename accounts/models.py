@@ -69,6 +69,10 @@ class User(AbstractUser, MultiDomainMixin, UserNotificationMixin):
 
     status = models.CharField(max_length=100, choices=USER_STATUS_CHOICES, blank=True, default='', verbose_name=u'สถานะผู้ใช้')
 
+    trainer_authority = models.ForeignKey('accounts.Authority', blank=True, null=True, related_name='user_trainer_authority', verbose_name=u'ถูกสอนโดยกลุ่ม')
+    trainer_status = models.CharField(max_length=100, choices=USER_STATUS_CHOICES, blank=True, null=True, verbose_name=u'ถูกสอนโดยสถานะ')
+
+
     send_invitation = False
     _important_fields = ['username', 'first_name', 'last_name', 'project_mobile_number',
         'serial_number', 'running_number', 'note']
@@ -467,40 +471,36 @@ class Authority(DomainMixin):
     def invite(self):
         return self.get_invite()
 
-    def get_invite(self, status=None):
+    def get_invite(self, status=None, trainer_status=None, trainer_authority=None):
 
-        if status:
-            try:
-                invite = AuthorityInvite.objects.filter(authority=self, expired_at__gte=timezone.now(), disabled=False, status=status).latest('created_at')
-            except AuthorityInvite.DoesNotExist:
-                invite = AuthorityInvite.objects.create(authority=self, status=status)
+        try:
+            invite = AuthorityInvite.objects.filter(
+                authority=self,
+                expired_at__gte=timezone.now(),
+                disabled=False,
+                status=status,
+                trainer_status=trainer_status,
+                trainer_authority=trainer_authority
 
-        else:
-            try:
-                invite = AuthorityInvite.objects.filter(authority=self, expired_at__gte=timezone.now(), disabled=False, status__isnull=True).latest('created_at')
-            except AuthorityInvite.DoesNotExist:
-                invite = AuthorityInvite.objects.create(authority=self)
+            ).latest('created_at')
+        except AuthorityInvite.DoesNotExist:
+            invite = AuthorityInvite.objects.create(authority=self, status=status, trainer_status=trainer_status, trainer_authority=trainer_authority)
 
-        return invite
-
-    def renew_invite(self, status=None):
-
-        if status:
-            for invite in AuthorityInvite.objects.filter(authority=self, disabled=False, status=status):
-                invite.disabled = True
-                invite.save()
-
-            invite = AuthorityInvite.objects.create(authority=self, status=status)
-
-        else:
-            for invite in AuthorityInvite.objects.filter(authority=self, disabled=False, status__isnull=True):
-                invite.disabled = True
-                invite.save()
-
-            invite = AuthorityInvite.objects.create(authority=self)
 
         return invite
 
+    def renew_invite(self, status=None, trainer_status=None, trainer_authority=None):
+
+        for invite in AuthorityInvite.objects.filter(authority=self, disabled=False, status=status, trainer_status=trainer_status, trainer_authority=trainer_authority):
+            invite.disabled = True
+            invite.save()
+
+        invite = AuthorityInvite.objects.create(authority=self, status=status, trainer_status=trainer_status, trainer_authority=trainer_authority)
+
+
+        return invite
+
+    # deprecate
     def invite_code_by_status(self):
 
         value = {}
@@ -665,7 +665,11 @@ class AuthorityInvite(DomainMixin):
 
     disabled = models.BooleanField(default=False)
 
+    # deprecate
     status = models.CharField(max_length=100, choices=USER_STATUS_CHOICES, blank=True, null=True, verbose_name=u'สถานะ')
+
+    trainer_authority = models.ForeignKey(Authority, blank=True, null=True, related_name='authority_invite_trainer_authority')
+    trainer_status = models.CharField(max_length=100, choices=USER_STATUS_CHOICES, blank=True, null=True, verbose_name=u'จากสถานะ')
 
     @property
     def expired_date_at(self):

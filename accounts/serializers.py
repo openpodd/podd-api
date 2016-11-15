@@ -218,18 +218,24 @@ class AuthorityInviteSerializer(serializers.ModelSerializer):
 
     inviteCode = serializers.Field('invite.code')
     inviteExpiredAt = serializers.Field('invite.expired_at')
-    inviteCodeByUserStatus = serializers.Field('invite_code_by_status')
+    #inviteCodeByUserStatus = serializers.Field('invite_code_by_status')
 
 
     class Meta:
         model = Authority
-        fields = ('id', 'code', 'name', 'description', 'inviteCode', 'inviteExpiredAt', 'inviteCodeByUserStatus')
+        fields = ('id', 'code', 'name', 'description', 'inviteCode', 'inviteExpiredAt')
 
     def transform_inviteCode(self, obj, val):
         request = self.context.get('request')
 
         if request and request.user and request.user.status:
-            return obj.get_invite(request.user.status).code
+            trainer_authority = request.user.authority_users.all()
+            if trainer_authority:
+                trainer_authority = trainer_authority[0]
+            else:
+                trainer_authority = None
+
+            return obj.get_invite(trainer_status=request.user.status, trainer_authority=trainer_authority).code
         else:
             return val
 
@@ -254,7 +260,7 @@ class AuthoritySerializer(serializers.ModelSerializer, AttachCanEditSerializer):
 
     inviteCode = serializers.Field('invite.code')
     inviteExpiredAt = serializers.Field('invite.expired_at')
-    inviteCodeByUserStatus = serializers.Field('invite_code_by_status')
+    #inviteCodeByUserStatus = serializers.Field('invite_code_by_status')
 
 
     tags = serializers.Field('tags.all')
@@ -264,7 +270,7 @@ class AuthoritySerializer(serializers.ModelSerializer, AttachCanEditSerializer):
     class Meta:
         model = Authority
         fields = ('id', 'code', 'name', 'description', 'createdBy', 'users', 'admins', 'deepSubscribes', 'areas',
-                  'reportTypes', 'inherits', 'children', 'inviteCode', 'inviteExpiredAt', 'inviteCodeByUserStatus')
+                  'reportTypes', 'inherits', 'children', 'inviteCode', 'inviteExpiredAt')
 
 
 

@@ -1,5 +1,6 @@
 
 import datetime
+from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 import facebook
 import json
@@ -787,7 +788,9 @@ def get_group_by_invitation_code(request):
 @api_view(['POST'])
 def user_register_by_authority(request):
 
+
     data = request.DATA.copy()
+    print data
     data['username'] = str(uuid.uuid4())[:10].replace('-', '')
     data['status'] = data.get('status') or USER_STATUS_ADDITION_VOLUNTEER
 
@@ -804,7 +807,10 @@ def user_register_by_authority(request):
     try:
         invite = AuthorityInvite.objects.filter(disabled=False, expired_at__gte=timezone.now(), code=invitation_code).latest('created_at')
         authority = invite.authority
-        user_status = invite.status
+        user_status = invite.status or USER_STATUS_VOLUNTEER
+        trainer_status = invite.trainer_status or user_status
+        trainer_authority_id = (invite.trainer_authority and invite.trainer_authority.id) or None
+
     except (ValueError, AuthorityInvite.DoesNotExist):
         return Response({'detail': 'authority is not found.', 'group': ['Authority is not found.']}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -842,6 +848,8 @@ def user_register_by_authority(request):
             user.username = generate_username(user.id)
             user.display_password = password
             user.status = user_status
+            user.trainer_status = trainer_status
+            user.trainer_authority_id = trainer_authority_id
             user.save()
 
             LogItem.objects.log_action(key='USER_CREATE', created_by=user, object1=user, data={
@@ -1157,3 +1165,28 @@ def update_device(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated, ))
+def get_invitation(request):
+    data = request.DATA.copy()
+
+
+    trainer_authority = request.user.authority_users.all()
+    if trainer_authority:
+        trainer_authority = trainer_authority[0]
+    else:
+        trainer_authority = None
+
+    if data.get('authorityId'):
+        authority = get_object_or_404(Authority, id=data.get('authorityId'))
+    else:
+        authority = trainer_authority
+
+    if not authority:
+        return Response({'error': 'You have not authority'}, status=403)
+
+    invite = authority.get_invite(status=data.get('status'), trainer_status=request.user.status, trainer_authority=trainer_authority)
+    return Response(model_to_dict(invite))

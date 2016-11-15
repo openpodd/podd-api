@@ -51,6 +51,7 @@ urlpatterns = patterns('',
     url(r'^users/profile/password/', 'accounts.api.update_password', name='user_update_password'),
     url(r'^users/profile/', 'accounts.api.user_profile', name='user-profile'),
     url(r'^users/domains/', 'accounts.api.user_domains', name='user_domains'),
+    url(r'^users/get-invitation/', 'accounts.api.get_invitation', name='user_get_invitation'),
 
     url(r'^users/(?P<pk>[0-9]+)/profile/upload/', 'accounts.api.upload_image_profile', name='upload_image_profile'),
 

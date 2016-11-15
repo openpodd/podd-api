@@ -87,7 +87,7 @@ CELERY_ALWAYS_EAGER = env('PODD_CELERY_ALWAYS_EAGER') or False
 CELERY_EAGER_PROPAGATES_EXCEPTIONS = env('PODD_CELERY_EAGER_PROPAGATES_EXCEPTIONS') or False
 
 MINUTES_PER_DAY = 24*60
-AUTHORITY_INVITE_EXPIRE_DAYS = 30
+AUTHORITY_INVITE_EXPIRE_DAYS = 30*12*20
 NOTIFICATION_THRESHOLDS = {
     'delayed_follow_up_interval': timedelta(minutes=5),
     'delayed_follow_up_check_period': timedelta(minutes=15),
