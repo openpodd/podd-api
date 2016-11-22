@@ -1413,7 +1413,7 @@ def reports_summary_by_month(request):
 
 
 @api_view(['POST', 'PUT'])
-def report_protect_update_state(request, report_id, key, state, case, auto_create=False):
+def report_protect_update_state(request, report_id, key, state, case, auto_create=False, user=None, fetch_case=True):
 
     # return Response({
     #     'success': True
@@ -1422,9 +1422,11 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
     if key != settings.UPDATE_REPORT_STATE_KEY:
         raise Http404()
 
-    from common.functions import get_system_user
-    system_user = get_system_user()
-
+    if user:
+        system_user = user
+    else:
+        from common.functions import get_system_user
+        system_user = get_system_user()
 
     related_ids = request.GET.getlist('related_ids')
     related_reports = []
@@ -1457,12 +1459,12 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
         if report.parent:
             report = report.parent
 
-
     state = get_object_or_404(ReportState, code=state, report_type=report.type)
     report.state = state
 
-    case = get_object_or_404(CaseDefinition, code=case, to_state=state)
-    report._state_changed_by_case = case
+    if fetch_case:
+        case = get_object_or_404(CaseDefinition, code=case, to_state=state)
+        report._state_changed_by_case = case
 
     report.updated_by = system_user
     system_user.domain = report.domain
@@ -1475,6 +1477,15 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
     return Response({
         'success': True
     })
+
+@api_view(['POST'])
+def report_protect_verify_to_suspect_outbreak(request, report_id, key):
+    # check if report not already suspect
+    report = get_object_or_404(Report, id=report_id)
+    if report.state.name == 'Case':
+        suspect_state = get_object_or_404(ReportState, report_type=report.type, name='Suspect Outbreak')
+        return report_protect_update_state(request, report_id, key, suspect_state.code, None, auto_create=False,
+                                           user=report.created_by, fetch_case=False)
 
 
 @api_view(['POST', 'PUT'])
