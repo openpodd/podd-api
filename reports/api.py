@@ -1413,8 +1413,7 @@ def reports_summary_by_month(request):
 
 
 @api_view(['POST', 'PUT'])
-def report_protect_update_state(request, report_id, key, state, case, auto_create=False, user=None, fetch_case=True):
-
+def report_protect_update_state(request, report_id, key, state, case, auto_create=False, user=None, extra_info=None):
     # return Response({
     #     'success': True
     # })
@@ -1462,9 +1461,9 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
     state = get_object_or_404(ReportState, code=state, report_type=report.type)
     report.state = state
 
-    if fetch_case:
-        case = get_object_or_404(CaseDefinition, code=case, to_state=state)
-        report._state_changed_by_case = case
+    case = get_object_or_404(CaseDefinition, code=case, to_state=state)
+    case._extra_info = extra_info
+    report._state_changed_by_case = case
 
     report.updated_by = system_user
     system_user.domain = report.domain
@@ -1479,14 +1478,21 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
     })
 
 @api_view(['POST'])
-def report_protect_verify_to_suspect_outbreak(request, report_id, key):
+def report_protect_verify_to_suspect_outbreak(request, report_id, key, verified):
     # check if report not already suspect
     report = get_object_or_404(Report, id=report_id)
     if report.state.name == 'Case':
-        suspect_state = get_object_or_404(ReportState, report_type=report.type, name='Suspect Outbreak')
-        return report_protect_update_state(request, report_id, key, suspect_state.code, None, auto_create=False,
-                                           user=report.created_by, fetch_case=False)
+        state_name = "Suspect Outbreak" if verified == "yes" else "False Report"
+        case_def_code = "animalVerifiedByReporter" if verified == "yes" else "animalVerifiedToFalseReportByReporter"
 
+        extra_info = request.GET.get('extraInfo')
+        suspect_state = get_object_or_404(ReportState, report_type=report.type, name=state_name)
+        return report_protect_update_state(request, report_id, key, suspect_state.code, case_def_code, auto_create=False,
+                                           user=report.created_by, extra_info=extra_info)
+    else:
+        return Response({
+            'success': True
+        })
 
 @api_view(['POST', 'PUT'])
 def report_protect_create_with_state(request, key, state, case):

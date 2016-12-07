@@ -87,7 +87,7 @@ urlpatterns = patterns('',
     url(r'^report/summary/month/', 'reports.api.reports_summary_by_month', name='reports_summary_by_month'),
     url(r'^report/protect-create-with-state/(?P<key>[.\w-]+)/(?P<state>[\w-]+)/(?P<case>[\w-]+)/', 'reports.api.report_protect_create_with_state', name='report_protect_create_with_state'),
     url(r'^report/(?P<report_id>\d+)/protect-update-state/(?P<key>[.\w-]+)/(?P<state>[\w-]+)/(?P<case>[\w-]+)/', 'reports.api.report_protect_update_state', name='report_protect_update_state'),
-    url(r'^report/(?P<report_id>\d+)/protect-verify-case/(?P<key>[.\w-]+)/', 'reports.api.report_protect_verify_to_suspect_outbreak', name='report_protect_verify_to_suspect_outbreak'),
+    url(r'^report/(?P<report_id>\d+)/protect-verify-case/(?P<key>[.\w-]+)/(?P<verified>[\w-]+)/', 'reports.api.report_protect_verify_to_suspect_outbreak', name='report_protect_verify_to_suspect_outbreak'),
 
     url(r'^supports/', 'reports.api.add_support', name='report_add_support'),
     url(r'^reportTags/', 'reports.api.add_reports_tags', name='add_reports_tags'),

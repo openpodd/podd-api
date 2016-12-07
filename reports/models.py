@@ -345,6 +345,8 @@ class CaseDefinition(DomainMixin):
     window = models.TextField(verbose_name=_('EPL window criteria'), help_text='win:ext_timed(date, 7 day)', blank=True, null=True) # Esper query processing language
     auto_create_report = models.BooleanField(default=False)
 
+    _extra_info = None
+
     class Meta:
         ordering = ['report_type', 'description']
 
@@ -1227,6 +1229,9 @@ class Report(AbstractCachedModel, DomainMixin):
 
         if self._state_changed_by_case:
             message += u' ด้วยเงื่อนไข : %s' % self._state_changed_by_case.description
+
+            if self._state_changed_by_case._extra_info:
+                message += u' โดยมีข้อมูลเพิ่มเติม: %s' % self._state_changed_by_case._extra_info
 
         comment = ReportComment.objects.create(
             report=self,
