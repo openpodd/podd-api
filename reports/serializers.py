@@ -605,6 +605,9 @@ class ReportSerializer(serializers.ModelSerializer, AttachCanEditSerializer):
                 return ''
         return value
 
+    def transform_commentCount(self, obj, value):
+        return obj.comments.filter(created_by__is_public=True, state__isnull=True).count()
+
 
     def validate_reportTypeId(self, attrs, source):
         value = attrs[source]
