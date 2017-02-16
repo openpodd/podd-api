@@ -437,7 +437,7 @@ class ReportViewSet(viewsets.ModelViewSet):
            (request.user.is_public and report.curated_in.count()):
 
             if request.user.is_public:
-                report.comment_count = report.comments.filter(created_by__is_public=True).count()
+                report.comment_count = report.comments.filter(created_by__is_public=True, state__isnull=True).count()
 
             serializer = ReportSerializer(report)
             return Response(serializer.data)
@@ -526,7 +526,7 @@ class ReportViewSet(viewsets.ModelViewSet):
             has_permission_on_administration_area(user=request.user, administration_area=report.administration_area, subscribes=True)):
             queryset = ReportComment.objects.filter(report=report)
             if request.user.is_public:
-                queryset = queryset.filter(created_by__is_public=True)
+                queryset = queryset.filter(created_by__is_public=True, state__isnull=True)
             serializer = ReportCommentSerializer(queryset, many=True)
             serializer_context = {'request': request}
             return Response(serializer.data)
@@ -1084,7 +1084,7 @@ class ReportCommentViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(report=request.QUERY_PARAMS.get('reportId'))
 
         if request.user.is_public:
-            queryset = queryset.filter(created_by__is_public=True)
+            queryset = queryset.filter(created_by__is_public=True, state__isnull=True)
 
         serializer = ReportCommentSerializer(queryset, many=True)
         return Response(serializer.data)
