@@ -811,7 +811,7 @@ def user_register_by_authority(request):
     try:
         invite = AuthorityInvite.objects.filter(disabled=False, expired_at__gte=timezone.now(), code=invitation_code).latest('created_at')
         authority = invite.authority
-        user_status = invite.status or USER_STATUS_VOLUNTEER
+        user_status = invite.status or USER_STATUS_ADDITION_VOLUNTEER
         trainer_status = invite.trainer_status or user_status
         trainer_authority_id = (invite.trainer_authority and invite.trainer_authority.id) or None
 
@@ -1220,7 +1220,7 @@ def all_invitation(request):
         for authority in queryset:
 
             invite = authority.get_invite(
-                status=request.GET.get('status') or USER_STATUS_VOLUNTEER,
+                status=request.GET.get('status') or USER_STATUS_ADDITION_VOLUNTEER,
                 trainer_status=user_status,
                 trainer_authority=authority
             )
