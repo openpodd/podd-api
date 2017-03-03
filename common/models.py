@@ -161,7 +161,7 @@ class DomainMixin(models.Model):
     def get_or_create_graph_node(self):
         graph = Graph(settings.NEO4J_CONNECTION_URL)
 
-        extras = {}
+        extras = {'name': '%s' % self}
         for field in self.graph_fields:
 
             field_split = field.split('.')
@@ -176,8 +176,14 @@ class DomainMixin(models.Model):
 
             extras[field_name] = value
 
-        node = Node(self.get_graph_name(), id=self.id, name='%s' % self, domain_id=self.domain_id, **extras)
+        node = Node(self.get_graph_name(), id=self.id, name='%s' % self, domain_id=self.domain_id)
         graph.merge(node)
+
+        for key, value in extras.iteritems():
+            node[key] = value
+
+        node.push()
+
 
         return node
 
