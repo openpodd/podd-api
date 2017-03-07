@@ -43,7 +43,7 @@ from accounts.serializers import UserSerializer
 from common.constants import PRIORITY_CHOICES, NEWS_TYPE_NEWS, NEWS_TYPE_SUBSCRIBE_AUTHORITY, USER_STATUS_VOLUNTEER, \
     USER_STATUS_ADDITION_VOLUNTEER, \
     PRIORITY_IGNORE, PRIORITY_OK, PRIORITY_CONTACT, PRIORITY_FOLLOW, PRIORITY_CASE, STATUS_CHOICES, STATUS_PUBLISH, \
-    STATUS_DELETE, INVESTIGATION_TYPE
+    STATUS_DELETE, INVESTIGATION_TYPE, USER_STATUS_CHOICES
 from common.decorators import domain_celery_task
 from common.functions import safe_eval, get_system_user, randstr, filter_permitted_administration_areas_and_descendants, \
     get_public_area, get_administration_area_and_descendants, clean_phone_numbers, make_hash
@@ -88,6 +88,8 @@ class ReportType(AbstractCachedModel, DomainMixin):
     summary_template = models.TextField(blank=True, default='', null=True)
 
     authority = models.ForeignKey(Authority, related_name='report_type_authority', blank=True, null=True)
+    user_status = models.CharField(max_length=100, choices=USER_STATUS_CHOICES, default='')
+
     default_state = models.ForeignKey('reports.ReportState', related_name='report_type_default_state', blank=True, null=True)
 
     category = models.ForeignKey(ReportTypeCategory, related_name='report_type_category', blank=True, null=True)

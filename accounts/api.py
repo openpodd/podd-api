@@ -76,6 +76,8 @@ def configuration(request):
         serializer.save()
 
         report_type_queryset = ReportType.objects.filter(id__in=filter_permitted_report_types(request.user), is_system=False)
+        if not request.user.is_staff and request.user.status:
+            report_type_queryset = report_type_queryset.filter(Q(user_status='') | Q(user_status__icontains=(request.user.status)))
 
         area_queryset = filter_permitted_administration_areas_and_descendants(request.user)
 

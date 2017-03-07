@@ -103,6 +103,7 @@ class ReportTypeViewSet(viewsets.ModelViewSet):
         subscribes = request.GET.get('subscribes')
         if not request.user.is_staff:
             queryset = queryset.filter(id__in=filter_permitted_report_types(request.user, subscribes=subscribes))
+            queryset = queryset.filter(Q(user_status='') | Q(user_status__icontains=(request.user.status or '')))
 
         serializer = ReportTypeListSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
