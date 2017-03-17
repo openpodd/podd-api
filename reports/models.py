@@ -43,7 +43,7 @@ from accounts.serializers import UserSerializer
 from common.constants import PRIORITY_CHOICES, NEWS_TYPE_NEWS, NEWS_TYPE_SUBSCRIBE_AUTHORITY, USER_STATUS_VOLUNTEER, \
     USER_STATUS_ADDITION_VOLUNTEER, \
     PRIORITY_IGNORE, PRIORITY_OK, PRIORITY_CONTACT, PRIORITY_FOLLOW, PRIORITY_CASE, STATUS_CHOICES, STATUS_PUBLISH, \
-    STATUS_DELETE, INVESTIGATION_TYPE, USER_STATUS_CHOICES
+    STATUS_DELETE, INVESTIGATION_TYPE, USER_STATUS_CHOICES, PARENT_TYPE_CHOICES, PARENT_TYPE_GENERAL
 from common.decorators import domain_celery_task
 from common.functions import safe_eval, get_system_user, randstr, filter_permitted_administration_areas_and_descendants, \
     get_public_area, get_administration_area_and_descendants, clean_phone_numbers, make_hash
@@ -612,6 +612,8 @@ class Report(AbstractCachedModel, DomainMixin):
     administration_area = models.ForeignKey('AdministrationArea', related_name='reports', null=True, blank=True)
     type = models.ForeignKey('ReportType', related_name='reports')
     parent = models.ForeignKey('self', null=True, blank=True, related_name='children')
+    parent_type = models.CharField(max_length=255, default=PARENT_TYPE_GENERAL, null=True, blank=True, choices=PARENT_TYPE_CHOICES)
+    first_image_thumbnail_url = models.CharField(max_length=512, null=True, blank=True)
     date = models.DateTimeField()
     incident_date = models.DateField()
     form_data = models.TextField(blank=True)
