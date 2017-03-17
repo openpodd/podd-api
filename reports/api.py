@@ -1374,6 +1374,28 @@ def dashboard_villages(request):
 @api_view(['GET'])
 @authentication_classes((TokenAuthentication, SessionAuthentication))
 @permission_classes((IsAuthenticated, ))
+def reports_similar(request, report_id):
+
+    report = get_object_or_404(Report, id=report_id)
+
+    if not(report.negative and report.administration_area and report.administration_area.authority):
+        return Response([])
+
+    authority = report.administration_area.authority
+    range_focus_days = 7
+    range_focus = datetime.timedelta(days=range_focus_days)
+
+    queryset = Report.objects.filter(
+        negative=True, parent__isnull=True, administration_area__authority=authority,
+        date__range=(report.date-range_focus, report.date+range_focus)
+    )[0:50]
+    serializer = ReportSerializer(queryset, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated, ))
 def reports_summary_by_month(request):
     month = request.QUERY_PARAMS.get('month')
     try:
