@@ -870,6 +870,25 @@ class ReportViewSet(viewsets.ModelViewSet):
             return Response({u'detail': u'You do not have permission to perform this action.'},
                             status=status.HTTP_403_FORBIDDEN)
 
+    @link()
+    def similar(self, request, pk=None):
+
+        report = self.get_object()
+
+        if not (report.negative and report.administration_area and report.administration_area.authority):
+            return Response([])
+
+        authority = report.administration_area.authority
+        range_focus_days = 7
+        range_focus = datetime.timedelta(days=range_focus_days)
+
+        queryset = Report.objects.filter(
+            negative=True, parent__isnull=True, administration_area__authority=authority,
+            date__range=(report.date - range_focus, report.date + range_focus)
+        )[0:50]
+        serializer = ReportSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
 
 @api_view(['POST'])
 @authentication_classes((TokenAuthentication, SessionAuthentication))
@@ -1368,28 +1387,6 @@ def dashboard_villages(request):
 
     serializer = DashboardSerializer(administration_areas.values(), many=True)
 
-    return Response(serializer.data)
-
-
-@api_view(['GET'])
-@authentication_classes((TokenAuthentication, SessionAuthentication))
-@permission_classes((IsAuthenticated, ))
-def reports_similar(request, report_id):
-
-    report = get_object_or_404(Report, id=report_id)
-
-    if not(report.negative and report.administration_area and report.administration_area.authority):
-        return Response([])
-
-    authority = report.administration_area.authority
-    range_focus_days = 7
-    range_focus = datetime.timedelta(days=range_focus_days)
-
-    queryset = Report.objects.filter(
-        negative=True, parent__isnull=True, administration_area__authority=authority,
-        date__range=(report.date-range_focus, report.date+range_focus)
-    )[0:50]
-    serializer = ReportSerializer(queryset, many=True, context={'request': request})
     return Response(serializer.data)
 
 
