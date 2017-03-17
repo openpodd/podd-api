@@ -43,7 +43,7 @@ from accounts.serializers import UserSerializer
 from common.constants import PRIORITY_CHOICES, NEWS_TYPE_NEWS, NEWS_TYPE_SUBSCRIBE_AUTHORITY, USER_STATUS_VOLUNTEER, \
     USER_STATUS_ADDITION_VOLUNTEER, \
     PRIORITY_IGNORE, PRIORITY_OK, PRIORITY_CONTACT, PRIORITY_FOLLOW, PRIORITY_CASE, STATUS_CHOICES, STATUS_PUBLISH, \
-    STATUS_DELETE, INVESTIGATION_TYPE, USER_STATUS_CHOICES, PARENT_TYPE_CHOICES, PARENT_TYPE_GENERAL
+    STATUS_DELETE, INVESTIGATION_TYPE, USER_STATUS_CHOICES, PARENT_TYPE_CHOICES, PARENT_TYPE_GENERAL, PARENT_TYPE_MERGE
 from common.decorators import domain_celery_task
 from common.functions import safe_eval, get_system_user, randstr, filter_permitted_administration_areas_and_descendants, \
     get_public_area, get_administration_area_and_descendants, clean_phone_numbers, make_hash
@@ -1262,7 +1262,7 @@ class Report(AbstractCachedModel, DomainMixin):
     def clear_follow_up(self):
         FollowUp.objects.filter(report=self).update(disabled=True)
 
-    def add_comment_to_parent(self):
+    def add_comment_to_parent(self, is_merge=False):
         # if this is not a follow-up report then do nothing
         if not self.parent:
             return
@@ -1277,6 +1277,19 @@ class Report(AbstractCachedModel, DomainMixin):
                 <p>มีรายงานติดตาม #%(report_id)s เข้ามาใหม่ โดยมีข้อมูลเบื้องต้นดังนี้</p>
                 <p class="comment-rendered-form-data">%(rendered_form_data)s</p>
             '''
+
+        if is_merge:
+            try:
+                template_comment_followup = Configuration.objects.get(
+                    system='web.template.report',
+                    key='comment_followup'
+                ).value
+            except Configuration.DoesNotExist:
+                template_comment_followup = u'''
+                    <p>มีการรวมรายงาน #%(report_id)s เข้ามา โดยมีข้อมูลเบื้องต้นดังนี้</p>
+                    <p class="comment-rendered-form-data">%(rendered_form_data)s</p>
+                '''
+
 
         comment_owner = self.created_by
         message = template_comment_followup % {
@@ -1465,6 +1478,10 @@ class Report(AbstractCachedModel, DomainMixin):
                 self.parent.save()
                 self.mask_responsed_follow_up()
                 self.add_comment_to_parent()
+
+            else:
+                is_merge = (self.parent_type == PARENT_TYPE_MERGE)
+                self.add_comment_to_parent(is_merge=is_merge)
 
         self._plan_accepted_list = None
 

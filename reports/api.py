@@ -35,7 +35,7 @@ from accounts.models import GroupReportType, User, Configuration, Authority
 from accounts.serializers import UserSerializer
 from common.constants import PRIORITY_FOLLOW, GROUP_WORKING_TYPE_REPORT_TYPE, PRIORITY_IGNORE, \
     SUPPORT_LIKE_ME_TOO_COMMENT, SUPPORT_ME_TOO_COMMENT, SUPPORT_LIKE_ME_TOO, SUPPORT_LIKE_COMMENT, SUPPORT_LIKE, \
-    SUPPORT_ME_TOO, SUPPORT_COMMENT, STATUS_PUBLISH, STATUS_DELETE
+    SUPPORT_ME_TOO, SUPPORT_COMMENT, STATUS_PUBLISH, STATUS_DELETE, PARENT_TYPE_MERGE
 from common.functions import (has_permission_on_report_type, has_permission_on_administration_area,
     upload_to_s3, filter_permitted_administration_areas_and_descendants, resize_and_crop,
     publish_into_rabbitmq, get_public_area, filter_permitted_report_types, filter_permitted_administration_areas_and_descendants_by_authorities)
@@ -888,6 +888,30 @@ class ReportViewSet(viewsets.ModelViewSet):
         )[0:50]
         serializer = ReportSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
+
+
+    @action()
+    def merge(self, request, pk=None):
+        parent = self.get_object()
+
+        if parent.parent:
+            return Response(status=status.HTTP_200_OK)
+
+        report_ids = request.DATA.get('reportIds', [])
+
+        for report_id in report_ids:
+
+            try:
+                report = Report.objects.get(id=report_id, negative=True)
+                report.parent = parent
+                report.parent_type = PARENT_TYPE_MERGE
+                report.save()
+
+            except Report.DoesNotExist:
+                pass
+
+
+        return Response(status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
