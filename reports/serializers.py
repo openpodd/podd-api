@@ -598,6 +598,9 @@ class ReportSerializer(serializers.ModelSerializer, AttachCanEditSerializer):
         if value:
             try:
                 report = Report.objects.get(pk=value)
+                if report.first_image_thumbnail_url:
+                    return report.first_image_thumbnail_url
+
                 if len(report.images.all()):
                     return report.images.all()[0].thumbnail_url
                 return ''

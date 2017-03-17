@@ -30,6 +30,7 @@ class ReportIndex(indexes.SearchIndex, indexes.Indexable):
     stateName = indexes.CharField(model_attr='state__name', null=True)
     stateCode = indexes.CharField(model_attr='state__code', null=True)
     parent = indexes.IntegerField(model_attr='parent__id', null=True)
+    parentType = indexes.CharField(model_attr='parent_type', null=True)
     tags = indexes.MultiValueField(indexed=True, stored=True)
 
     #latitude = indexes.FloatField(model_attr='report_location__y', indexed=True, null=True)
@@ -75,6 +76,9 @@ class ReportIndex(indexes.SearchIndex, indexes.Indexable):
         return [tag.name for tag in obj.tags.all()] or None
 
     def prepare_firstImageThumbnail(self, obj):
+        if obj.first_image_thumbnail_url:
+            return obj.first_image_thumbnail_url
+
         if obj.images.count():
             return obj.images.all()[0].thumbnail_url
         return ''

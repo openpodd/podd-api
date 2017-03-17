@@ -612,7 +612,7 @@ class Report(AbstractCachedModel, DomainMixin):
     administration_area = models.ForeignKey('AdministrationArea', related_name='reports', null=True, blank=True)
     type = models.ForeignKey('ReportType', related_name='reports')
     parent = models.ForeignKey('self', null=True, blank=True, related_name='children')
-    parent_type = models.CharField(max_length=255, default=PARENT_TYPE_GENERAL, null=True, blank=True, choices=PARENT_TYPE_CHOICES)
+    parent_type = models.CharField(max_length=255, null=True, blank=True, choices=PARENT_TYPE_CHOICES)
     first_image_thumbnail_url = models.CharField(max_length=512, null=True, blank=True)
     date = models.DateTimeField()
     incident_date = models.DateField()

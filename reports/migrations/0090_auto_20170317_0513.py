@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='report',
             name='parent_type',
-            field=models.CharField(default=b'GENERAL', max_length=255, null=True, blank=True, choices=[(b'GENERAL', b'General'), (b'MERGE', b'Merge')]),
+            field=models.CharField(max_length=255, null=True, blank=True, choices=[(b'GENERAL', b'General'), (b'MERGE', b'Merge')]),
             preserve_default=True,
         ),
     ]
