@@ -67,6 +67,8 @@ from reports.serializers import (ReportSerializer, ReportListESSerializer, Repor
 from reports.pub_tasks import publish_report, publish_comment, publish_report_image
 from reports.search_indexes import ReportIndex
 
+from haystack import connections as haystack_connections
+
 
 class ReportTypeCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     model = ReportTypeCategory
@@ -1061,6 +1063,9 @@ def add_report_image(request):
 
     if serializer.is_valid():
         serializer.save()
+
+        index = haystack_connections['default'].get_unified_index().get_index(Report)
+        index.update_object(report)
 
         data_to_publish = serializer.data
         data_to_publish['administrationAreaId'] = report.administration_area.id
