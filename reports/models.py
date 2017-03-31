@@ -88,7 +88,7 @@ class ReportType(AbstractCachedModel, DomainMixin):
     summary_template = models.TextField(blank=True, default='', null=True)
 
     authority = models.ForeignKey(Authority, related_name='report_type_authority', blank=True, null=True)
-    user_status = models.CharField(max_length=100, choices=USER_STATUS_CHOICES, default='')
+    user_status = models.CharField(max_length=100, choices=USER_STATUS_CHOICES, default='', blank=True)
 
     default_state = models.ForeignKey('reports.ReportState', related_name='report_type_default_state', blank=True, null=True)
 
