@@ -437,7 +437,8 @@ class CaseDefinition(DomainMixin):
             )
 
         payload = {
-            'stmt': stmt
+            'stmt': stmt,
+            'code': self.code
         }
 
         if not settings.ESPER_CONNECTION_URL:
@@ -456,7 +457,8 @@ class CaseDefinition(DomainMixin):
                 self.report_type.create_cep()
                 for state in self.report_type.report_state_report_type.all():
                     state.create_cep()
-                self.create_cep()
+                for case_definition in self.report_type.case_definition_report_type.all():
+                    case_definition.create_cep()
 
         # Force to not drop when edit in the next time
         self.drop_if_exists = False
