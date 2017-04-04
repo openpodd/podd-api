@@ -9,6 +9,7 @@ from notifications import api as notifications_api
 from reports import api as reports_api
 from accounts import api as accounts_api
 from plans import api as plans_api
+from areas import api as areas_api
 
 router = routers.DefaultRouter()
 
@@ -80,6 +81,10 @@ urlpatterns = patterns('',
 
     url(r'^feed/mine', 'feed.api.items_list_mine', name='feed_list_mine'),
     url(r'^feed/', 'feed.api.items_list', name='feed_list'),
+
+    url(r'^places/$', areas_api.PlaceViewSet.as_view({
+        'get': 'list'
+    })),
 
     url(r'^reports/search/', 'reports.api.reports_search', name='reports_search'),
     url(r'^reportImage/upload/', 'reports.api.upload_report_image', name='upload_report_image'),
