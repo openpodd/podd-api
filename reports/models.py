@@ -5,6 +5,7 @@ import json
 import re
 import operator
 import threading
+from django.contrib.gis import geos
 import uuid
 import datetime
 
@@ -40,6 +41,7 @@ from taggit.managers import TaggableManager
 
 from accounts.models import User, Authority, user_can_edit_basic_check, Configuration
 from accounts.serializers import UserSerializer
+from common import geos_util
 from common.constants import PRIORITY_CHOICES, NEWS_TYPE_NEWS, NEWS_TYPE_SUBSCRIBE_AUTHORITY, USER_STATUS_VOLUNTEER, \
     USER_STATUS_ADDITION_VOLUNTEER, \
     PRIORITY_IGNORE, PRIORITY_OK, PRIORITY_CONTACT, PRIORITY_FOLLOW, PRIORITY_CASE, STATUS_CHOICES, STATUS_PUBLISH, \
@@ -94,7 +96,7 @@ class ReportType(AbstractCachedModel, DomainMixin):
 
     category = models.ForeignKey(ReportTypeCategory, related_name='report_type_category', blank=True, null=True)
 
-    report_pre_save = models.TextField(null=True, blank=True)
+    report_pre_save = models.TextField(null=True, blank=True, help_text='Variables are: report, json, geos, geos_util')
     is_system = models.BooleanField(default=False)
 
     cached_vars = [('authority', True), 'form_definition', 'summary_template', 'version']
@@ -1527,6 +1529,17 @@ class Report(AbstractCachedModel, DomainMixin):
         if settings.ADJUST_DATE and self.id is None:
             self.adjust_incident_date()
 
+        # evaluate pre_save custom script.
+        report_pre_save = (self.type.report_pre_save or '').strip()
+        if report_pre_save:
+            symtable = {
+                'report': self,
+                'json': json,
+                'geos': geos,
+                'geos_util': geos_util
+            }
+            safe_eval(report_pre_save, symtable)
+
         # check #1: if this is a new report, do these things once
         #    1. save original data
         #    2. assign default state
@@ -1547,13 +1560,6 @@ class Report(AbstractCachedModel, DomainMixin):
                 ))
 
 
-        # evaluate pre_save custom script.
-        report_pre_save = (self.type.report_pre_save or '').strip()
-        if report_pre_save:
-            symtable = {
-                'report': self
-            }
-            safe_eval(report_pre_save, symtable)
 
         # check #2: if this report has test_flag = True then,
         #    1. mark this report as a positive(negative = False) one.

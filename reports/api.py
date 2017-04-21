@@ -388,6 +388,7 @@ class ReportViewSet(viewsets.ModelViewSet):
                 tasks.new_negative_report_rule.delay(obj) # deprecate when authority comes...
 
     def create(self, request):
+
         parent = None
         if not request.DATA.get("parent") and request.DATA.get('parentGuid'):
             try:
