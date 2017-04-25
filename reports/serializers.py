@@ -350,6 +350,7 @@ class ReportListESSerializer(serializers.ModelSerializer):
     incidentDate = serializers.Field('incidentDate')
     createdBy = serializers.Field('createdBy')
     createdByName = serializers.Field('createdByName')
+    createdByThumbnailUrl = serializers.Field('createdByThumbnailUrl')
     flag = serializers.Field()
     testFlag = serializers.Field(source='testFlag')
     stateName = serializers.Field('stateName')
@@ -362,13 +363,14 @@ class ReportListESSerializer(serializers.ModelSerializer):
     tags = serializers.Field('tags')
 
     reportLocation = serializers.CharField(source='reportLocation')
+    commentCount = serializers.IntegerField(source='commentCount')
 
     class Meta:
         model = Report
         fields = ('id', 'reportId', 'guid', 'reportTypeId', 'reportTypeName', 'date',
-            'administrationAreaId', 'negative', 'incidentDate', 'createdBy', 'createdByName', 'flag', 'testFlag',
+            'administrationAreaId', 'negative', 'incidentDate', 'createdBy', 'createdByName', 'createdByThumbnailUrl', 'flag', 'testFlag',
             'formDataExplanation', 'renderedOriginalFormData', 'administrationAreaAddress', 'firstImageThumbnail',
-            'state', 'stateCode', 'stateName', 'parent', 'tags', 'reportLocation')
+            'state', 'stateCode', 'stateName', 'parent', 'tags', 'reportLocation', 'commentCount')
 
     def transform_testFlag(self, obj, value):
         if value:
@@ -404,6 +406,9 @@ class ReportListESSerializer(serializers.ModelSerializer):
         if obj and obj.area:
            return obj.area
         return value
+
+    def transform_commentCount(self, obj, value):
+        return value if value else 0
 
     '''
     def transform_firstImageThumbnail(self, obj, value):
