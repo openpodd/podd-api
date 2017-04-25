@@ -1726,7 +1726,7 @@ class ReportComment(DomainMixin):
             publish_mention(serializer.data)
 
         from reports.serializers import ReportCommentSerializer
-        
+
         if is_new:
             report = self.report
             Report.objects.filter(id=report.id).update(comment_count=report.comment_count + 1)
@@ -1735,6 +1735,11 @@ class ReportComment(DomainMixin):
             serializer = ReportCommentSerializer(self)
             publish_comment(serializer.data)
 
+            # update comment count
+            from reports.search_indexes import ReportIndex
+            report_index = ReportIndex()
+            report_index.update_object(report)
+
     def delete(self, *args, **kwargs):
         report = Report.objects.get(id=self.report.id) # No cache
 
@@ -1742,6 +1747,10 @@ class ReportComment(DomainMixin):
         invalidate_obj(report)
 
         super(ReportComment, self).delete(*args, **kwargs)
+
+        from reports.search_indexes import ReportIndex
+        report_index = ReportIndex()
+        report_index.update_object(report)
 
     def user_can_edit(self, user):
         return user == self.created_by
