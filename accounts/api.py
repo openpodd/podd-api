@@ -587,7 +587,7 @@ def upload_image_profile(request, pk=None):
             if avatar_url and thumbnail_avatar_url:
                 serializer.object.avatar_url = avatar_url
                 serializer.object.thumbnail_avatar_url = thumbnail_avatar_url
-                serializer.save()
+                serializer.object.save()
 
                 now = datetime.datetime.now()
                 month = '%s/%s' % (now.month, now.year)
