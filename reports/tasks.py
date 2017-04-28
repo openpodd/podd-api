@@ -44,6 +44,7 @@ def extract_image_gps(report_image_guid):
     '''
     Extract location data from image if possible then save it back to DB.
     '''
+    print "Extracting GPS data from image : %s" % report_image_guid
     report_image = ReportImage.objects.get(guid=report_image_guid)
 
     if report_image.location:
