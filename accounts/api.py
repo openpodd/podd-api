@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+
+import operator
 from django.forms import model_to_dict
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -369,6 +371,20 @@ class UserViewSet(viewsets.ModelViewSet):
             queryset = queryset.order_by(order)
         else:
             queryset = queryset.order_by('username')
+
+        # username
+        query = request.QUERY_PARAMS.get('query')
+        if query:
+            query_words = query.split(' ')
+
+            q1 = [Q(first_name__contains=word) for word in query_words]
+            q2 = [Q(last_name__contains=word) for word in query_words]
+            q3 = [Q(username__contains=word) for word in query_words]
+            q4 = [Q(email__contains=word) for word in query_words]
+
+            merged_q = q1 + q2 + q3 + q4
+
+            queryset = queryset.filter(reduce(operator.or_, merged_q))
 
         if request.QUERY_PARAMS.get('page_size'):
 
