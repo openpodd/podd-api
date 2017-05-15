@@ -377,10 +377,10 @@ class UserViewSet(viewsets.ModelViewSet):
         if query:
             query_words = query.split(' ')
 
-            q1 = [Q(first_name__contains=word) for word in query_words]
-            q2 = [Q(last_name__contains=word) for word in query_words]
-            q3 = [Q(username__contains=word) for word in query_words]
-            q4 = [Q(email__contains=word) for word in query_words]
+            q1 = [Q(first_name__icontains=word) for word in query_words]
+            q2 = [Q(last_name__icontains=word) for word in query_words]
+            q3 = [Q(username__icontains=word) for word in query_words]
+            q4 = [Q(email__icontains=word) for word in query_words]
 
             merged_q = q1 + q2 + q3 + q4
 
