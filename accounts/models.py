@@ -259,7 +259,7 @@ def user_can_edit_basic_check(user, extra=False):
 
 
 class Authority(DomainMixin):
-    code = models.CharField(max_length=255, unique=True)
+    code = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
 
@@ -287,6 +287,9 @@ class Authority(DomainMixin):
 
     graph_node = True
     graph_relations = ['inherits', 'deep_subscribes', 'users']
+
+    class Meta:
+        unique_together = ("domain", "code")
 
 
     def __unicode__(self):

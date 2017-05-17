@@ -79,7 +79,7 @@ class ReportTypeCategory(DomainMixin):
 
 class ReportType(AbstractCachedModel, DomainMixin):
     name = models.CharField(max_length=200)
-    code = models.CharField(max_length=100, unique=True)
+    code = models.CharField(max_length=100)
     form_definition = models.TextField(null=False, blank=True)
     version = models.IntegerField(default=1)
     template = models.TextField(blank=True, default='')
@@ -107,6 +107,7 @@ class ReportType(AbstractCachedModel, DomainMixin):
 
     class Meta:
         ordering = ['weight', 'name']
+        unique_together = ("domain", "code")
 
     def __unicode__(self):
         return self.name
@@ -337,7 +338,6 @@ class CaseDefinition(DomainMixin):
     epl = models.TextField(verbose_name=_('EPL where'), help_text='sickCount > 10, win.areaId = currentEvent.areaId group by win.areaId having (sum(win.sickCount) + sum(win.deadCount)) > 3 (extra params are : win, currentEvent)') # Esper query processing language
     code = models.CharField(
         max_length=255,
-        unique=True,
         validators=[
             validators.RegexValidator(re.compile('(?:^[A-Za-z][A-Za-z0-9]*)+'), _('Enter a valid code.'), 'invalid')
         ]
@@ -353,6 +353,7 @@ class CaseDefinition(DomainMixin):
 
     class Meta:
         ordering = ['report_type', 'description']
+        unique_together = ("domain", "code")
 
     def __unicode__(self):
         return '%s [%s > %s] %s' % (self.description, self.from_state.name, self.to_state.name, self.code)
