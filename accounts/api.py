@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+
+import operator
 from django.forms import model_to_dict
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -370,6 +372,20 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             queryset = queryset.order_by('username')
 
+        # username
+        query = request.QUERY_PARAMS.get('query')
+        if query:
+            query_words = query.split(' ')
+
+            q1 = [Q(first_name__icontains=word) for word in query_words]
+            q2 = [Q(last_name__icontains=word) for word in query_words]
+            q3 = [Q(username__icontains=word) for word in query_words]
+            q4 = [Q(email__icontains=word) for word in query_words]
+
+            merged_q = q1 + q2 + q3 + q4
+
+            queryset = queryset.filter(reduce(operator.or_, merged_q))
+
         if request.QUERY_PARAMS.get('page_size'):
 
             page = int(request.QUERY_PARAMS.get('page', None) or 0)
@@ -587,7 +603,7 @@ def upload_image_profile(request, pk=None):
             if avatar_url and thumbnail_avatar_url:
                 serializer.object.avatar_url = avatar_url
                 serializer.object.thumbnail_avatar_url = thumbnail_avatar_url
-                serializer.save()
+                serializer.object.save()
 
                 now = datetime.datetime.now()
                 month = '%s/%s' % (now.month, now.year)

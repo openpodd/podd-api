@@ -14,6 +14,7 @@ class ReportIndex(indexes.SearchIndex, indexes.Indexable):
     guid = indexes.CharField(model_attr='guid', indexed=False)
     createdBy = indexes.CharField(model_attr='created_by__id')
     createdByName = indexes.CharField(model_attr='created_by__get_full_name')
+    createdByThumbnailUrl = indexes.CharField(model_attr='created_by__thumbnail_avatar_url', null=True  )
     incidentDate = indexes.DateField(model_attr='incident_date')
     date = indexes.DateTimeField(model_attr='date')
     administrationArea = indexes.IntegerField(model_attr='administration_area__id')
@@ -38,6 +39,8 @@ class ReportIndex(indexes.SearchIndex, indexes.Indexable):
     reportLocation = LocationField(model_attr='report_location', indexed=True, null=True)
     firstImageThumbnail = indexes.CharField(null=True)
     reportTypeCategoryCode = indexes.CharField(model_attr='type__category__code', null=True)
+
+    commentCount = indexes.IntegerField(default=0, null=True)
 
     domain = indexes.IntegerField(model_attr='domain__id', null=True)
 
@@ -82,5 +85,8 @@ class ReportIndex(indexes.SearchIndex, indexes.Indexable):
         if obj.images.count():
             return obj.images.all()[0].thumbnail_url
         return ''
+
+    def prepare_commentCount(self, obj):
+        return obj.comments.all().count()
 
 

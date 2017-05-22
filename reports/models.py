@@ -5,6 +5,7 @@ import json
 import re
 import operator
 import threading
+from django.contrib.gis import geos
 import uuid
 import datetime
 
@@ -40,6 +41,7 @@ from taggit.managers import TaggableManager
 
 from accounts.models import User, Authority, user_can_edit_basic_check, Configuration
 from accounts.serializers import UserSerializer
+from common import geos_util
 from common.constants import PRIORITY_CHOICES, NEWS_TYPE_NEWS, NEWS_TYPE_SUBSCRIBE_AUTHORITY, USER_STATUS_VOLUNTEER, \
     USER_STATUS_ADDITION_VOLUNTEER, \
     PRIORITY_IGNORE, PRIORITY_OK, PRIORITY_CONTACT, PRIORITY_FOLLOW, PRIORITY_CASE, STATUS_CHOICES, STATUS_PUBLISH, \
@@ -77,7 +79,7 @@ class ReportTypeCategory(DomainMixin):
 
 class ReportType(AbstractCachedModel, DomainMixin):
     name = models.CharField(max_length=200)
-    code = models.CharField(max_length=100, unique=True)
+    code = models.CharField(max_length=100)
     form_definition = models.TextField(null=False, blank=True)
     version = models.IntegerField(default=1)
     template = models.TextField(blank=True, default='')
@@ -94,7 +96,7 @@ class ReportType(AbstractCachedModel, DomainMixin):
 
     category = models.ForeignKey(ReportTypeCategory, related_name='report_type_category', blank=True, null=True)
 
-    report_pre_save = models.TextField(null=True, blank=True)
+    report_pre_save = models.TextField(null=True, blank=True, help_text='Variables are: report, json, geos, geos_util')
     is_system = models.BooleanField(default=False)
 
     cached_vars = [('authority', True), 'form_definition', 'summary_template', 'version']
@@ -105,6 +107,7 @@ class ReportType(AbstractCachedModel, DomainMixin):
 
     class Meta:
         ordering = ['weight', 'name']
+        unique_together = ("domain", "code")
 
     def __unicode__(self):
         return self.name
@@ -335,7 +338,6 @@ class CaseDefinition(DomainMixin):
     epl = models.TextField(verbose_name=_('EPL where'), help_text='sickCount > 10, win.areaId = currentEvent.areaId group by win.areaId having (sum(win.sickCount) + sum(win.deadCount)) > 3 (extra params are : win, currentEvent)') # Esper query processing language
     code = models.CharField(
         max_length=255,
-        unique=True,
         validators=[
             validators.RegexValidator(re.compile('(?:^[A-Za-z][A-Za-z0-9]*)+'), _('Enter a valid code.'), 'invalid')
         ]
@@ -351,6 +353,7 @@ class CaseDefinition(DomainMixin):
 
     class Meta:
         ordering = ['report_type', 'description']
+        unique_together = ("domain", "code")
 
     def __unicode__(self):
         return '%s [%s > %s] %s' % (self.description, self.from_state.name, self.to_state.name, self.code)
@@ -1527,6 +1530,17 @@ class Report(AbstractCachedModel, DomainMixin):
         if settings.ADJUST_DATE and self.id is None:
             self.adjust_incident_date()
 
+        # evaluate pre_save custom script.
+        report_pre_save = (self.type.report_pre_save or '').strip()
+        if report_pre_save:
+            symtable = {
+                'report': self,
+                'json': json,
+                'geos': geos,
+                'geos_util': geos_util
+            }
+            safe_eval(report_pre_save, symtable)
+
         # check #1: if this is a new report, do these things once
         #    1. save original data
         #    2. assign default state
@@ -1547,13 +1561,6 @@ class Report(AbstractCachedModel, DomainMixin):
                 ))
 
 
-        # evaluate pre_save custom script.
-        report_pre_save = (self.type.report_pre_save or '').strip()
-        if report_pre_save:
-            symtable = {
-                'report': self
-            }
-            safe_eval(report_pre_save, symtable)
 
         # check #2: if this report has test_flag = True then,
         #    1. mark this report as a positive(negative = False) one.
@@ -1720,7 +1727,7 @@ class ReportComment(DomainMixin):
             publish_mention(serializer.data)
 
         from reports.serializers import ReportCommentSerializer
-        
+
         if is_new:
             report = self.report
             Report.objects.filter(id=report.id).update(comment_count=report.comment_count + 1)
@@ -1729,6 +1736,11 @@ class ReportComment(DomainMixin):
             serializer = ReportCommentSerializer(self)
             publish_comment(serializer.data)
 
+            # update comment count
+            from reports.search_indexes import ReportIndex
+            report_index = ReportIndex()
+            report_index.update_object(report)
+
     def delete(self, *args, **kwargs):
         report = Report.objects.get(id=self.report.id) # No cache
 
@@ -1736,6 +1748,10 @@ class ReportComment(DomainMixin):
         invalidate_obj(report)
 
         super(ReportComment, self).delete(*args, **kwargs)
+
+        from reports.search_indexes import ReportIndex
+        report_index = ReportIndex()
+        report_index.update_object(report)
 
     def user_can_edit(self, user):
         return user == self.created_by

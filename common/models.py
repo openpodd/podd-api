@@ -360,6 +360,7 @@ class Domain(AbstractCommonTrashModel):
     description = models.TextField(null=True, blank=True)
 
     default_language = models.CharField(max_length=20, default=settings.LANGUAGE_CODE)
+    timezone = models.FloatField(default=7.0)
 
     # logo ?
 
