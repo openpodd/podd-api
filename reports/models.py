@@ -150,8 +150,8 @@ class ReportType(AbstractCachedModel, DomainMixin):
 
     def get_schema_name(self):
         name = self.code.replace('-', '_').replace('.', '_')
-        if (self.domain > 1):
-            name = '%s_%s' % (name, self.domain)
+        if (self.domain.id > 1):
+            name = '%s_%s' % (name, self.domain.id)
         return name
 
     def create_cep(self):

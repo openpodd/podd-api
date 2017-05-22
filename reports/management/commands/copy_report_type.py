@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 
 from accounts.models import Authority
 from common.models import Domain
-from reports.models import ReportType, ReportState, ReportTypeCategory
+from reports.models import ReportType, ReportState, ReportTypeCategory, CaseDefinition
 
 
 class Command(BaseCommand):
@@ -39,15 +39,19 @@ class Command(BaseCommand):
     def _copy_report_states(self, from_domain, to_domain, from_report_type, to_report_type, dry_run=True):
         original_report_states = ReportState.objects.filter(domain=from_domain, report_type=from_report_type)
 
-        for report_state in original_report_states:
+        for original_report_state in original_report_states:
+            try:
+                report_state = ReportState.objects.get(domain=to_domain, code=original_report_state.code)
+            except ReportState.DoesNotExist:
+                report_state = copy.deepcopy(original_report_state)
+
+                report_state.pk = None
+                report_state.domain = to_domain
+                report_state.report_type = to_report_type
+
             print "Will copy report state from %s to %s using this data:" % (from_domain.name, to_domain.name)
             print " [FROM] id:%s domain:%s authority:%s report_type:%s" % (
-                report_state.pk, report_state.domain, report_state.report_type.authority, report_state.report_type)
-
-            report_state.pk = None
-            report_state.domain = to_domain
-            report_state.report_type = to_report_type
-
+                original_report_state.pk, original_report_state.domain, original_report_state.report_type.authority, original_report_state.report_type)
             print "   [TO] id:%s domain:%s authority:%s report_type:%s" % (
                 report_state.pk, report_state.domain, report_state.report_type.authority, report_state.report_type)
 
@@ -56,6 +60,32 @@ class Command(BaseCommand):
                 print "  - Saved id: %s" % report_state.pk
 
             print ""
+
+    def _copy_case_definitions(self, from_domain, to_domain, from_report_type, to_report_type, dry_run=True):
+        original_case_definitions = CaseDefinition.objects.filter(domain=from_domain, report_type=from_report_type)
+
+        for original_case_definition in original_case_definitions:
+
+            try:
+                case_definition = CaseDefinition.objects.get(domain=to_domain, code=original_case_definition.code)
+            except CaseDefinition.DoesNotExist:
+                case_definition = copy.deepcopy(original_case_definition)
+
+                case_definition.pk = None
+                case_definition.domain = to_domain
+                case_definition.report_type = to_report_type
+
+            print "Will copy case definition from %s to %s using this data:" % (from_domain.name, to_domain.name)
+            print " [FROM] id:%s domain:%s report_type:%s" % (
+                original_case_definition.pk, original_case_definition.domain, original_case_definition.report_type)
+            print "   [TO] id:%s domain:%s report_type:%s" % (
+                case_definition.pk, case_definition.domain, case_definition.report_type)
+
+            if not dry_run:
+                case_definition.save()
+                print "  - Saved id: %s" % case_definition.pk
+
+            print "--"
 
     def _copy_report_type_categories(self, from_domain, to_domain, dry_run=True):
         original_report_type_categories = ReportTypeCategory.objects.filter(domain=from_domain)
@@ -121,7 +151,12 @@ class Command(BaseCommand):
             print ""
 
             # copy report states
-            self._copy_report_states(from_domain, to_domain, from_report_type=original_report_type, to_report_type=report_type, dry_run=dry_run)
+            self._copy_report_states(from_domain, to_domain, from_report_type=original_report_type,
+                                     to_report_type=report_type, dry_run=dry_run)
+
+            # copy case definitions
+            self._copy_case_definitions(from_domain, to_domain, from_report_type=original_report_type,
+                                     to_report_type=report_type, dry_run=dry_run)
 
             if not dry_run:
                 default_state = ReportState.objects.get(report_type=report_type, code='report')
