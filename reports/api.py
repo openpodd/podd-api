@@ -1468,12 +1468,7 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
     #     'success': True
     # })
     temp_report = Report.default_manager.get(id=report_id)
-    try:
-        old_current_domain_id = settings.CURRENT_DOMAIN_ID
-    except:
-        old_current_domain_id = 1
-
-    settings.CURRENT_DOMAIN_ID = temp_report.domain.id
+    current_domain_id = temp_report.domain.id
 
     if key != settings.UPDATE_REPORT_STATE_KEY:
         raise Http404()
@@ -1482,7 +1477,11 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
         system_user = user
     else:
         from common.functions import get_system_user
-        system_user = get_system_user()
+        system_user = get_system_user(current_domain_id)
+
+    system_user.domain = report.domain
+    system_user.save()
+    set_current_user(system_user)
 
     related_ids = request.GET.getlist('related_ids')
     related_reports = []
@@ -1523,14 +1522,8 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
     report._state_changed_by_case = case
 
     report.updated_by = system_user
-    system_user.domain = report.domain
-    system_user.save()
-
-    set_current_user(system_user)
-
 
     report.save()
-    settings.CURRENT_DOMAIN_ID = old_current_domain_id
 
     return Response({
         'success': True
