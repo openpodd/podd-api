@@ -41,7 +41,7 @@ class Command(BaseCommand):
 
         for original_report_state in original_report_states:
             try:
-                report_state = ReportState.objects.get(domain=to_domain, code=original_report_state.code)
+                report_state = ReportState.objects.get(domain=to_domain, report_type=to_report_type, code=original_report_state.code)
             except ReportState.DoesNotExist:
                 report_state = copy.deepcopy(original_report_state)
 
@@ -67,7 +67,7 @@ class Command(BaseCommand):
         for original_case_definition in original_case_definitions:
 
             try:
-                case_definition = CaseDefinition.objects.get(domain=to_domain, code=original_case_definition.code)
+                case_definition = CaseDefinition.objects.get(domain=to_domain, report_type=to_report_type, code=original_case_definition.code)
             except CaseDefinition.DoesNotExist:
                 case_definition = copy.deepcopy(original_case_definition)
 

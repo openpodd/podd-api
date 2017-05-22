@@ -377,7 +377,11 @@ class CaseDefinition(DomainMixin):
         epl = self.epl
 
         for code in re.findall(r'@\[case:([A-Za-z0-9]*)\]', epl):
-            epl = epl.replace('@[case:%s]' % code, '(%s)' % CaseDefinition.objects.get(code=code, accumulate=False).complete_epl())
+            try:
+                epl = epl.replace('@[case:%s]' % code, '(%s)' % CaseDefinition.objects.get(domain=self.domain, code=code,
+                                                                                       accumulate=False).complete_epl())
+            except CaseDefinition.DoesNotExist:
+                pass
 
         return epl
 
