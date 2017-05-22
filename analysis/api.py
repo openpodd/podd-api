@@ -21,8 +21,8 @@ def export_analysis_csv(request):
     if not (request.user.is_staff or request.user.status == USER_STATUS_PODD):
         return HttpResponse('Cannot perform this action.')
 
-    date_start = request.GET.get('date_start')
-    date_end = request.GET.get('date_end')
+    date_start = request.GET.get('dateStart')
+    date_end = request.GET.get('dateEnd')
 
     try:
         date_start = datetime.datetime.strptime(date_start, '%Y-%m-%d')
