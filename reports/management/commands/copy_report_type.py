@@ -104,7 +104,8 @@ class Command(BaseCommand):
                 report_type.pk = None
                 report_type.domain = to_domain
                 report_type.default_state = None
-                report_type.category = ReportTypeCategory.objects.get(domain=to_domain, code=original_report_type.category.code)
+                if not dry_run:
+                    report_type.category = ReportTypeCategory.objects.get(domain=to_domain, code=original_report_type.category.code)
 
                 if to_authority:
                     report_type.authority = to_authority
