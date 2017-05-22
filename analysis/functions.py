@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
 # -*- coding: utf-8 -*-
 import datetime
-import psycopg2
 import json
-import codecs
 import csv
 
 '''
@@ -82,21 +80,23 @@ def build_sql(date_start=None, date_end=None):
 
     cur.execute(sql)
 
-symptom_map = {}
-
-from  reports.models import ReportType
-rt = ReportType.objects.get(id=2)
-
-from  analysis.models import Word
-words = {}
-for word in Word.objects.all():
-    words[word.th_word] = word.en_word
-
-import json
-form = json.loads(rt.form_definition)
-q = form['questions']
 
 def populate_symptom_map(symptoms):
+
+    symptom_map = {}
+
+    from reports.models import ReportType
+    rt = ReportType.objects.get(id=2)
+
+    from analysis.models import Word
+    words = {}
+    for word in Word.objects.all():
+        words[word.th_word] = word.en_word
+
+    import json
+    form = json.loads(rt.form_definition)
+    q = form['questions']
+
     for _q in q:
         if 'symptom' in _q['name']:
             if _q.has_key('items'):
@@ -111,14 +111,17 @@ def populate_symptom_map(symptoms):
                         symptom_map[key] = 1
                     else:
                         symptom_map[key] += 1
+    return symptom_map
 
 
-def populate_symptom_map_from_report(symptoms):
+def populate_symptom_map_from_report(symptom_map, symptoms):
     for symptom in symptoms:
         if not symptom_map.has_key(symptom):
             symptom_map[symptom] = 1
         else:
             symptom_map[symptom] = +1
+
+    return symptom_map
 
 
 def fetch_column(row):
@@ -140,14 +143,18 @@ def fetch_column(row):
 
 
 class Report:
-    def __init__(self, params):
+    def __init__(self, words, params):
         self.params = params
         self.follow_list = []
         self.has_follow = False
         self.follow = False
+        self.words = words
+
     def add_follow(self, report):
         self.follow_list.append(report)
+
     def symptoms(self):
+        words = self.words
         if self.form.has_key('symptom'):
             tmp_symptoms = self.form['symptom']
             tmp_symptoms = tmp_symptoms.split(',')
@@ -160,6 +167,7 @@ class Report:
                     symptoms.append(symptom)
             return symptoms
         return []
+
     def __getattr__(self, name):
         if self.params.has_key(name):
             return self.params[name]
@@ -167,6 +175,7 @@ class Report:
             return self.params['form'][name]
         # print "error on id = %s" % (self.id,)
         raise AttributeError(name)
+
     @classmethod
     def to_header(cls):
         return [
@@ -190,6 +199,7 @@ class Report:
             'follow_id',
             'follow_idx',
         ]
+
     def to_array(self, follow_format=False, follow_idx = 0):
         return [
             self.id,
@@ -215,14 +225,29 @@ class Report:
 
 
 def fetch_report(date_start=None, date_end=None):
+
+    from reports.models import ReportType
+    rt = ReportType.objects.get(id=2)
+
+    from analysis.models import Word
+    words = {}
+    for word in Word.objects.all():
+        words[word.th_word] = word.en_word
+
+    import json
+    form = json.loads(rt.form_definition)
+    q = form['questions']
+
+    symptom_map = {}
+
     report_map = {}
     reports = []
     build_sql(date_start, date_end)
     for row in cur:
-        report = Report(fetch_column(row))
+        report = Report(words, fetch_column(row))
         report_map[report.id] = report
-        populate_symptom_map(report.symptoms())
-        populate_symptom_map_from_report(report.symptoms())
+        symptom_map = populate_symptom_map(report.symptoms())
+        symptom_map = populate_symptom_map_from_report(symptom_map, report.symptoms())
         parent_id = report.params['parent_id']
         if parent_id and report_map.has_key(parent_id):
             parent_report = report_map[parent_id]
@@ -233,36 +258,40 @@ def fetch_report(date_start=None, date_end=None):
                 # print "add follow report: %s to %s " % (report.id, parent_id)
         else:
             reports.append(report)
-    return reports
+    return reports, symptom_map
 
-def dump_symptom_header():
+
+def dump_symptom_header(symptom_map):
     return [key.encode('utf-8') for key in symptom_map.keys()]
 
-def dump_symptom_table(symptoms):
+
+def dump_symptom_table(symptom_map, symptoms):
     results = []
     for key in symptom_map.keys():
         results.append(1 if key in symptoms else 0)
     return results
 
-def dump_csv(reports):
+
+def dump_csv(reports, symptom_map):
     with open('/tmp/sick_death.csv', 'wb') as csvfile:
         writer = csv.writer(csvfile, delimiter=',',
                             quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(Report.to_header() + dump_symptom_header())
+        writer.writerow(Report.to_header() + dump_symptom_header(symptom_map))
         for report in reports:
             try:
-                writer.writerow(report.to_array() + dump_symptom_table(report.symptoms()))
+                writer.writerow(report.to_array() + dump_symptom_table(symptom_map, report.symptoms()))
                 if len(report.follow_list) > 0:
                     cnt = 1
                     for follow in report.follow_list:
-                        writer.writerow(follow.to_array(follow_format=True, follow_idx=cnt) + dump_symptom_table(follow.symptoms()))
+                        writer.writerow(follow.to_array(follow_format=True, follow_idx=cnt) + dump_symptom_table(symptom_map, follow.symptoms()))
                         cnt += 1
-            except (AttributeError) as e:
+            except AttributeError as e:
                 print "error with e %s" % (e,)
 
+
 def export():
-    reports = fetch_report()
+    reports, symptom_map = fetch_report()
     print 'total count = %d' % (len(reports),)
     # for (k,v) in symptom_map.items():
     #    print "%s" % (k)
-    dump_csv(reports)
+    dump_csv(reports, symptom_map)
