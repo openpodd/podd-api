@@ -1479,7 +1479,7 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
         from common.functions import get_system_user
         system_user = get_system_user(current_domain_id)
 
-    system_user.domain = report.domain
+    system_user.domain = temp_report.domain
     system_user.save()
     set_current_user(system_user)
 
