@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-
+import re
 from calendar import Calendar
 from copy import deepcopy
 import datetime
@@ -1524,7 +1524,8 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
     report.state = state
 
     try:
-        case = CaseDefinition.objects.get(domain=temp_report.domain, code=case, to_state=state)
+        code = re.sub(r'%s$' % current_domain_id, '', case)
+        case = CaseDefinition.objects.get(domain=temp_report.domain, code=code, to_state=state)
     except CaseDefinition.DoesNotExist:
         raise Http404()
     case._extra_info = extra_info
