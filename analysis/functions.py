@@ -29,46 +29,58 @@ Output Columns:
  - follow_idx
 '''
 
-connection_str = 'dbname=podd user=podd password=podd port=5432 host=localhost'
+from django.db import connection
+cur = connection.cursor()
 
-conn = psycopg2.connect(connection_str)
-cur = conn.cursor()
-cur.execute('''
-select
-  t.name,                     /* 0 */
-  r.date,                     /* 1 */
-  r.incident_date,
-  u.username,				  /* 3 */
-  u.first_name,
-  u.last_name,                /* 5 */
-  a.id as sub_district_id,
-  a.name as sub_district,
-  aa.id as district_id,       /* 8 */
-  aa.name as district,        /* 9 */
-  r.form_data,                /* 10 */
-  r.parent_id,
-  r."id"					  /* 12 */
-from reports_report r,
- reports_reporttype t,
-accounts_user u,
-reports_administrationarea a,
-reports_administrationarea aa
-where r.type_id = t."id"
-and u.id = r.created_by_id
-and r.administration_area_id = a.id
-and r.date >= '2015-01-01'
-and a.lft between aa.lft and aa.rgt
-and (r.test_flag is null or r.test_flag = false)     /*  ไม่ใช่รายงานทดสอบ */
-and r.is_public = false     /*  ไม่ใช่ public report */
-and r.domain_id = 1         /*  podd domain */
-and r.type_id = 2           /*  สัตว์ป่วยตาย */
-and a.tree_id = aa.tree_id
-and aa.id != 112			/* test area not include */
-and a.id != aa.id
-and u.username like 'podd%'
-and r.negative = true
-order by r.id
-''')
+# connection_str = 'dbname=podd user=podd password=podd port=5432 host=localhost'
+# conn = psycopg2.connect(connection_str)
+# cur = conn.cursor()
+
+
+def build_sql(date_start=None, date_end=None):
+
+    date_start = date_start or '2015-01-01'
+    date_end = date_end or datetime.datetime.now().strftime('%Y-%m-%d')
+
+    sql = ('''
+    select
+      t.name,                     /* 0 */
+      r.date,                     /* 1 */
+      r.incident_date,
+      u.username,				  /* 3 */
+      u.first_name,
+      u.last_name,                /* 5 */
+      a.id as sub_district_id,
+      a.name as sub_district,
+      aa.id as district_id,       /* 8 */
+      aa.name as district,        /* 9 */
+      r.form_data,                /* 10 */
+      r.parent_id,
+      r."id"					  /* 12 */
+    from reports_report r,
+     reports_reporttype t,
+    accounts_user u,
+    reports_administrationarea a,
+    reports_administrationarea aa
+    where r.type_id = t."id"
+    and u.id = r.created_by_id
+    and r.administration_area_id = a.id
+    and r.date >= '{0}'
+    and r.date < '{1}'
+    and a.lft between aa.lft and aa.rgt
+    and (r.test_flag is null or r.test_flag = false)     /*  ไม่ใช่รายงานทดสอบ */
+    and r.is_public = false     /*  ไม่ใช่ public report */
+    and r.domain_id = 1         /*  podd domain */
+    and r.type_id = 2           /*  สัตว์ป่วยตาย */
+    and a.tree_id = aa.tree_id
+    and aa.id != 112			/* test area not include */
+    and a.id != aa.id
+    and u.username like 'podd%'
+    and r.negative = true
+    order by r.id
+    ''').format(date_start, date_end)
+
+    cur.execute(sql)
 
 symptom_map = {}
 
@@ -91,10 +103,14 @@ def populate_symptom_map(symptoms):
                 items = _q['items']
                 for item in items:
                     item['text'] = item['text'].replace(' ', '')
+                    try:
+                        key = words[item['text']]
+                    except KeyError:
+                        key = item['text']
                     if not symptom_map.has_key(item['text']):
-                        symptom_map[words[item['text']]] = 1
+                        symptom_map[key] = 1
                     else:
-                        symptom_map[words[item['text']]] += 1
+                        symptom_map[key] += 1
 
 
 def populate_symptom_map_from_report(symptoms):
@@ -138,7 +154,10 @@ class Report:
             symptoms = []
             for symptom in tmp_symptoms:
                 symptom = symptom.replace(' ', '')
-                symptoms.append(words[symptom])
+                try:
+                    symptoms.append(words[symptom])
+                except KeyError:
+                    symptoms.append(symptom)
             return symptoms
         return []
     def __getattr__(self, name):
@@ -195,9 +214,10 @@ class Report:
         ]
 
 
-def fetch_report():
+def fetch_report(date_start=None, date_end=None):
     report_map = {}
     reports = []
+    build_sql(date_start, date_end)
     for row in cur:
         report = Report(fetch_column(row))
         report_map[report.id] = report
@@ -240,8 +260,9 @@ def dump_csv(reports):
             except (AttributeError) as e:
                 print "error with e %s" % (e,)
 
-reports = fetch_report()
-print 'total count = %d' % (len(reports),)
-# for (k,v) in symptom_map.items():
-#    print "%s" % (k)
-dump_csv(reports)
+def export():
+    reports = fetch_report()
+    print 'total count = %d' % (len(reports),)
+    # for (k,v) in symptom_map.items():
+    #    print "%s" % (k)
+    dump_csv(reports)

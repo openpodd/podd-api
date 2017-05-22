@@ -86,6 +86,8 @@ urlpatterns = patterns('',
         'get': 'list'
     })),
 
+    url(r'^analysis/export/', 'analysis.api.export_analysis_csv', name='export_analysis_csv'),
+
     url(r'^reports/search/', 'reports.api.reports_search', name='reports_search'),
     url(r'^reportImage/upload/', 'reports.api.upload_report_image', name='upload_report_image'),
     url(r'^reportImages/', 'reports.api.add_report_image', name='add_report_image'),
