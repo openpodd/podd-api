@@ -1510,14 +1510,23 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
         report.save()
 
     else:
-        report = get_object_or_404(Report, id=report_id)
+        try:
+            report = Report.objects.get(domain=temp_report.domain, id=report_id)
+        except Report.DoesNotExist:
+            raise Http404()
         if report.parent:
             report = report.parent
 
-    state = get_object_or_404(ReportState, code=state, report_type=report.type)
+    try:
+        state = ReportState.objects.get(domain=temp_report.domain, code=state, report_type=report.type)
+    except ReportState.DoesNotExist:
+        raise Http404()
     report.state = state
 
-    case = get_object_or_404(CaseDefinition, code=case, to_state=state)
+    try:
+        case = CaseDefinition.objects.get(domain=temp_report.domain, code=case, to_state=state)
+    except CaseDefinition.DoesNotExist:
+        raise Http404()
     case._extra_info = extra_info
     report._state_changed_by_case = case
 
