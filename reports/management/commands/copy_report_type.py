@@ -75,6 +75,9 @@ class Command(BaseCommand):
                 case_definition.domain = to_domain
                 case_definition.report_type = to_report_type
 
+            case_definition.from_state = ReportState.objects.get(domain=to_domain, report_type=to_report_type, code=original_case_definition.from_state.code)
+            case_definition.to_state = ReportState.objects.get(domain=to_domain, report_type=to_report_type, code=original_case_definition.to_state.code)
+
             print "Will copy case definition from %s to %s using this data:" % (from_domain.name, to_domain.name)
             print " [FROM] id:%s domain:%s report_type:%s" % (
                 original_case_definition.pk, original_case_definition.domain, original_case_definition.report_type)

@@ -1467,6 +1467,13 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
     # return Response({
     #     'success': True
     # })
+    temp_report = Report.default_manager.get(id=report_id)
+    try:
+        old_current_domain_id = settings.CURRENT_DOMAIN_ID
+    except:
+        old_current_domain_id = 1
+
+    settings.CURRENT_DOMAIN_ID = temp_report.domain.id
 
     if key != settings.UPDATE_REPORT_STATE_KEY:
         raise Http404()
@@ -1523,6 +1530,8 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
 
 
     report.save()
+    settings.CURRENT_DOMAIN_ID = old_current_domain_id
+
     return Response({
         'success': True
     })
