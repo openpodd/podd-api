@@ -30,11 +30,11 @@ def export_analysis_csv(request):
     except:
         return HttpResponse('Date Error.')
 
-    reports = fetch_report(date_start, date_end)
+    reports, symptom_map = fetch_report(date_start, date_end)
     # print 'total count = %d' % (len(reports),)
     # for (k,v) in symptom_map.items():
     #    print "%s" % (k)
-    dump_csv(reports)
+    dump_csv(reports, symptom_map)
 
     filename = "/tmp/sick_death.csv"
     download_name = "export_analysis_csv.csv"
