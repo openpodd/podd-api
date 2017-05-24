@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+
 from optparse import make_option
 
 import copy
@@ -50,10 +51,10 @@ class Command(BaseCommand):
                 report_state.report_type = to_report_type
 
             print "Will copy report state from %s to %s using this data:" % (from_domain.name, to_domain.name)
-            print " [FROM] id:%s domain:%s authority:%s report_type:%s" % (
-                original_report_state.pk, original_report_state.domain, original_report_state.report_type.authority, original_report_state.report_type)
-            print "   [TO] id:%s domain:%s authority:%s report_type:%s" % (
-                report_state.pk, report_state.domain, report_state.report_type.authority, report_state.report_type)
+            print " [FROM] id:%s domain:%s authority:%s report_type:%s report_state_code:%s" % (
+                original_report_state.pk, original_report_state.domain.name, original_report_state.report_type.authority, original_report_state.report_type, original_report_state.code)
+            print "   [TO] id:%s domain:%s authority:%s report_type:%s report_state_code:%s" % (
+                report_state.pk, report_state.domain.name, report_state.report_type.authority, report_state.report_type, report_state.code)
 
             if not dry_run:
                 report_state.save()
@@ -75,16 +76,15 @@ class Command(BaseCommand):
                 case_definition.domain = to_domain
                 case_definition.report_type = to_report_type
 
-            case_definition.from_state = ReportState.objects.get(domain=to_domain, report_type=to_report_type, code=original_case_definition.from_state.code)
-            case_definition.to_state = ReportState.objects.get(domain=to_domain, report_type=to_report_type, code=original_case_definition.to_state.code)
-
             print "Will copy case definition from %s to %s using this data:" % (from_domain.name, to_domain.name)
-            print " [FROM] id:%s domain:%s report_type:%s" % (
-                original_case_definition.pk, original_case_definition.domain, original_case_definition.report_type)
-            print "   [TO] id:%s domain:%s report_type:%s" % (
-                case_definition.pk, case_definition.domain, case_definition.report_type)
+            print " [FROM] id:%s domain:%s report_type:%s case_def_code:%s" % (
+                original_case_definition.pk, original_case_definition.domain, original_case_definition.report_type.name, original_case_definition.code)
+            print "   [TO] id:%s domain:%s report_type:%s case_def_code:%s" % (
+                case_definition.pk, case_definition.domain.name, case_definition.report_type.name, original_case_definition.code)
 
             if not dry_run:
+                case_definition.from_state = ReportState.objects.get(domain=to_domain, report_type=to_report_type, code=original_case_definition.from_state.code)
+                case_definition.to_state = ReportState.objects.get(domain=to_domain, report_type=to_report_type, code=original_case_definition.to_state.code)
                 case_definition.save()
                 print "  - Saved id: %s" % case_definition.pk
 
@@ -106,7 +106,7 @@ class Command(BaseCommand):
                 print " [FROM] id:%s domain:%s code:%s" % (
                     original_report_type_category.pk, original_report_type_category.domain, original_report_type_category.code)
                 print "   [TO] id:%s domain:%s code:%s" % (
-                    report_type_category.pk, report_type_category.domain, report_type_category.code)
+                    report_type_category.pk, report_type_category.domain.name, report_type_category.code)
 
                 if not dry_run:
                     report_type_category.save()
@@ -146,8 +146,8 @@ class Command(BaseCommand):
                     report_type.authority = None
 
             print "Will copy report type from %s to %s using this data:" % (from_domain.name, to_domain.name)
-            print " [FROM] id:%s domain:%s authority:%s" % (original_report_type.pk, original_report_type.domain, original_report_type.authority)
-            print "   [TO] id:%s domain:%s authority:%s" % (report_type.pk, report_type.domain, report_type.authority)
+            print " [FROM] id:%s domain:%s authority:%s report_type:%s" % (original_report_type.pk, original_report_type.domain.name, original_report_type.authority, original_report_type.name)
+            print "   [TO] id:%s domain:%s authority:%s report_type:%s" % (report_type.pk, report_type.domain.name, report_type.authority, report_type.name)
             if not dry_run:
                 report_type.save(set_default_state=True)
                 print "  - Saved id: %s" % report_type.pk
