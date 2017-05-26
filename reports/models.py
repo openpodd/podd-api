@@ -150,7 +150,7 @@ class ReportType(AbstractCachedModel, DomainMixin):
 
     def get_schema_name(self):
         name = self.code.replace('-', '_').replace('.', '_')
-        if self.domain and self.domain.id > 1:
+        if self.domain_id and self.domain_id > 1:
             name = '%s_%s' % (name, self.domain.id)
         return name
 
@@ -369,7 +369,7 @@ class CaseDefinition(DomainMixin):
 
     def get_schema_name(self):
         name = self.code.replace('-', '').replace('.', '')
-        if self.domain and self.domain.id > 1:
+        if self.domain_id and self.domain_id > 1:
             name = '%s%s' % (name, self.domain.id)
         return name
 
