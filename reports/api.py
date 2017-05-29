@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-
+import re
 from calendar import Calendar
 from copy import deepcopy
 import datetime
@@ -1467,6 +1467,8 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
     # return Response({
     #     'success': True
     # })
+    temp_report = Report.default_manager.get(id=report_id)
+    current_domain_id = temp_report.domain.id
 
     if key != settings.UPDATE_REPORT_STATE_KEY:
         raise Http404()
@@ -1475,7 +1477,11 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
         system_user = user
     else:
         from common.functions import get_system_user
-        system_user = get_system_user()
+        system_user = get_system_user(current_domain_id)
+
+    system_user.domain = temp_report.domain
+    system_user.save()
+    set_current_user(system_user)
 
     related_ids = request.GET.getlist('related_ids')
     related_reports = []
@@ -1504,25 +1510,31 @@ def report_protect_update_state(request, report_id, key, state, case, auto_creat
         report.save()
 
     else:
-        report = get_object_or_404(Report, id=report_id)
+        try:
+            report = Report.objects.get(domain=temp_report.domain, id=report_id)
+        except Report.DoesNotExist:
+            raise Http404()
         if report.parent:
             report = report.parent
 
-    state = get_object_or_404(ReportState, code=state, report_type=report.type)
+    try:
+        state = ReportState.objects.get(domain=temp_report.domain, code=state, report_type=report.type)
+    except ReportState.DoesNotExist:
+        raise Http404()
     report.state = state
 
-    case = get_object_or_404(CaseDefinition, code=case, to_state=state)
+    try:
+        code = re.sub(r'%s$' % current_domain_id, '', case)
+        case = CaseDefinition.objects.get(domain=temp_report.domain, code=code, to_state=state)
+    except CaseDefinition.DoesNotExist:
+        raise Http404()
     case._extra_info = extra_info
     report._state_changed_by_case = case
 
     report.updated_by = system_user
-    system_user.domain = report.domain
-    system_user.save()
-
-    set_current_user(system_user)
-
 
     report.save()
+
     return Response({
         'success': True
     })

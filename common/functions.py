@@ -744,7 +744,7 @@ def multi_level_dict_to_one_level_dict(data, key_level='', result={}):
     return result
 
 
-def get_system_user():
+def get_system_user(current_domain_id=None):
     from common.models import Domain, get_current_domain_id
 
     user_model = get_user_model()
@@ -756,7 +756,10 @@ def get_system_user():
             system_user = user_model.objects.create_user('system', 'system@system.com', uuid.uuid4().get_hex())
         except (ValidationError, IntegrityError) as e:
             system_user = user_model.default_manager.get(username='system')
-            current_domain = Domain.objects.get(id=get_current_domain_id())
+            if current_domain_id:
+                current_domain = Domain.objects.get(id=current_domain_id)
+            else:
+                current_domain = Domain.objects.get(id=get_current_domain_id())
             system_user.domains.add(current_domain)
 
     return system_user

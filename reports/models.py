@@ -149,7 +149,10 @@ class ReportType(AbstractCachedModel, DomainMixin):
         return fields
 
     def get_schema_name(self):
-        return self.code.replace('-', '_').replace('.', '_')
+        name = self.code.replace('-', '_').replace('.', '_')
+        if self.domain_id and self.domain_id > 1:
+            name = '%s_%s' % (name, self.domain.id)
+        return name
 
     def create_cep(self):
 
@@ -364,6 +367,12 @@ class CaseDefinition(DomainMixin):
     def get_to_state_code(self):
         return (self.to_state and self.to_state.code) or 'report'
 
+    def get_schema_name(self):
+        name = self.code.replace('-', '').replace('.', '')
+        if self.domain_id and self.domain_id > 1:
+            name = '%s%s' % (name, self.domain.id)
+        return name
+
     def get_schema_from_name(self):
         return 'reportType_%s_%s' % (self.report_type.get_schema_name(), self.get_from_state_code())
 
@@ -374,7 +383,11 @@ class CaseDefinition(DomainMixin):
         epl = self.epl
 
         for code in re.findall(r'@\[case:([A-Za-z0-9]*)\]', epl):
-            epl = epl.replace('@[case:%s]' % code, '(%s)' % CaseDefinition.objects.get(code=code, accumulate=False).complete_epl())
+            try:
+                epl = epl.replace('@[case:%s]' % code, '(%s)' % CaseDefinition.objects.get(domain=self.domain, code=code,
+                                                                                       accumulate=False).complete_epl())
+            except CaseDefinition.DoesNotExist:
+                pass
 
         return epl
 
@@ -396,7 +409,7 @@ class CaseDefinition(DomainMixin):
                     'report/protect-create-with-state/%s/%s/%s/' % (
                         settings.UPDATE_REPORT_STATE_KEY,
                         self.get_to_state_code(),
-                        self.code
+                        self.get_schema_name()
                     )
                 )
 
@@ -408,7 +421,7 @@ class CaseDefinition(DomainMixin):
                     'report/{{id}}/protect-update-state/%s/%s/%s/' % (
                         settings.UPDATE_REPORT_STATE_KEY,
                         self.get_to_state_code(),
-                        self.code
+                        self.get_schema_name()
                     )
                 )
 
@@ -429,7 +442,7 @@ class CaseDefinition(DomainMixin):
                 'report/{{id}}/protect-update-state/%s/%s/%s/' % (
                     settings.UPDATE_REPORT_STATE_KEY,
                     self.get_to_state_code(),
-                    self.code
+                    self.get_schema_name()
                 )
             )
 
@@ -441,7 +454,7 @@ class CaseDefinition(DomainMixin):
 
         payload = {
             'stmt': stmt,
-            'code': self.code
+            'code': self.get_schema_name()
         }
 
         if not settings.ESPER_CONNECTION_URL:
