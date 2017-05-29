@@ -1081,6 +1081,8 @@ class Report(AbstractCachedModel, DomainMixin):
 
                         receive_user = False
 
+                        # detect telephone numbers
+                        clean_tels = clean_phone_numbers(to)
 
 
                         # Exist users
@@ -1090,8 +1092,8 @@ class Report(AbstractCachedModel, DomainMixin):
                                 receive_user = '@[%s]' % user.username
 
                         # Detect phone number for send sms
-                        elif re.match(r'^[0-9-]*$', to):
-                            clean_phone_number = re.sub('[^0-9]+', '', to)
+                        elif len(clean_tels) > 0:
+                            clean_phone_number = clean_tels[0]
                             notification_data['to'] = clean_phone_number
                             notification_data['anonymous_send'] = Notification.SMS_ONLY
 

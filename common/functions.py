@@ -856,7 +856,7 @@ def clean_phone_numbers(value):
         telephones = re.sub('[^0-9]', ' ', telephone)
         telephones = re.sub(' {2,}', ',', telephones).replace(' ', '').split(',')
         telephone = max(telephones, key=len)
-        if telephone:
+        if telephone and len(telephone) >= 8:
             result.append(telephone)
 
     return result
