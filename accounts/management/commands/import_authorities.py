@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+from django.conf import settings
 
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand, CommandError
@@ -11,8 +12,8 @@ from reports.models import AdministrationArea
 
 
 class Command(BaseCommand):
-    args = 'file_path.csv'
-    help = 'Import Administration Area with code from csv: file_path.csv'
+    args = 'file_path.csv domain_id'
+    help = 'Import Authority with code from csv: file_path.csv'
 
     def handle(self, *args, **options):
         
@@ -22,11 +23,16 @@ class Command(BaseCommand):
         file_path = args[0]
         data = get_data_from_csv(file_path)
 
+        domain_id = args[1]
+        settings.CURRENT_DOMAIN_ID = domain_id
+
+
         for row in data:
 
             name = row['name']
             address = row['address'] or name
             code = row['code']
+            code_address = row['code_address']
             lat = row['lat'] or 13.8082770000000004
             lng = row['lng'] or 100.5522059999999982
             point = 'POINT (%s %s)' % (lng, lat)
@@ -40,8 +46,7 @@ class Command(BaseCommand):
             authority = Authority.objects.create(
                 name=name,
                 code=code,
-                description=address or name,
-                domain=parent.domain,
+                description=address or name
             )
 
             authority.inherits.add(parent)
@@ -49,8 +54,9 @@ class Command(BaseCommand):
                 name=name,
                 address=address or name,
                 location=point,
-                code=code,
+                code=code_address,
                 authority=authority,
-                domain=parent.domain,
+                qgis_id=code_address
             )
-            print 'area: ', area
+
+            print 'Authority: ', area
