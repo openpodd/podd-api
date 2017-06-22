@@ -59,4 +59,7 @@ class Command(BaseCommand):
                 qgis_id=code_address
             )
 
+            # save for update elasticsearch, graph-neo4j
+            authority.save()
+
             print 'Authority: ', area
