@@ -43,7 +43,7 @@ class Command(BaseCommand):
                 username=username,
                 password=password,
                 display_password=password,
-                first_name=authority.name,
+                first_name=authority.name[:30],
                 last_name='',
                 status=USER_STATUS_COORDINATOR
             )

@@ -53,23 +53,26 @@ class Command(BaseCommand):
                 code = '%s-%s' % (parent_area.code, (int)(row['properties']['FID_L08_Vi']))
                 try:
                     area = AdministrationArea.objects.get(qgis_id=row['properties']['FID_L08_Vi'])
-                    area.name = u'บ้าน%s' % row['properties']['V_Name_T']
-                    area.address = u'บ้าน%s %s' % (row['properties']['V_Name_T'], parent_area.address)
+                    area.name = u'บ้าน%s' % row['properties']['V_Name_T'] if not row['properties']['V_Name_T'].startswith(u'บ้าน') else row['properties']['V_Name_T']
+                    area.address = u'%s %s' % (u'บ้าน%s' % row['properties']['V_Name_T'] if not row['properties']['V_Name_T'].startswith(u'บ้าน') else row['properties']['V_Name_T'], parent_area.address)
                     area.location = point
                     area.code = code
                     if not area.authority:
                         area.authority = parent_area.authority
                     area.save()
+                    # update graph
+                    area.authority.save()
                 except AdministrationArea.DoesNotExist:
                     area = AdministrationArea.objects.create(
-                        name=u'บ้าน%s' % row['properties']['V_Name_T'],
-                        address=u'บ้าน%s %s' % (row['properties']['V_Name_T'], parent_area.address),
+                        name=u'บ้าน%s' % row['properties']['V_Name_T'] if not row['properties']['V_Name_T'].startswith(u'บ้าน') else row['properties']['V_Name_T'],
+                        address=u'%s %s' % (u'บ้าน%s' % row['properties']['V_Name_T'] if not row['properties']['V_Name_T'].startswith(u'บ้าน') else row['properties']['V_Name_T'], parent_area.address),
                         location=(point),
                         code=code,
                         qgis_id=row['properties']['FID_L08_Vi'],
                         authority=parent_area.authority
                     )
-
+                     # update graph
+                    area.authority.save()
                 i = i + 1
                 print '(', i, '/', len(data), ')', area.address, area.authority.name
             else:
