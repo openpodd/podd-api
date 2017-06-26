@@ -1,7 +1,9 @@
 # -*- encoding: utf-8 -*-
 import xlrd
 import xlwt
+import requests
 
+from django.conf import settings
 from accounts.models import Configuration, UserDevice, Authority
 from common.functions import publish_gcm_message
 from notifications.models import Notification, NotificationTemplate, NotificationAuthority
@@ -15,7 +17,6 @@ def create_notification(report, receive_user, message, message_type):
         type = message_type,
     )
     return notification
-
 
 
 def import_notification_excel(template_id, file):

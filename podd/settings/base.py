@@ -349,6 +349,12 @@ elif SHELLING:
     CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
     BROKER_BACKEND = 'memory'
 
+'''
+Firebase settings
+'''
+
+FIREBASE_CHAT_API_URL = 'http://example.com/api'
+
 # For production only.
 #OPBEAT = {
 #    'ORGANIZATION_ID': '',

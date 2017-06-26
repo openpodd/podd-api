@@ -27,6 +27,7 @@ class NotificationTemplate(DomainMixin):
     TYPE_LATE_FOLLOW_UP = 4
     TYPE_PRIVATE = 5 # same as TYPE_REPORT but not share
     TYPE_DELAYED_FOLLOW_UP = 6
+    TYPE_CHATROOM = 7
 
     TYPE_CHOICES = (
         (TYPE_REPORT, 'Report'),
@@ -35,6 +36,7 @@ class NotificationTemplate(DomainMixin):
         (TYPE_LATE_FOLLOW_UP, 'Late Follow Up'),
         (TYPE_PRIVATE, 'Private'),
         (TYPE_DELAYED_FOLLOW_UP, 'Delayed Follow Up'),
+        (TYPE_CHATROOM, 'Chat Room')
     )
 
     template = models.TextField()
@@ -350,6 +352,15 @@ class Notification(DomainMixin):
 
     def get_message_context(self):
 
+        chatroom_token = ''
+        if self.notification_authority.template.type == NotificationTemplate.TYPE_CHATROOM:
+            user_id = 0
+            if self.receive_user:
+                user_id = self.receive_user_id
+
+            from reports.functions import chat_create_token
+            chatroom_token = chat_create_token(self.report.id, user_id, self.to)
+
         return Context({
             'report': self.report,
             'created_at': self.created_at,
@@ -359,14 +370,14 @@ class Notification(DomainMixin):
             'to': self.to,
             'receive_user': self.receive_user,
             'created_by': self.created_by,
-            'plan': self.plan
+            'plan': self.plan,
+            'chatroom_token': chatroom_token
         })
 
     def render_message(self, key, subkey=None):
 
         # For publish news
         if self.message:
-
             message = self.process_message(self.message)
 
             if key in ['sms', 'gcm', 'apns']:
@@ -389,7 +400,6 @@ class Notification(DomainMixin):
 
         # For notification template condition
         else:
-
             if self.template is None:
                 self.init_message()
 

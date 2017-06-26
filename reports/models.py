@@ -97,6 +97,7 @@ class ReportType(AbstractCachedModel, DomainMixin):
     category = models.ForeignKey(ReportTypeCategory, related_name='report_type_category', blank=True, null=True)
 
     report_pre_save = models.TextField(null=True, blank=True, help_text='Variables are: report, json, geos, geos_util')
+    report_post_save = models.TextField(null=True, blank=True, help_text='Variables are: report, json, geos, geos_util')
     is_system = models.BooleanField(default=False)
 
     cached_vars = [('authority', True), 'form_definition', 'summary_template', 'version']
@@ -953,10 +954,11 @@ class Report(AbstractCachedModel, DomainMixin):
         if not authority:
             return
 
-        types = types or [NotificationTemplate.TYPE_REPORT, NotificationTemplate.TYPE_PRIVATE]
+        types = types or [NotificationTemplate.TYPE_REPORT, NotificationTemplate.TYPE_PRIVATE, NotificationTemplate.TYPE_CHATROOM]
 
         # find notification templates accepted condition
         notification_template_list = NotificationTemplate.objects.filter(type__in=types)
+        print notification_template_list
 
         notification_template_accepted_list = []
         for notification_template in notification_template_list:
@@ -1429,6 +1431,11 @@ class Report(AbstractCachedModel, DomainMixin):
         for plan_report in self._plan_reports:
             plan_report.save()
 
+    def create_chatroom(self):
+        from .functions import chat_create_room
+        room_name = u'Report id:%d, type: %s' % (self.id, self.type.name)
+        username = self.created_by.username
+        chat_create_room(self.id, room_name, username, self.rendered_data)
 
     @app.task(filter=task_method, base=DomainTask, bind=True)
     @domain_celery_task
@@ -1450,6 +1457,19 @@ class Report(AbstractCachedModel, DomainMixin):
         self.add_to_public_feed()
 
         self.create_cep()
+
+        # evaluate pre_save custom script.
+        report_post_save = (self.type.report_post_save or '').strip()
+        if report_post_save:
+            symtable = {
+                'report': self,
+                'json': json,
+                'geos': geos,
+                'geos_util': geos_util
+            }
+            safe_eval(report_post_save, symtable)
+
+
         if not self.parent:
 
             # When update state, don't send reporter feedback notification
@@ -1555,6 +1575,12 @@ class Report(AbstractCachedModel, DomainMixin):
                 'geos_util': geos_util
             }
             safe_eval(report_pre_save, symtable)
+
+        # render form data as save.
+        self.rendered_form_data = self.rendered_data
+        # load original form data only if this is a new report
+        if not self.id:
+            self.rendered_original_form_data = self.rendered_form_data
 
         # check #1: if this is a new report, do these things once
         #    1. save original data

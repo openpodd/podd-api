@@ -107,3 +107,5 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(days=1),
     }
 }
+
+FIREBASE_CHAT_API_URL = env('PODD_FIREBASE_CHAT_API_URL')

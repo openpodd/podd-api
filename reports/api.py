@@ -365,19 +365,6 @@ class ReportViewSet(viewsets.ModelViewSet):
             except Report.DoesNotExist:
                 pass
 
-        # TODO: move into model.save()
-        # render form data as save.
-        reportType = obj.type
-        template = reportType.django_template
-        form_data = json.loads(obj.form_data)
-        t = Template(template)
-        c = Context(form_data)
-        obj.rendered_form_data = t.render(c)
-        # load original form data only if this is a new report
-        # TODO: move this to model.save()
-        if not obj.id:
-            obj.rendered_original_form_data = obj.rendered_form_data
-
     def post_save(self, obj, created=False):
 
         if obj.negative:

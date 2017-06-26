@@ -1,6 +1,9 @@
 import datetime
 import re
 
+import requests
+from django.conf import settings
+
 from haystack.query import SearchQuerySet
 from haystack.utils.geo import Point
 
@@ -164,3 +167,35 @@ def _search(q, user, params=None, subscribes=True, current_domain_id=None, allow
     '''
 
     return queryset
+
+
+def chat_create_token(report_id, user_id, username):
+    """
+    :type report_id: int
+    :type user_id: int
+    :type username: str
+    """
+    api_url = settings.FIREBASE_CHAT_API_URL + '/createToken?roomId=%d&userId=%d&username=%s'
+    headers = {
+        'Authorization': 'Secret notebook-door-sky'
+    }
+    response = requests.post(api_url % (report_id, user_id, username), headers=headers)
+    if response.status_code == 200:
+        return response.text
+
+
+def chat_create_room(report_id, room_name, username, welcome_message):
+    """
+    :type report_id: int
+    :type room_name: str
+    :type username: str
+    :type welcome_message: str
+    """
+    api_url = settings.FIREBASE_CHAT_API_URL + '/createRoom?roomId=%d&roomName=%s&username=%s&welcomeMessage=%s'
+    headers = {
+        'Authorization': 'Secret notebook-door-sky'
+    }
+
+    response = requests.post(api_url % (report_id, room_name, username, welcome_message), headers=headers)
+    if response.status_code == 200:
+        return True

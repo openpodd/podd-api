@@ -18,7 +18,7 @@ class ReportTypeForm(forms.ModelForm):
 
     class Meta:
         model = ReportType
-        fields = ('name', 'code', 'category', 'authority', 'user_status', 'form_definition', 'file', 'template', 'django_template', 'summary_template', 'report_pre_save', 'weight', 'followable', 'is_system', 'follow_days', 'version')
+        fields = ('name', 'code', 'category', 'authority', 'user_status', 'form_definition', 'file', 'template', 'django_template', 'summary_template', 'report_pre_save', 'report_post_save', 'weight', 'followable', 'is_system', 'follow_days', 'version')
 
     def clean_form_definition(self):
         if self.cleaned_data['form_definition']:
