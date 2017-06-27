@@ -56,6 +56,7 @@ urlpatterns = patterns('',
     url(r'^users/all-invitation/', 'accounts.api.all_invitation', name='user_all_invitation'),
 
     url(r'^users/(?P<pk>[0-9]+)/profile/upload/', 'accounts.api.upload_image_profile', name='upload_image_profile'),
+    url(r'^users/(?P<pk>[0-9]+)/profile_image', 'accounts.api.profile_image', name='profile_image'),
 
 
     url(r'^authorities/(?P<parent_pk>[0-9]+)/notificationTemplates/$', notifications_api.AuthorityNotificationTemplateViewSet.as_view({

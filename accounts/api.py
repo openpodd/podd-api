@@ -5,7 +5,7 @@ import datetime
 import operator
 from django.forms import model_to_dict
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 import facebook
 import json
 import os
@@ -26,12 +26,12 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from dateutil.relativedelta import relativedelta
 from haystack.query import SearchQuerySet
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, decorators
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import action, api_view, authentication_classes, permission_classes, detail_route, link
-from rest_framework.permissions import IsAuthenticated, BasePermission
+from rest_framework.permissions import IsAuthenticated, BasePermission, AllowAny
 from rest_framework.response import Response
 import xlwt
 
@@ -352,9 +352,6 @@ class UserViewSet(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication, SessionAuthentication)
     permission_classes = (CanEditModel, )
 
-    def get_queryset(self):
-        return User.objects.all()
-
     def list(self, request):
         queryset = self.get_queryset().order_by('id')
         subscribes = request.QUERY_PARAMS.get('subscribe') == 'true'
@@ -449,6 +446,13 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes((AllowAny, ))
+def profile_image(request, pk=None):
+    user = get_object_or_404(User.objects.all(), pk=pk)
+    return redirect(user.avatar_url)
 
 
 @api_view(['GET'])
