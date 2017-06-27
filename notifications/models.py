@@ -16,6 +16,7 @@ from common.constants import NewsTypeChoices, NEWS_TYPE_NEWS, NOTIFICATION_SUPPO
 from common.functions import publish_gcm_message, publish_sms_message, publish_apns_message, \
     email_title_render_template, email_body_render_template, send_email_with_template, clean_phone_numbers
 from common.models import AbstractCommonTrashModel, DomainMixin
+from common.pub_tasks import get_cache, set_cache
 
 from plans.templatetags import plans_tags # dont' remove this line
 
@@ -359,7 +360,15 @@ class Notification(DomainMixin):
                 user_id = self.receive_user_id
 
             from reports.functions import chat_create_token
-            chatroom_token = chat_create_token(self.report.id, user_id, self.to)
+
+            room_id = self.report.id
+            username = self.to
+
+            cache_key = 'chattoken-%s-%s' % (room_id, username)
+            chatroom_token = get_cache(cache_key)
+            if not chatroom_token:
+                chatroom_token = chat_create_token(room_id, user_id, username)
+                set_cache(cache_key, chatroom_token)
 
         return Context({
             'report': self.report,
