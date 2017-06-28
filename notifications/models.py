@@ -365,11 +365,12 @@ class Notification(DomainMixin):
             room_id = self.report.id
             username = self.to
 
-            cache_key = 'chattoken-%s-%s' % (room_id, username)
-            chatroom_token = get_cache(cache_key)
-            if not chatroom_token:
-                chatroom_token = chat_create_token(room_id, user_id, username)
-                set_cache(cache_key, chatroom_token)
+            if username != '@[chatroom]':
+                cache_key = 'chattoken-%s-%s' % (room_id, username)
+                chatroom_token = get_cache(cache_key)
+                if not chatroom_token:
+                    chatroom_token = chat_create_token(room_id, user_id, username)
+                    set_cache(cache_key, chatroom_token)
 
         return Context({
             'report': self.report,
