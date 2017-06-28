@@ -958,7 +958,6 @@ class Report(AbstractCachedModel, DomainMixin):
 
         # find notification templates accepted condition
         notification_template_list = NotificationTemplate.objects.filter(type__in=types)
-        print notification_template_list
 
         notification_template_accepted_list = []
         for notification_template in notification_template_list:
@@ -1431,9 +1430,8 @@ class Report(AbstractCachedModel, DomainMixin):
         for plan_report in self._plan_reports:
             plan_report.save()
 
-    def create_chatroom(self):
+    def create_chatroom(self, room_name):
         from .functions import chat_create_room
-        room_name = u'Report id:%d, type: %s' % (self.id, self.type.name)
         username = self.created_by.username
         chat_create_room(self.id, room_name, username, self.rendered_data)
 
