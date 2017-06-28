@@ -3,8 +3,8 @@
 import datetime
 import json
 import csv
-import psycopg2
 from django.conf import settings
+from django.db import connection
 
 '''
 Output Columns:
@@ -200,76 +200,67 @@ def fetch_report(date_start=None, date_end=None):
     report_map = {}
     reports = []
 
-    connection_str = 'dbname={0} user={1} password={2} port={3} host={4}'.format(
-        settings.DATABASES['default']['NAME'],
-        settings.DATABASES['default']['USER'],
-        settings.DATABASES['default']['PASSWORD'],
-        settings.DATABASES['default']['PORT'] or 5432,
-        settings.DATABASES['default']['HOST']
-    )
-    conn = psycopg2.connect(connection_str)
-    cur = conn.cursor()
-
     date_start = date_start or '2015-01-01'
     date_end = date_end or datetime.datetime.now().strftime('%Y-%m-%d')
 
-    sql = ('''
-    select
-      t.name,
-      r.date,
-      r.incident_date,
-      u.username,
-      u.first_name,
-      u.last_name,
-      a.id as sub_district_id,
-      a.name as sub_district,
-      aa.id as district_id,
-      aa.name as district,
-      r.form_data,
-      r.parent_id,
-      r."id"
-    from reports_report r,
-     reports_reporttype t,
-    accounts_user u,
-    reports_administrationarea a,
-    reports_administrationarea aa
-    where r.type_id = t."id"
-    and u.id = r.created_by_id
-    and r.administration_area_id = a.id
-    and r.date >= '{0}'
-    and r.date < '{1}'
-    and a.lft between aa.lft and aa.rgt
-    and (r.test_flag is null or r.test_flag = false)
-    and r.is_public = false
-    and r.domain_id = 1
-    and r.type_id = 2
-    and a.tree_id = aa.tree_id
-    and aa.id != 112
-    and a.id != aa.id
-    and u.username like '{2}'
-    and r.negative = true
-    order by r.id
-    ''').format(date_start, date_end, 'podd%')
+    with connection.cursor() as cursor:
+        sql = ('''
+        select
+          t.name,
+          r.date,
+          r.incident_date,
+          u.username,
+          u.first_name,
+          u.last_name,
+          a.id as sub_district_id,
+          a.name as sub_district,
+          aa.id as district_id,
+          aa.name as district,
+          r.form_data,
+          r.parent_id,
+          r."id"
+        from reports_report r,
+         reports_reporttype t,
+        accounts_user u,
+        reports_administrationarea a,
+        reports_administrationarea aa
+        where r.type_id = t."id"
+        and u.id = r.created_by_id
+        and r.administration_area_id = a.id
+        and r.date >= '{0}'
+        and r.date < '{1}'
+        and a.lft between aa.lft and aa.rgt
+        and (r.test_flag is null or r.test_flag = false)
+        and r.is_public = false
+        and r.domain_id = 1
+        and r.type_id = 2
+        and a.tree_id = aa.tree_id
+        and aa.id != 112
+        and a.id != aa.id
+        and u.username like '{2}'
+        and r.negative = true
+        order by r.id
+        ''').format(date_start, date_end, 'podd%%')
 
-    cur.execute(sql)
+        cursor.execute(sql)
 
-    for row in cur:
-        report = Report(words, fetch_column(row))
-        report_map[report.id] = report
-        symptom_map = populate_symptom_map(report.symptoms())
-        symptom_map = populate_symptom_map_from_report(symptom_map, report.symptoms())
-        parent_id = report.params['parent_id']
-        if parent_id and report_map.has_key(parent_id):
-            parent_report = report_map[parent_id]
-            if parent_report:
-                report.follow = True
-                parent_report.has_follow = True
-                parent_report.add_follow(report)
-                # print "add follow report: %s to %s " % (report.id, parent_id)
-        else:
-            reports.append(report)
+        for row in cursor:
+            report = Report(words, fetch_column(row))
+            report_map[report.id] = report
+            symptom_map = populate_symptom_map(report.symptoms())
+            symptom_map = populate_symptom_map_from_report(symptom_map, report.symptoms())
+            parent_id = report.params['parent_id']
+            if parent_id and report_map.has_key(parent_id):
+                parent_report = report_map[parent_id]
+                if parent_report:
+                    report.follow = True
+                    parent_report.has_follow = True
+                    parent_report.add_follow(report)
+                    # print "add follow report: %s to %s " % (report.id, parent_id)
+            else:
+                reports.append(report)
 
-    cur.close()
+        cursor.close()
     return reports, symptom_map
 
 
