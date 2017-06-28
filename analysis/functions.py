@@ -3,6 +3,8 @@
 import datetime
 import json
 import csv
+import psycopg2
+from django.conf import settings
 
 '''
 Output Columns:
@@ -27,58 +29,13 @@ Output Columns:
  - follow_idx
 '''
 
-from django.db import connection
-cur = connection.cursor()
 
 # connection_str = 'dbname=podd user=podd password=podd port=5432 host=localhost'
 # conn = psycopg2.connect(connection_str)
 # cur = conn.cursor()
 
-
-def build_sql(date_start=None, date_end=None):
-
-    date_start = date_start or '2015-01-01'
-    date_end = date_end or datetime.datetime.now().strftime('%Y-%m-%d')
-
-    sql = ('''
-    select
-      t.name,                     /* 0 */
-      r.date,                     /* 1 */
-      r.incident_date,
-      u.username,				  /* 3 */
-      u.first_name,
-      u.last_name,                /* 5 */
-      a.id as sub_district_id,
-      a.name as sub_district,
-      aa.id as district_id,       /* 8 */
-      aa.name as district,        /* 9 */
-      r.form_data,                /* 10 */
-      r.parent_id,
-      r."id"					  /* 12 */
-    from reports_report r,
-     reports_reporttype t,
-    accounts_user u,
-    reports_administrationarea a,
-    reports_administrationarea aa
-    where r.type_id = t."id"
-    and u.id = r.created_by_id
-    and r.administration_area_id = a.id
-    and r.date >= '{0}'
-    and r.date < '{1}'
-    and a.lft between aa.lft and aa.rgt
-    and (r.test_flag is null or r.test_flag = false)     /*  ไม่ใช่รายงานทดสอบ */
-    and r.is_public = false     /*  ไม่ใช่ public report */
-    and r.domain_id = 1         /*  podd domain */
-    and r.type_id = 2           /*  สัตว์ป่วยตาย */
-    and a.tree_id = aa.tree_id
-    and aa.id != 112			/* test area not include */
-    and a.id != aa.id
-    and u.username like 'podd%'
-    and r.negative = true
-    order by r.id
-    ''').format(date_start, date_end)
-
-    cur.execute(sql)
+# from django.db import connection
+# cur = connection.cursor()
 
 
 def populate_symptom_map(symptoms):
@@ -242,7 +199,60 @@ def fetch_report(date_start=None, date_end=None):
 
     report_map = {}
     reports = []
-    build_sql(date_start, date_end)
+
+    connection_str = 'dbname={0} user={1} password={2} port={3} host={4}'.format(
+        settings.DATABASES['default']['NAME'],
+        settings.DATABASES['default']['USER'],
+        settings.DATABASES['default']['PASSWORD'],
+        settings.DATABASES['default']['PORT'] or 5432,
+        settings.DATABASES['default']['HOST']
+    )
+    conn = psycopg2.connect(connection_str)
+    cur = conn.cursor()
+
+    date_start = date_start or '2015-01-01'
+    date_end = date_end or datetime.datetime.now().strftime('%Y-%m-%d')
+
+    sql = ('''
+    select
+      t.name,
+      r.date,
+      r.incident_date,
+      u.username,
+      u.first_name,
+      u.last_name,
+      a.id as sub_district_id,
+      a.name as sub_district,
+      aa.id as district_id,
+      aa.name as district,
+      r.form_data,
+      r.parent_id,
+      r."id"
+    from reports_report r,
+     reports_reporttype t,
+    accounts_user u,
+    reports_administrationarea a,
+    reports_administrationarea aa
+    where r.type_id = t."id"
+    and u.id = r.created_by_id
+    and r.administration_area_id = a.id
+    and r.date >= '{0}'
+    and r.date < '{1}'
+    and a.lft between aa.lft and aa.rgt
+    and (r.test_flag is null or r.test_flag = false)
+    and r.is_public = false
+    and r.domain_id = 1
+    and r.type_id = 2
+    and a.tree_id = aa.tree_id
+    and aa.id != 112
+    and a.id != aa.id
+    and u.username like '{2}'
+    and r.negative = true
+    order by r.id
+    ''').format(date_start, date_end, 'podd%')
+
+    cur.execute(sql)
+
     for row in cur:
         report = Report(words, fetch_column(row))
         report_map[report.id] = report
@@ -258,6 +268,8 @@ def fetch_report(date_start=None, date_end=None):
                 # print "add follow report: %s to %s " % (report.id, parent_id)
         else:
             reports.append(report)
+
+    cur.close()
     return reports, symptom_map
 
 
@@ -290,8 +302,11 @@ def dump_csv(reports, symptom_map):
 
 
 def export():
+
     reports, symptom_map = fetch_report()
     print 'total count = %d' % (len(reports),)
     # for (k,v) in symptom_map.items():
     #    print "%s" % (k)
     dump_csv(reports, symptom_map)
+
+
