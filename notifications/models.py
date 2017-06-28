@@ -14,7 +14,8 @@ from accounts.models import Authority, UserDevice, user_can_edit_basic_check, Co
 from common.constants import NewsTypeChoices, NEWS_TYPE_NEWS, NOTIFICATION_SUPPORT_TEMPLATES, \
     NOTIFICATION_SUPPORT_TEMPLATE_PREFIX, NOTIFICATION_SUPPORT_TEMPLATE_SUFFIX
 from common.functions import publish_gcm_message, publish_sms_message, publish_apns_message, \
-    email_title_render_template, email_body_render_template, send_email_with_template, clean_phone_numbers
+    email_title_render_template, email_body_render_template, send_email_with_template, clean_phone_numbers, \
+    get_system_user
 from common.models import AbstractCommonTrashModel, DomainMixin
 from common.pub_tasks import get_cache, set_cache
 
@@ -504,6 +505,15 @@ class Notification(DomainMixin):
                         settings.EMAIL_ADDRESS_NO_REPLY,
                         [self.to],
                     )
+            elif self.to == '@[chatroom]':
+                chat_room_id = self.report.id
+                system_user = get_system_user()
+                chat_user_id = system_user.id
+                chat_username = system_user.username
+                chat_message = self.render_message('sms')
+
+                from reports.functions import chat_post_message
+                chat_post_message(chat_room_id, chat_user_id, chat_username, chat_message)
 
     def save(self, *args, **kwargs):
         super(Notification, self).save(*args, **kwargs)

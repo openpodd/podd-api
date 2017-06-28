@@ -354,6 +354,7 @@ Firebase settings
 '''
 
 FIREBASE_CHAT_API_URL = 'http://example.com/api'
+FIREBASE_CHAT_API_KEY = 'REPLACE_WITH_YOUR_KEY'
 
 # For production only.
 #OPBEAT = {

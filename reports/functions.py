@@ -177,25 +177,51 @@ def chat_create_token(report_id, user_id, username):
     """
     api_url = settings.FIREBASE_CHAT_API_URL + '/createToken?roomId=%d&userId=%d&username=%s'
     headers = {
-        'Authorization': 'Secret notebook-door-sky'
+        'Authorization': 'Secret %s' % (settings.FIREBASE_CHAT_API_KEY, )
     }
     response = requests.post(api_url % (report_id, user_id, username), headers=headers)
     if response.status_code == 200:
         return response.text
 
 
-def chat_create_room(report_id, room_name, username, welcome_message):
+def chat_create_room(report_id, room_name, user_id, username, welcome_message):
     """
     :type report_id: int
     :type room_name: str
     :type username: str
     :type welcome_message: str
     """
-    api_url = settings.FIREBASE_CHAT_API_URL + '/createRoom?roomId=%d&roomName=%s&username=%s&welcomeMessage=%s'
+    api_url = settings.FIREBASE_CHAT_API_URL + '/createRoom?roomId=%d&roomName=%s&userId=%d&username=%s&welcomeMessage=%s'
     headers = {
-        'Authorization': 'Secret notebook-door-sky'
+        'Authorization': 'Secret %s' % (settings.FIREBASE_CHAT_API_KEY, )
     }
 
-    response = requests.post(api_url % (report_id, room_name, username, welcome_message), headers=headers)
+    response = requests.post(api_url % (report_id, room_name, user_id, username, welcome_message), headers=headers)
     if response.status_code == 200:
         return True
+
+
+def chat_post_message(report_id, user_id, username, message, image_url=''):
+    """
+    :type report_id: int
+    :type user_id: int
+    :type username: str
+    :type message: str
+    :type image_url: str
+    """
+    api_url = settings.FIREBASE_CHAT_API_URL + '/postMessage'
+    headers = {
+        'Authorization': 'Secret %s' % (settings.FIREBASE_CHAT_API_KEY, )
+    }
+    payload = {
+        'roomId': report_id,
+        'userId': user_id,
+        'username': username,
+        'message': message,
+        'image_url': image_url
+    }
+
+    response = requests.post(api_url, headers=headers, json=payload)
+    if response.status_code == 200:
+        return True
+

@@ -1154,6 +1154,10 @@ class Report(AbstractCachedModel, DomainMixin):
                             except NotificationAuthority.DoesNotExist:
                                 pass
 
+                        elif to == '@[chatroom]':
+                            notification_data['to'] = '@[chatroom]'
+                            receive_user = '@[chatroom]'
+
 
                         if receive_user and not receive_user in sents[accepted.get_comment_render()]:
                             sents[accepted.get_comment_render()].append(receive_user)
@@ -1432,8 +1436,9 @@ class Report(AbstractCachedModel, DomainMixin):
 
     def create_chatroom(self, room_name):
         from .functions import chat_create_room
+        user_id = self.created_by.id
         username = self.created_by.username
-        chat_create_room(self.id, room_name, username, self.rendered_data)
+        chat_create_room(self.id, room_name, user_id, username, self.rendered_data)
 
     @app.task(filter=task_method, base=DomainTask, bind=True)
     @domain_celery_task
