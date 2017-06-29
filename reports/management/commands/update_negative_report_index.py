@@ -7,10 +7,19 @@ from reports.search_indexes import ReportIndex
 
 
 class Command(BaseCommand):
+    args = '[report_type_id]'
     help = 'Update index for negative reports only'
 
     def handle(self, *args, **options):
         reports = Report.objects.filter(negative=True)
+
+        if args[0]:
+            reports = reports.filter(type__id=args[0])
+
+        confirmed = raw_input('Confirm to re-index %d negative reports [y/N]: ' % (reports.count(), ))
+        if confirmed.rstrip().lower() != "y":
+            exit(0)
+
         total_reports = reports.count()
         report_index = ReportIndex()
 
