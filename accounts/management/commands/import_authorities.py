@@ -26,7 +26,6 @@ class Command(BaseCommand):
         domain_id = args[1]
         settings.CURRENT_DOMAIN_ID = domain_id
 
-
         for row in data:
 
             name = row['name']
@@ -37,6 +36,7 @@ class Command(BaseCommand):
             lng = row['lng'] or 100.5522059999999982
             point = 'POINT (%s %s)' % (lng, lat)
             parent = row['parent_pk']
+            qgis_id = row['qgis_id']
 
             try:
                 parent = Authority.objects.get(id=parent)
