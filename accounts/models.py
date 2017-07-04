@@ -168,15 +168,25 @@ class User(AbstractUser, MultiDomainMixin, UserNotificationMixin):
 
     def user_can_edit(self, user):
 
-        if user and user.is_authenticated() and user.is_staff:
-            return True
+        if user and user.is_authenticated():
+            if user.is_staff or self.id == user.id:
+                return True
+
+            elif user.status in [USER_STATUS_VOLUNTEER, USER_STATUS_ADDITION_VOLUNTEER]:
+                return False
+
+            else:
+                from common.functions import filter_permitted_users
+                return self.id in filter_permitted_users(user, subscribes=False)
 
         # Admin Authorities
-        authority_ids = self.authority_users.values_list('id')
-        if Authority.objects.filter(id__in=authority_ids, admins__id=user.id).count() > 0:
-            return True
+        # authority_ids = self.authority_users.values_list('id')
+        # if Authority.objects.filter(id__in=authority_ids, admins__id=user.id).count() > 0:
+        #     return True
+        #
+        # return self.id == user.id
 
-        return self.id == user.id
+        return False
 
 
 if not hasattr(Group, 'type'):
