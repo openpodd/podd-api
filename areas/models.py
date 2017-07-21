@@ -31,6 +31,9 @@ class PlaceCategory(DomainMixin):
     level2_key = models.CharField(max_length=255, null=True, blank=True)
     level2_label = models.CharField(max_length=255, null=True, blank=True)
 
+    def __unicode__(self):
+        return self.name
+
 class Place(DomainMixin):
 
     category = models.ForeignKey(PlaceCategory)
@@ -67,6 +70,9 @@ class Place(DomainMixin):
                 exist_place.longitude   = self.longitude
 
                 exist_place.save()
+            else:
+                super(Place, self).save(*args, **kwargs)
+                return True
 
         except Place.DoesNotExist:
             super(Place, self).save(*args, **kwargs)
