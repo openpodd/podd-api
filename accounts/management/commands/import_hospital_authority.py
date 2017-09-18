@@ -62,9 +62,10 @@ class Command(BaseCommand):
 
             try:
                 user = User.objects.get(username=row['code'])
+
             except User.DoesNotExist:
-                user = User.objects.create(username=row['code'], password=row['code'], status=USER_STATUS_PUBLIC_HEALTH, display_password=True)
-                user.set_password(row['code'])
+                user = User.objects.create(username=row['code'].zfill(5), password=row['code'].zfill(5), status=USER_STATUS_PUBLIC_HEALTH, display_password=True)
+                user.set_password(row['code'].zfill(5))
                 user.save()
                 level2.users.add(user)
 
