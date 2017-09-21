@@ -51,8 +51,9 @@ from common.functions import (filter_permitted_administration_areas_and_descenda
 from common.models import Domain, get_current_domain_id
 from common.serializers import DomainSerializer
 from logs.models import LogItem
-from notifications.models import NotificationTemplate
+from notifications.models import NotificationTemplate, Notification
 from notifications.serializers import NotificationTemplateSerializer
+from reports.functions import chat_create_token
 from reports.models import ReportType, AdministrationArea
 from reports.serializers import ReportTypeSerializer, AdministrationAreaListSerializer
 from summary.functions import summary_by_show_user_detail
@@ -70,7 +71,7 @@ def configuration(request):
             user=request.user
         )
 
-    data = request.DATA
+    data = request.DATA.copy()
     data['domain'] = request.user.domain.id
     serializer = UserDeviceSerializer(device, data=data)
 
@@ -114,6 +115,11 @@ def users_search(request):
     username = request.REQUEST.get('username', '')
     if username:
         queryset = queryset.filter(username__startswith=username)
+
+    query = request.REQUEST.get('query', u'')
+    if query:
+        queryset = queryset.filter()
+        queryset = queryset.raw_search(u'text:*%s*' % (query, ))
 
     queryset = queryset.order_by('username')[:limit]
 
@@ -1256,3 +1262,32 @@ def all_invitation(request):
     workbook.save(response)
 
     return response
+
+@api_view(['POST'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated, ))
+def chatroom_invites(request):
+    body = request.DATA.copy()
+
+    report_id = body.get('reportId')
+    user_ids = body.get('userIds')
+    subject = body.get('subject')
+    template = body.get('template') or u'คุณได้รับการเชิญเข้าร่วมปรึกษาเรื่อง {subject} เข้าร่วมห้องแชทได้ที่ https://podd-chat.firebaseapp.com/#/?token={token}'
+
+    for user_id in user_ids:
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            continue
+
+        authority = user.authority_users.all()[0]
+        token = chat_create_token(report_id, user_id, user.username, authority.id, authority.name)
+
+        notification = Notification(
+            receive_user=user,
+            to=user.username,
+            message=template.format(subject=subject, token=token),
+        )
+        notification.save()
+
+    return Response('{ "message": "ok" }', status=status.HTTP_200_OK)
