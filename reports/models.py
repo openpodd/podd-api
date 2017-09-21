@@ -1456,11 +1456,11 @@ class Report(AbstractCachedModel, DomainMixin):
         for plan_report in self._plan_reports:
             plan_report.save()
 
-    def create_chatroom(self, room_name):
+    def create_chatroom(self, room_name, meta={}):
         from .functions import chat_create_room
         user_id = self.created_by.id
         username = self.created_by.username
-        chat_create_room(self.id, room_name, user_id, username, self.rendered_data)
+        chat_create_room(self.id, room_name, user_id, username, self.rendered_data, meta)
 
     @app.task(filter=task_method, base=DomainTask, bind=True)
     @domain_celery_task

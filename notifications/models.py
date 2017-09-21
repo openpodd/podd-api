@@ -357,8 +357,18 @@ class Notification(DomainMixin):
         chatroom_token = ''
         if self.notification_authority.template.type == NotificationTemplate.TYPE_CHATROOM:
             user_id = 0
+            authority_id = 0
+            authority_name = ''
             if self.receive_user:
                 user_id = self.receive_user_id
+                try:
+                    user = User.objects.get(id=user_id)
+                    firstAuthority = user.authority_users.all()[0]
+                    authority_id = firstAuthority.id
+                    authority_name = firstAuthority.name
+                except User.DoesNotExist:
+                    pass
+
 
             from reports.functions import chat_create_token
 
@@ -369,7 +379,7 @@ class Notification(DomainMixin):
                 cache_key = 'chattoken-%s-%s' % (room_id, username)
                 chatroom_token = get_cache(cache_key)
                 if not chatroom_token:
-                    chatroom_token = chat_create_token(room_id, user_id, username)
+                    chatroom_token = chat_create_token(room_id, user_id, username, authority_id, authority_name)
                     set_cache(cache_key, chatroom_token)
 
         return Context({
@@ -513,8 +523,18 @@ class Notification(DomainMixin):
                 chat_username = system_user.username
                 chat_message = self.render_message('sms')
 
+                meta = {}
+                form_data = json.loads(self.report.form_data)
+                if form_data['ct_latitude'] and form_data['ct_longitude']:
+                    meta = {
+                        'location': {
+                            'lat': form_data['ct_latitude'],
+                            'lng': form_data['ct_longitude']
+                        }
+                    }
+
                 from reports.functions import chat_post_message
-                chat_post_message(chat_room_id, chat_user_id, chat_username, chat_message)
+                chat_post_message(chat_room_id, chat_user_id, chat_username, chat_message, meta=meta)
 
     def save(self, *args, **kwargs):
         super(Notification, self).save(*args, **kwargs)

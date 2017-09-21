@@ -61,6 +61,7 @@ class Command(BaseCommand):
                         contact=contact,
                         telephone=telephone,
                         project_mobile_number=project_mobile_number,
+
                     )
 
                     user.groups.add(group.group)

@@ -169,45 +169,65 @@ def _search(q, user, params=None, subscribes=True, current_domain_id=None, allow
     return queryset
 
 
-def chat_create_token(report_id, user_id, username):
+def chat_create_token(report_id, user_id, username, authority_id=0, authority_name=''):
     """
     :type report_id: int
     :type user_id: int
     :type username: str
+    :type authority_id: int
+    :type authority_name: str
     """
-    api_url = settings.FIREBASE_CHAT_API_URL + '/createToken?roomId=%d&userId=%d&username=%s'
+    api_url = settings.FIREBASE_CHAT_API_URL + '/createToken'
     headers = {
         'Authorization': 'Secret %s' % (settings.FIREBASE_CHAT_API_KEY, )
     }
-    response = requests.post(api_url % (report_id, user_id, username), headers=headers)
+    payload = {
+        'roomId': report_id,
+        'userId': user_id,
+        'username': username,
+        'authorityId': authority_id,
+        'authorityName': authority_name
+    }
+
+    response = requests.post(api_url, headers=headers, json=payload)
     if response.status_code == 200:
         return response.text
 
 
-def chat_create_room(report_id, room_name, user_id, username, welcome_message):
+def chat_create_room(report_id, room_name, user_id, username, welcome_message, meta={}):
     """
     :type report_id: int
     :type room_name: str
     :type username: str
     :type welcome_message: str
+    :type meta: dict
     """
-    api_url = settings.FIREBASE_CHAT_API_URL + '/createRoom?roomId=%d&roomName=%s&userId=%d&username=%s&welcomeMessage=%s'
+    api_url = settings.FIREBASE_CHAT_API_URL + '/createRoom'
     headers = {
         'Authorization': 'Secret %s' % (settings.FIREBASE_CHAT_API_KEY, )
     }
+    payload = {
+        'roomId': report_id,
+        'roomName': room_name,
+        'userId': user_id,
+        'username': username,
+        'welcomeMessage': welcome_message,
+        'meta': meta
+    }
 
-    response = requests.post(api_url % (report_id, room_name, user_id, username, welcome_message), headers=headers)
+    response = requests.post(api_url, headers=headers, json=payload)
     if response.status_code == 200:
         return True
 
 
-def chat_post_message(report_id, user_id, username, message, image_url=''):
+def chat_post_message(report_id, user_id, username, message, image_url='', meta={}):
     """
     :type report_id: int
     :type user_id: int
     :type username: str
     :type message: str
     :type image_url: str
+    :type meta: dict
     """
     api_url = settings.FIREBASE_CHAT_API_URL + '/postMessage'
     headers = {
@@ -218,7 +238,8 @@ def chat_post_message(report_id, user_id, username, message, image_url=''):
         'userId': user_id,
         'username': username,
         'message': message,
-        'image_url': image_url
+        'image_url': image_url,
+        'meta': meta
     }
 
     response = requests.post(api_url, headers=headers, json=payload)
