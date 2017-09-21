@@ -998,18 +998,16 @@ class Report(AbstractCachedModel, DomainMixin):
         self.create_notification(notification_template_accepted_list, authority)
 
     def create_notification(self, notification_template_accepted_list, authority=None):
-
         authority = authority or self.administration_area.authority
 
         subscriber_ids = set([])
+        intersect_authorities = []
         if self.type.notification_type == ReportType.NOTIFY_BY_REPORT_ADMINAREA_AUTHORITY:
             # query from graph db
             subscriber_ids = set(authority.get_subscribers_all())
         elif self.type.notification_type == ReportType.NOTIFY_BY_REPORT_LOCATION_INTERSECTS_WITH_AUTHORITY:
             radius = self.type.notification_buffer or 0.025
-            for authority in Authority.objects.filter(area__intersects=self.report_location.buffer(radius)):
-                # query from graph db
-                subscriber_ids |= set(authority.get_subscribers_all())
+            intersect_authorities = Authority.objects.filter(area__intersects=self.report_location.buffer(radius))
 
         for plan_report in self._plan_reports:
             # merge all authority for auto subscribe on the fly when plan accepted
@@ -1027,6 +1025,10 @@ class Report(AbstractCachedModel, DomainMixin):
         if self.type.notification_type == ReportType.NOTIFY_BY_REPORT_ADMINAREA_AUTHORITY:
             # check and send notification to owner authority
             self._create_notification(notification_template_accepted_list, [authority], sents, stamps=stamps, inherits_send=True)
+        elif self.type.notification_type == ReportType.NOTIFY_BY_REPORT_LOCATION_INTERSECTS_WITH_AUTHORITY:
+            self._create_notification(notification_template_accepted_list, intersect_authorities, sents, stamps=stamps,
+                                      inherits_send=True)
+
 
         # check and send notification to authority subscribers
         notification_template_accepted_subscribe_list = [t for t in notification_template_accepted_list if t.type != NotificationTemplate.TYPE_PRIVATE]
