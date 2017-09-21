@@ -78,6 +78,14 @@ class ReportTypeCategory(DomainMixin):
 
 
 class ReportType(AbstractCachedModel, DomainMixin):
+
+    NOTIFY_BY_REPORT_ADMINAREA_AUTHORITY = 0
+    NOTIFY_BY_REPORT_LOCATION_INTERSECTS_WITH_AUTHORITY = 1
+    NOTIFY_CHOICES = (
+        (NOTIFY_BY_REPORT_ADMINAREA_AUTHORITY, 'Notify by lookup authority based on admin_area'),
+        (NOTIFY_BY_REPORT_LOCATION_INTERSECTS_WITH_AUTHORITY, 'Notify by lookup authorities based on geometry intercepts with report locaation'),
+    )
+
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=100)
     form_definition = models.TextField(null=False, blank=True)
@@ -99,6 +107,12 @@ class ReportType(AbstractCachedModel, DomainMixin):
     report_pre_save = models.TextField(null=True, blank=True, help_text='Variables are: report, json, geos, geos_util')
     report_post_save = models.TextField(null=True, blank=True, help_text='Variables are: report, json, geos, geos_util')
     is_system = models.BooleanField(default=False)
+
+    notification_type = models.IntegerField(choices=NOTIFY_CHOICES,
+                                           default=NOTIFY_BY_REPORT_ADMINAREA_AUTHORITY,
+                                           help_text='Notify authorities based on report location')
+    notification_buffer = models.FloatField(null=True,
+                                            help_text='Radius of buffer that use to find intersects authorities')
 
     cached_vars = [('authority', True), 'form_definition', 'summary_template', 'version']
 
@@ -987,9 +1001,15 @@ class Report(AbstractCachedModel, DomainMixin):
 
         authority = authority or self.administration_area.authority
 
-
-        # for graph db
-        subscriber_ids = set(authority.get_subscribers_all())
+        subscriber_ids = set([])
+        if self.type.notification_type == ReportType.NOTIFY_BY_REPORT_ADMINAREA_AUTHORITY:
+            # query from graph db
+            subscriber_ids = set(authority.get_subscribers_all())
+        elif self.type.notification_type == ReportType.NOTIFY_BY_REPORT_LOCATION_INTERSECTS_WITH_AUTHORITY:
+            radius = self.type.notification_buffer or 0.025
+            for authority in Authority.objects.filter(area__intersects=self.report_location.buffer(radius)):
+                # query from graph db
+                subscriber_ids |= set(authority.get_subscribers_all())
 
         for plan_report in self._plan_reports:
             # merge all authority for auto subscribe on the fly when plan accepted
@@ -1004,12 +1024,12 @@ class Report(AbstractCachedModel, DomainMixin):
 
         stamps = []
 
-        # check and send notification to owner authority
-        self._create_notification(notification_template_accepted_list, [authority], sents, stamps=stamps, inherits_send=True)
+        if self.type.notification_type == ReportType.NOTIFY_BY_REPORT_ADMINAREA_AUTHORITY:
+            # check and send notification to owner authority
+            self._create_notification(notification_template_accepted_list, [authority], sents, stamps=stamps, inherits_send=True)
+
         # check and send notification to authority subscribers
         notification_template_accepted_subscribe_list = [t for t in notification_template_accepted_list if t.type != NotificationTemplate.TYPE_PRIVATE]
-
-
         self._create_notification(notification_template_accepted_subscribe_list, subscriber_list, sents, stamps=stamps, subscribe_authority=authority)
 
         self.create_comment_notification(sents)

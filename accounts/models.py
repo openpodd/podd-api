@@ -12,7 +12,8 @@ from celery.contrib.methods import task_method
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group, UserManager
-from django.db import models, IntegrityError
+from django.db import IntegrityError
+from django.contrib.gis.db import models
 from django.db.models import Q, Count
 from django.db.models.signals import m2m_changed
 from django.utils import timezone
@@ -281,6 +282,7 @@ class Authority(DomainMixin):
 
     deep_subscribes = models.ManyToManyField('self', related_name='authority_deep_subscribes', symmetrical=False, null=True, blank=True)
 
+    area = models.MultiPolygonField(srid=4326, null=True)
     # denormalize on save
     #administration_areas = models.ManyToManyField('reports.AdministrationArea', related_name='authority_administration_areas', null=True, blank=True)
     #report_types = models.ManyToManyField('reports.ReportType', related_name='authority_report_types', null=True, blank=True)
