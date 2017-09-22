@@ -227,6 +227,8 @@ class ReportTypeSerializer(serializers.ModelSerializer, AttachCanEditSerializer)
     version = serializers.WritableField(source="version", required=False)
     weight = serializers.WritableField(source="weight", required=False)
     category = serializers.PrimaryKeyRelatedField("category", many=False, read_only=True, required=False)
+    categoryCode = serializers.SerializerMethodField('get_category_code')
+    categoryName = serializers.SerializerMethodField('get_category_name')
 
     authority = serializers.PrimaryKeyRelatedField('authority', required=False, widget=widgets.TextInput)
 
@@ -236,7 +238,7 @@ class ReportTypeSerializer(serializers.ModelSerializer, AttachCanEditSerializer)
         model = ReportType
         fields = ('id', 'code', 'name', 'version', 'weight',
                   'followable', 'followDays', 'definition', 'template',
-                  'authority', 'reportStates', 'category')
+                  'authority', 'reportStates', 'category', 'categoryCode', 'categoryName')
 
     def transform_definition(self, obj, value):
         if value:
@@ -253,6 +255,12 @@ class ReportTypeSerializer(serializers.ModelSerializer, AttachCanEditSerializer)
         if not value:
             return 0
         return value
+
+    def get_category_name(self, obj):
+        return obj.category.name if obj.category else ''
+
+    def get_category_code(self, obj):
+        return obj.category.code if obj.category else ''
 
 
 
