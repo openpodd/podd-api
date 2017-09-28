@@ -638,6 +638,9 @@ class GeoDomainManager(GeoManager, DomainManager):
     pass
 
 class Report(AbstractCachedModel, DomainMixin):
+    """
+    *@DynamicAttrs*
+    """
     report_id = models.IntegerField()                               # id on client side
     guid = models.TextField(unique=True)                            # unique identifier
     report_location = models.PointField(null=True, blank=True)      # location when reporting

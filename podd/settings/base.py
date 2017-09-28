@@ -76,7 +76,8 @@ INSTALLED_APPS = (
     'reports',
     'supervisors',
     'plans',
-    'pages'
+    'pages',
+    'summary',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -267,7 +268,7 @@ CELERYBEAT_SCHEDULE = {
     }
 }
 
-NOTIFICATION_DISABLED = False
+NOTIFICATION_DISABLED = True
 
 UPDATE_REPORT_STATE_KEY = 'must-override-in-settings-local.py'
 ESPER_CONNECTION_URL = ''

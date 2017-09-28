@@ -278,6 +278,9 @@ class NotificationAuthority(AbstractCommonTrashModel, DomainMixin):
 
 
 class FollowUp(DomainMixin):
+    """
+    *@DynamicAttrs*
+    """
     report = models.ForeignKey('reports.Report')
 
     # notification_authority = models.ForeignKey(NotificationAuthority, related_name='follow_up_notification_authority') # deprecate

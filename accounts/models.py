@@ -225,6 +225,9 @@ class UserDevice(MultiDomainMixin, AbstractCommonTrashModel):
 
 
 class Configuration(models.Model):
+    """
+    *@DynamicAttrs*
+    """
     system = models.CharField(max_length=100)
     key = models.CharField(max_length=100)
     value = models.TextField()
@@ -270,6 +273,9 @@ def user_can_edit_basic_check(user, extra=False):
 
 
 class Authority(DomainMixin):
+    """
+    *@DynamicAttrs*
+    """
     code = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)

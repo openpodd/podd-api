@@ -4,50 +4,94 @@ import collections
 import datetime
 import json
 import operator
-import redis
+import random
+import string
 
+import os
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.db.models import Count, Q
 from django.http import HttpResponse, Http404
-from django_redis import get_redis_connection
-
-from operator import itemgetter
-
-from rest_framework import status
+from django.db import connection
+from future.utils import iteritems
+from rest_framework import status, viewsets
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
-from rest_framework.decorators import api_view, action, authentication_classes, link, permission_classes
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_extensions.cache.decorators import cache_response
 
 from accounts.models import Configuration, User, Authority
 from accounts.serializers import AuthorityListSerializer
-
-from common.constants import (GROUP_WORKING_TYPE_ADMINSTRATION_AREA,
-    GROUP_WORKING_TYPE_ALERT_REPORT_ADMINSTRATION_AREA,
-    GROUP_WORKING_TYPE_ALERT_CASE_ADMINSTRATION_AREA)
 from common.constants import USER_STATUS_VOLUNTEER, USER_STATUS_ADDITION_VOLUNTEER
+from common.functions import (filter_permitted_administration_areas_and_descendants,
+                              get_administration_area_and_descendants, multi_level_dict_to_one_level_dict,
+                              filter_permitted_report_types,
+                              filter_permitted_users, filter_permitted_users_by_authorities,
+                              filter_permitted_report_types_by_authorities)
 from common.podd_elasticsearch import get_elasticsearch_instance
-
-from common.functions import (filter_permitted_administration_areas_and_descendants, has_permission_on_administration_area,
-    get_administration_area_and_descendants, multi_level_dict_to_one_level_dict, filter_permitted_report_types,
-    filter_permitted_users, filter_permitted_users_by_authorities, filter_permitted_report_types_by_authorities)
-
-
 from reports.functions import _search
 from reports.models import Report, AdministrationArea, ReportType
 from reports.serializers import ReportListESSerializer, AdministrationAreaListSerializer
+from summary.functions import get_elastic_search_body
+from summary.models import AggregateReport
+from summary.objects import (AreaDate, AreaDetail,
+                             ReporterDetail, ReportTypeTemplate, MonthlyReporter)
+from summary.serializers import ReportSummarySerializer, AggregateReportSerializer
+from sendfile import sendfile
 
-from summary.functions import summary_by_show_user_detail, get_elastic_search_body
-from summary.objects import (AreaDate, ReporterDate, AreaDetail,
-    ReporterDetail, ComputeGrade, ReportTypeTemplate, MonthlyReporter, DateReport)
-from summary.serializers import ReportSummarySerializer
+
+
+class AggregateReportViewSet(viewsets.ModelViewSet):
+    model = AggregateReport
+    serializer_class = AggregateReportSerializer
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated, )
+
+    # @cache_response(60 * 5)
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        serializer = AggregateReportSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+@api_view(['POST'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated,))
+def run_aggregate_report(request, id):
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+
+    date_start = body['dateStart']
+    date_end = body['dateEnd']
+
+    file_name = ''.join([random.choice(string.ascii_lowercase) for i in range(16)]) + '.xls'
+    path = settings.SENDFILE_ROOT
+    output = os.path.join(path, file_name)
+    report = AggregateReport.objects.get(pk=id)
+    m = __import__(report.module)
+    success = m.process.run({
+        'domain_id': request.user.domain_id,
+        'date_begin': date_start,
+        'date_end': date_end,
+    }, connection, output)
+
+    return HttpResponse(json.dumps({
+        'success': success,
+        'url': '/summary/aggregateReport/result/%s/' % (file_name,)
+    }), content_type="application/json")
+
+
+@api_view(['GET'])
+def serve_aggregate_report(request, name):
+    path = settings.SENDFILE_ROOT
+    output = os.path.join(path, name)
+    return sendfile(request, output)
 
 
 @api_view(['GET'])
 @authentication_classes((TokenAuthentication, SessionAuthentication))
-@permission_classes((IsAuthenticated, ))
+@permission_classes((IsAuthenticated,))
 def summary_by_number_of_report(request):
     dates = request.QUERY_PARAMS.get('dates')
     try:
@@ -89,7 +133,7 @@ def summary_by_number_of_report(request):
             else:
                 parent_name = ''
             administration_areas[area.id] = AreaDate(id=area.id, name=area.name, parent_name=parent_name,
-                address=area.address, location=area.location.json, dates=dates)
+                                                     address=area.address, location=area.location.json, dates=dates)
             areas_ids.append(area.id)
 
         reports = Report.objects.filter(administration_area__in=areas).filter(
@@ -105,7 +149,7 @@ def summary_by_number_of_report(request):
             except KeyError:
                 pass
 
-        for key, administration_area in administration_areas.iteritems():
+        for key, administration_area in iteritems(administration_areas):
             results.append(administration_area)
 
         return HttpResponse(json.dumps(results, default=lambda o: o.__dict__), content_type="application/json")
@@ -113,7 +157,7 @@ def summary_by_number_of_report(request):
 
 @api_view(['GET'])
 @authentication_classes((TokenAuthentication, SessionAuthentication))
-@permission_classes((IsAuthenticated, ))
+@permission_classes((IsAuthenticated,))
 def summary_by_inactive_person(request):
     dates = request.QUERY_PARAMS.get('dates')
     try:
@@ -133,10 +177,11 @@ def summary_by_inactive_person(request):
         date_count = (date_end - date_start).days + 1
 
         if request.QUERY_PARAMS.get('percent'):
-            percent_threshold = int(request.QUERY_PARAMS.get('percent'));
+            percent_threshold = int(request.QUERY_PARAMS.get('percent'))
         else:
             try:
-                percent_threshold = int(Configuration.objects.get(system='web.summary.minimum_reports', key='percent').value)
+                percent_threshold = int(
+                    Configuration.objects.get(system='web.summary.minimum_reports', key='percent').value)
             except:
                 percent_threshold = 10
 
@@ -175,9 +220,9 @@ def summary_by_inactive_person(request):
                 administration_area = ''
 
             try:
-                totalReport = report_users.get(created_by=user)['created_by__count']
+                total_report = report_users.get(created_by=user)['created_by__count']
             except (Report.DoesNotExist, KeyError):
-                totalReport = 0
+                total_report = 0
 
             results.append({
                 'administrationArea': administration_area,
@@ -188,7 +233,7 @@ def summary_by_inactive_person(request):
                 'contract': user.contact,
                 'telephone': user.telephone,
                 'projectMobileNumber': user.project_mobile_number,
-                'totalReport': totalReport,
+                'totalReport': total_report,
                 'percent': percent_threshold,
             })
 
@@ -198,24 +243,24 @@ def summary_by_inactive_person(request):
 # deprecated ? No, old mobile version app used.
 @api_view(['GET'])
 @authentication_classes((TokenAuthentication, SessionAuthentication))
-@permission_classes((IsAuthenticated, ))
+@permission_classes((IsAuthenticated,))
 def summary_by_show_area_detail(request):
     return summary_by_show_authority_detail(request)
 
 
 @api_view(['GET'])
 @authentication_classes((TokenAuthentication, SessionAuthentication))
-@permission_classes((IsAuthenticated, ))
+@permission_classes((IsAuthenticated,))
 def summary_by_show_authority_detail(request):
     if request.QUERY_PARAMS.get('authorityId'):
         try:
             authority = Authority.objects.get(id=request.QUERY_PARAMS.get('authorityId'))
         except Authority.DoesNotExist:
             return Response({"authorityId": "Invalid authorityId. authorityId does not exist."},
-                status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response({"authorityId": "authorityId is required."},
-            status=status.HTTP_400_BAD_REQUEST)
+                        status=status.HTTP_400_BAD_REQUEST)
 
     if request.QUERY_PARAMS.get('tz'):
         offset_timezone = int(request.QUERY_PARAMS.get('tz'))
@@ -243,14 +288,16 @@ def summary_by_show_authority_detail(request):
             ]
 
         report_types = ReportType.objects.order_by('id')
-        result = AreaDetail(authority.id, authority.name, authority.get_parent_name(), '', '', report_types, time_ranges)
+        result = AreaDetail(authority.id, authority.name, authority.get_parent_name(), '', '', report_types,
+                            time_ranges)
 
         all_authorities = list(authority.get_children_all())
         all_authorities.append(authority.id)
 
         authority_users = []
         for _authority in Authority.objects.filter(id__in=all_authorities):
-            for user in _authority.users.filter(Q(status=USER_STATUS_VOLUNTEER) | Q(status=USER_STATUS_ADDITION_VOLUNTEER)):
+            for user in _authority.users.filter(
+                            Q(status=USER_STATUS_VOLUNTEER) | Q(status=USER_STATUS_ADDITION_VOLUNTEER)):
                 name = user.get_full_name() or user.username
                 reporters[user.id] = ReporterDetail(id=user.id, full_name=name, status=user.status,
                                                     thumbnail_avatar_url=user.thumbnail_avatar_url,
@@ -286,7 +333,7 @@ def summary_by_show_authority_detail(request):
                 created_by_hour=created_by_hours
             )
 
-        for key, reporter in reporters.iteritems():
+        for key, reporter in iteritems(reporters):
             result.put_reporter(reporter)
 
         grade = 'A' if result.countDayReport > 20 else 'B' if result.countDayReport > 10 else 'C'
@@ -297,14 +344,14 @@ def summary_by_show_authority_detail(request):
 
 @api_view(['GET'])
 @authentication_classes((TokenAuthentication, SessionAuthentication))
-@permission_classes((IsAuthenticated, ))
+@permission_classes((IsAuthenticated,))
 def summary_by_show_performance_user(request):
     return daily_summary_performance_user(request)
 
 
 @api_view(['GET'])
 @authentication_classes((TokenAuthentication, SessionAuthentication))
-@permission_classes((IsAuthenticated, ))
+@permission_classes((IsAuthenticated,))
 def summary_by_report_detail(request):
     date_start = request.QUERY_PARAMS.get('dateStart')
     date_end = request.QUERY_PARAMS.get('dateEnd')
@@ -322,7 +369,6 @@ def summary_by_report_detail(request):
 
     else:
         results = []
-
 
         # GET Report type
         allowed_report_type_ids = filter_permitted_report_types(request.user)
@@ -356,7 +402,7 @@ def summary_by_report_detail(request):
                 report_types[rt.id] = report_type
                 report_type_ids.append(u'%s' % rt.id)
 
-                for key, value in template.iteritems():
+                for key, value in iteritems(template):
                     weight = 1
                     if 'weight' in value:
                         weight = value['weight']
@@ -370,7 +416,7 @@ def summary_by_report_detail(request):
 
         # Update ordering header list
         ordering = {}
-        for key, value in header_template.iteritems():
+        for key, value in iteritems(header_template):
             ordering_fields = sorted(value.items(), key=operator.itemgetter(1), reverse=True)
             if ordering_fields:
                 ordering[key] = ordering_fields[0][1]
@@ -405,7 +451,8 @@ def summary_by_report_detail(request):
             report_type_ids = set(params['type__in']) & set(report_type_ids)
 
         if request.QUERY_PARAMS.get('authority'):
-            area_ids = Authority.objects.get(id=request.QUERY_PARAMS.get('authority')).administration_areas.values_list('id', flat=True)
+            area_ids = Authority.objects.get(id=request.QUERY_PARAMS.get('authority')).administration_areas.values_list(
+                'id', flat=True)
             params['administrationArea__in'] = area_ids
 
         params['type__in'] = report_type_ids
@@ -415,7 +462,7 @@ def summary_by_report_detail(request):
 
         if params.get('tags__in'):
 
-            areas = []
+            area_ids = []
             if not params.get('administrationArea__in'):
                 areas = AdministrationArea.objects.filter(authority__tags__name__in=params['tags__in'])
                 areas = get_administration_area_and_descendants(areas)
@@ -455,7 +502,7 @@ def summary_by_report_detail(request):
                 else:
                     result[header] = '-'
 
-            if not result in results:
+            if result not in results:
                 results.append(result)
 
         # Return result
@@ -463,7 +510,6 @@ def summary_by_report_detail(request):
 
 
 def _summary_report_visualization(request, current_domain_id=None, authority_id=None):
-
     from common.models import get_current_domain_id
     from summary import ReportType as SummaryReportType
 
@@ -477,7 +523,8 @@ def _summary_report_visualization(request, current_domain_id=None, authority_id=
         _report_types = ReportType.objects.filter(id__in=permitted_report_types)
 
     if authority_id:
-        permitted_report_types = filter_permitted_report_types_by_authorities(request.user.domain_id, authority_id, subscribes=subscribes)
+        permitted_report_types = filter_permitted_report_types_by_authorities(request.user.domain_id, authority_id,
+                                                                              subscribes=subscribes)
         _report_types = ReportType.objects.filter(id__in=permitted_report_types)
 
     if filter_report_types:
@@ -543,12 +590,12 @@ def _summary_report_visualization(request, current_domain_id=None, authority_id=
             try:
                 rt.data.append({
                     'y': _tmp_report_type[report_type.id, _time_key],
-                    'time':  _time_key
+                    'time': _time_key
                 })
             except KeyError:
                 rt.data.append({
                     'y': 0,
-                    'time':  _time_key
+                    'time': _time_key
                 })
         results[report_type.id] = rt
 
@@ -558,14 +605,13 @@ def _summary_report_visualization(request, current_domain_id=None, authority_id=
 
 @api_view(['GET'])
 @authentication_classes((TokenAuthentication, SessionAuthentication))
-@permission_classes((IsAuthenticated, ))
+@permission_classes((IsAuthenticated,))
 def summary_report_visualization(request):
     result = _summary_report_visualization(request)
     return Response(result)
 
 
 def _summary_dashboard_visualization(request, current_domain_id=None, authority_id=None):
-
     subscribes = request.QUERY_PARAMS.get('subscribe') == 'true'
     body = get_elastic_search_body(request.user, authority_id=authority_id, subscribes=subscribes)
 
@@ -608,7 +654,8 @@ def _summary_dashboard_visualization(request, current_domain_id=None, authority_
     else:
         for role in ROLE_USER:
             if authority_id:
-                users = filter_permitted_users_by_authorities(request.user.domain_id, authority_id, subscribes=subscribes, status="'%s'" % role)
+                users = filter_permitted_users_by_authorities(request.user.domain_id, authority_id,
+                                                              subscribes=subscribes, status="'%s'" % role)
             else:
                 users = filter_permitted_users(request.user, subscribes=subscribes, status="'%s'" % role)
 
@@ -625,33 +672,32 @@ def _summary_dashboard_visualization(request, current_domain_id=None, authority_
 
 @api_view(['GET'])
 @authentication_classes((TokenAuthentication, SessionAuthentication))
-@permission_classes((IsAuthenticated, ))
+@permission_classes((IsAuthenticated,))
 def summary_dashboard_visualization(request):
     result = _summary_dashboard_visualization(request)
     return Response(result)
 
 
 def get_reports_from_area(reports):
-        result = {}
-        result['count'] = len(reports)
-        administration_areas_ids = []
-        administration_areas = {}
-        for report in reports:
-            try:
-                administration_areas[report.administrationArea]['reports'].append(ReportListESSerializer(report).data)
-            except:
-                administration_areas[report.administrationArea] = {'reports': [
-                    ReportListESSerializer(report).data
-                ]}
-            administration_areas_ids.append(report.administrationArea)
+    result = {'count': len(reports)}
+    administration_areas_ids = []
+    administration_areas = {}
+    for report in reports:
+        try:
+            administration_areas[report.administrationArea]['reports'].append(ReportListESSerializer(report).data)
+        except:
+            administration_areas[report.administrationArea] = {'reports': [
+                ReportListESSerializer(report).data
+            ]}
+        administration_areas_ids.append(report.administrationArea)
 
-        _administration_areas = AdministrationArea.objects.filter(id__in=administration_areas_ids)
-        result['administrationAreas'] = []
-        for area in _administration_areas:
-            _area = AdministrationAreaListSerializer(area).data
-            _area['reports'] = administration_areas[area.id]['reports']
-            result['administrationAreas'].append(_area)
-        return result
+    _administration_areas = AdministrationArea.objects.filter(id__in=administration_areas_ids)
+    result['administrationAreas'] = []
+    for area in _administration_areas:
+        _area = AdministrationAreaListSerializer(area).data
+        _area['reports'] = administration_areas[area.id]['reports']
+        result['administrationAreas'].append(_area)
+    return result
 
 
 @api_view(['GET'])
@@ -690,7 +736,7 @@ def summary_report_by_authority(request):
 
         if not user:
             return Response({"authority": "Invalid Authority"},
-                        status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # outbreak
         params['stateName'] = 'Outbreak'
@@ -734,7 +780,8 @@ def _daily_summary_performance_user(request, authority_id=None):
         dates.append(date)
 
     results = []
-    users = User.objects.filter(Q(status=USER_STATUS_VOLUNTEER) | Q(status=USER_STATUS_ADDITION_VOLUNTEER)).order_by('id')
+    users = User.objects.filter(Q(status=USER_STATUS_VOLUNTEER) | Q(status=USER_STATUS_ADDITION_VOLUNTEER)).order_by(
+        'id')
 
     # not staff
     subscribes = request.QUERY_PARAMS.get('subscribe') == 'true'
@@ -768,7 +815,7 @@ def _daily_summary_performance_user(request, authority_id=None):
         except KeyError:
             pass
 
-    for key, reporter in reporters.iteritems():
+    for key, reporter in iteritems(reporters):
         total = len(reporter.dates)
         active_dates = reporter.dates
 
@@ -784,7 +831,7 @@ def _daily_summary_performance_user(request, authority_id=None):
 
 @api_view(['GET'])
 @authentication_classes((TokenAuthentication, SessionAuthentication))
-@permission_classes((IsAuthenticated, ))
+@permission_classes((IsAuthenticated,))
 def daily_summary_performance_user(request):
     results = _daily_summary_performance_user(request)
     return Response(results)

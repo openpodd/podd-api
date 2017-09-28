@@ -4,12 +4,14 @@ from django.conf.urls import patterns, include, url
 
 from rest_framework import routers
 
+import summary
 from flags import api as flags_api
 from notifications import api as notifications_api
 from reports import api as reports_api
 from accounts import api as accounts_api
 from plans import api as plans_api
 from areas import api as areas_api
+from summary import api as summary_api
 
 router = routers.DefaultRouter()
 
@@ -21,6 +23,7 @@ router.register(r'caseDefinitions', reports_api.CaseDefinitionViewSet)
 router.register(r'reports', reports_api.ReportViewSet)
 router.register(r'reportTypeCategories', reports_api.ReportTypeCategoryViewSet)
 router.register(r'reportTypes', reports_api.ReportTypeViewSet)
+router.register(r'aggregateReports', summary_api.AggregateReportViewSet)
 router.register(r'reportComments', reports_api.ReportCommentViewSet)
 router.register(r'flags', flags_api.FlagViewSet)
 router.register(r'administrationArea', reports_api.AdministrationAreaViewSet)
@@ -111,7 +114,8 @@ urlpatterns = patterns('',
     url(r'^summary/reports-visualization/', 'summary.api.summary_report_visualization', name='summary_report_visualization'),
     url(r'^summary/dashboard-visualization/', 'summary.api.summary_dashboard_visualization', name='summary_dashboard_visualization'),
     url(r'^summary/authority-dashboard/', 'summary.api.summary_report_by_authority', name='summary_report_by_authority'),
-
+    url(r'^summary/aggregateReport/run/(?P<id>\d+)/$', 'summary.api.run_aggregate_report', name='summary_aggregate_report_run'),
+    url(r'^summary/aggregateReport/result/(?P<name>.+)/', 'summary.api.serve_aggregate_report', name='summary_serve_aggregate_report'),
     url(r'^pages/dashboard/', 'pages.api.dashboard', name='pages_dashboard'),
     url(r'^services/broadcast_via_gcm', 'services.api.broadcast_via_gcm', name='services_broadcast_via_gcm'),
 
