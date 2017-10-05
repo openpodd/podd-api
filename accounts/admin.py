@@ -64,7 +64,7 @@ class AuthorityAdmin(admin.ModelAdmin):
     form = AuthorityForm
 
     readonly_fields = ('report_types',)
-    exclude = ('tags', )
+    exclude = ('tags', 'area')
 
 
 
