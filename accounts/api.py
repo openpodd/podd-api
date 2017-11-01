@@ -175,6 +175,9 @@ class ObtainNewAuthToken(ObtainAuthToken):
         if serializer.is_valid():
             user = serializer.object['user']
 
+            if user.is_deleted:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
             token, created = Token.objects.get_or_create(user=user)
 
             user_data = UserSerializer(user).data
@@ -359,7 +362,7 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (CanEditModel, )
 
     def list(self, request):
-        queryset = self.get_queryset().order_by('id')
+        queryset = self.get_queryset().filter(is_deleted=False).order_by('id')
         subscribes = request.QUERY_PARAMS.get('subscribe') == 'true'
         if not request.user.is_staff:
             user_ids = filter_permitted_users(request.user, subscribes=subscribes)
