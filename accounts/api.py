@@ -45,9 +45,12 @@ from accounts.pub_tasks import publish_user_profile
 from common.constants import (GROUP_WORKING_TYPE_REPORT_TYPE, USER_STATUS_VOLUNTEER,
     USER_STATUS_PODD, USER_STATUS_LIVESTOCK, USER_STATUS_PUBLIC_HEALTH, USER_STATUS_VOLUNTEER, USER_STATUS_ADDITION_VOLUNTEER,
                               USER_STATUS_CHOICES)
-from common.functions import (filter_permitted_administration_areas_and_descendants, 
-    upload_to_s3, resize_and_crop, publish_gcm_message, decode_generate_key, generate_username,
-    get_public_authority, publish_apns_message, filter_permitted_report_types, filter_permitted_users, filter_permitted_authority)
+from common.functions import (filter_permitted_administration_areas_and_descendants,
+                              upload_to_s3, resize_and_crop, publish_gcm_message, decode_generate_key,
+                              generate_username,
+                              get_public_authority, publish_apns_message, filter_permitted_report_types,
+                              filter_permitted_users, filter_permitted_authority,
+                              filter_permitted_users_for_authorities_admin)
 from common.models import Domain, get_current_domain_id
 from common.serializers import DomainSerializer
 from logs.models import LogItem
@@ -451,6 +454,31 @@ class UserViewSet(viewsets.ModelViewSet):
 
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data)
+
+    def destroy(self, request, pk):
+        queryset = self.get_queryset()
+        user = get_object_or_404(queryset, pk=pk)
+
+        if not request.user.is_staff:
+            allowed_user_ids = filter_permitted_users_for_authorities_admin(request.user)
+            queryset = queryset.filter(id__in=allowed_user_ids)
+
+        try:
+            user = queryset.get(id=user.id)
+            user.delete()
+        except User.DoesNotExist:
+            return Response({u'detail': u'You do not have permission to perform this action.'},
+                     status=status.HTTP_403_FORBIDDEN)
+
+        LogItem.objects.log_action(
+            key='USER_IS_DELETED',
+            created_by=user,
+            object1=user,
+            object2=request.user,
+        )
+
+        serializer = UserCommonDetailSerializer(user)
         return Response(serializer.data)
 
 

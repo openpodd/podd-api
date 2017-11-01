@@ -52,6 +52,7 @@ class UserCommonSerializer(serializers.ModelSerializer):
 
     authority = serializers.Field('get_authority')
     dateJoined = serializers.WritableField('date_joined', required=False)
+    isDeleted = serializers.BooleanField('is_deleted', required=False)
 
     class Meta:
         model = User
@@ -72,7 +73,7 @@ class UserCommonDetailSerializer(UserCommonSerializer):
         model = User
         fields = ('id', 'name', 'username', 'email', 'telephone', 'serialNumber', 'displayPassword', 'fbuid',
                   'firstName', 'lastName', 'status', 'contact', 'avatarUrl', 'thumbnailAvatarUrl', 'sendInvitation',
-                  'isAnonymous', 'isPublic', 'reportCount', 'supportCount', 'categoryCount', 'dateJoined')
+                  'isAnonymous', 'isPublic', 'reportCount', 'supportCount', 'categoryCount', 'dateJoined', 'isDeleted')
 
 
 class UserCommonShortDetailSerializer(UserCommonSerializer):

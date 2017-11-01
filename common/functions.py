@@ -139,6 +139,11 @@ def filter_permitted_users(user, subscribes=False, status=None):
     authority_ids_string = ','.join(map(str, authority_ids))
     return filter_permitted_users_by_authorities(user.domain_id, authority_ids_string, subscribes, status)
 
+def filter_permitted_users_for_authorities_admin(user, subscribes=False, status=None):
+    authority_ids = user.authority_admins.values_list('id', flat=True)
+    authority_ids_string = ','.join(map(str, authority_ids))
+    return filter_permitted_users_by_authorities(user.domain_id, authority_ids_string, subscribes, status)
+
 
 def filter_permitted_users_by_authorities(domain_id, authority_ids_string, subscribes=False, status=None):
     from common.models import DomainMixin

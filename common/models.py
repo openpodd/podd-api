@@ -330,19 +330,7 @@ class AbstractCommonTrashModel(models.Model):
         super(AbstractCommonTrashModel, self).save(*args, **kwargs)
 
     def trash(self, *args, **kwargs):
-
         self.is_deleted = True
-
-        deleted_uuid = str(uuid1())[0: 10].replace('-', '')
-        if hasattr(self, 'permalink'):
-            self.permalink = 'deleted_%s_%s' % (deleted_uuid, self.permalink)
-        # Common for delete user
-        if hasattr(self, 'username'):
-            self.username = 'deleted_%s_%s' % (deleted_uuid, self.username)
-            self.username = self.username[0: 29]
-        if hasattr(self, 'email'):
-            self.email = 'deleted_%s_%s' % (deleted_uuid, self.email)
-
         self.save()
         return self
 
