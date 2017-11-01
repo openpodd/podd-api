@@ -50,10 +50,3 @@ class Command(BaseCommand):
         )
         action.template = 'User `{{ log_item.object1.username }}` logged in system by code'
         action.save()
-
-        action, created = LogAction.objects.get_or_create(
-            name='USER_IS_DELETED',
-        )
-        action.template = 'User `{{ log_item.object1.username }}` is mark as deleted by \
-            `{{ log_item.object2.username }}`'
-        action.save()

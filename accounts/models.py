@@ -70,7 +70,6 @@ class User(AbstractUser, MultiDomainMixin, UserNotificationMixin):
     display_password = models.CharField(max_length=128, blank=True, default='', verbose_name=u'รหัสผ่าน')
 
     status = models.CharField(max_length=100, choices=USER_STATUS_CHOICES, blank=True, default='', verbose_name=u'สถานะผู้ใช้')
-    deleted = models.BooleanField(default=False, verbose_name=u'ลบแล้ว')
 
     trainer_authority = models.ForeignKey('accounts.Authority', blank=True, null=True, related_name='user_trainer_authority', verbose_name=u'ถูกสอนโดยกลุ่ม')
     trainer_status = models.CharField(max_length=100, choices=USER_STATUS_CHOICES, blank=True, null=True, verbose_name=u'ถูกสอนโดยสถานะ')
