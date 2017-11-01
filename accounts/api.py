@@ -476,7 +476,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
         LogItem.objects.log_action(
             key='USER_IS_DELETED',
-            created_by=user,
+            created_by=request.user,
             object1=user,
             object2=request.user,
         )
