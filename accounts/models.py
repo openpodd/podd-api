@@ -54,7 +54,7 @@ class UserNotificationMixin(models.Model):
 
 
 
-class User(AbstractUser, MultiDomainMixin, UserNotificationMixin):
+class User(AbstractUser, MultiDomainMixin, UserNotificationMixin, AbstractCommonTrashModel):
     is_anonymous = models.BooleanField(default=False)
     is_public = models.BooleanField(default=False)
     fbuid = models.CharField(blank=True, null=True, max_length=255, unique=True)
