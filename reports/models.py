@@ -112,7 +112,6 @@ class ReportType(AbstractCachedModel, DomainMixin):
                                            default=NOTIFY_BY_REPORT_ADMINAREA_AUTHORITY,
                                            help_text='Notify authorities based on report location')
     notification_buffer = models.FloatField(null=True,
-                                            blank=True,
                                             help_text='Radius of buffer that use to find intersects authorities')
 
     cached_vars = [('authority', True), 'form_definition', 'summary_template', 'version']
