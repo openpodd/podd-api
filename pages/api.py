@@ -20,6 +20,7 @@ from accounts.serializers import UserCommonShortDetailSerializer
 
 from common.constants import USER_STATUS_VOLUNTEER, USER_STATUS_ADDITION_VOLUNTEER
 from common.functions import filter_permitted_users_by_authorities
+from logs.models import LogItem
 
 from notifications.models import NotificationTemplate
 from notifications.serializers import AuthorityNotificationTemplateFullSerializer
@@ -117,3 +118,33 @@ def dashboard(request):
     value = r.get(search)
     if value:
         return HttpResponse(value, content_type="application/json")
+
+
+@api_view(['POST'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated, ))
+def log_dashboard_view(request):
+
+    # find default authority
+    admin_area = request.user.administration_area
+    if admin_area:
+        user_authority = admin_area.authority
+    elif request.user.authority_users.count() > 0:
+        user_authority = request.user.authority_users.all()[0]
+    else:
+        return HttpResponse('{"detail":"ignored"}', content_type="application/json")
+
+    if not request.QUERY_PARAMS.get('path'):
+        return HttpResponse('{"detail":"ignored"}', content_type="application/json")
+
+    # insert log action
+    LogItem.objects.log_action(
+        key='DASHBOARD_VIEW',
+        created_by=request.user,
+        object1=user_authority,
+        data={
+            'path': request.QUERY_PARAMS.get('path')
+        }
+    )
+
+    return HttpResponse('{"detail":"ok"}', content_type="application/json")

@@ -119,6 +119,8 @@ urlpatterns = patterns('',
     url(r'^pages/dashboard/', 'pages.api.dashboard', name='pages_dashboard'),
     url(r'^services/broadcast_via_gcm', 'services.api.broadcast_via_gcm', name='services_broadcast_via_gcm'),
 
+    url(r'^log/dashboard/view', 'pages.api.log_dashboard_view', name='log_dashboard_view'),
+
     url(r'^tags/list/', 'tags.api.list_tags', name='list_tags'),
 
     # url(r'^notifications/import/', 'notifications.api.import_notifications', name='notifications-import'),

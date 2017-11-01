@@ -57,3 +57,9 @@ class Command(BaseCommand):
         action.template = 'User `{{ log_item.object1.username }}` is mark as deleted by \
             `{{ log_item.object2.username }}`'
         action.save()
+
+        action, created = LogAction.objects.get_or_create(
+            name='DASHBOARD_VIEW',
+        )
+        action.template = 'User `{{ log_item.object1.username }}` view dashboard `{{ log_item.data.path }}`'
+        action.save()
