@@ -780,8 +780,8 @@ def _daily_summary_performance_user(request, authority_id=None):
         dates.append(date)
 
     results = []
-    users = User.objects.filter(Q(status=USER_STATUS_VOLUNTEER) | Q(status=USER_STATUS_ADDITION_VOLUNTEER)).order_by(
-        'id')
+    users = User.objects.filter(is_deleted=False).filter(Q(status=USER_STATUS_VOLUNTEER) |
+                                                      Q(status=USER_STATUS_ADDITION_VOLUNTEER)).order_by('id')
 
     # not staff
     subscribes = request.QUERY_PARAMS.get('subscribe') == 'true'
