@@ -43,7 +43,6 @@ class UserForm(UserChangeForm):
 
     def __init__(self, *args, **kwargs):
         super(UserForm, self).__init__(*args, **kwargs)
-        self.fields['groups'].choices = [(group.id, u'%s: %s' % (group.get_type_display(), group.name)) for group in self.fields['groups'].choices.queryset]
 
     def save(self, commit=True, *args, **kwargs):
         instance = super(UserForm, self).save(commit=False)

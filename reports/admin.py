@@ -11,10 +11,11 @@ from reports.models import AdministrationArea, ReportType, Report, ReportState, 
     ReportTypeCategory, ReportInvestigation, ReportLaboratoryCase, AnimalLaboratoryCause, ReportLaboratoryItem, GoogleCalendarResponse
 
 
-class AdministrationAreaAdmin(LeafletGeoAdmin, TreeAdmin):
-    form = movenodeform_factory(AdministrationArea)
+class AdministrationAreaAdmin(LeafletGeoAdmin):
+    # form = movenodeform_factory(AdministrationArea)
     list_display = ('name', 'code')
     search_fields = ('name', 'code', )
+    exclude = ('curated_in', 'parent', 'mpoly', 'relative_to')
 
 
 class ReportAdmin(LeafletGeoAdmin):
@@ -59,7 +60,6 @@ class GoogleCalendarResponseAdmin(admin.ModelAdmin):
 
 
 admin.site.register(AdministrationArea, AdministrationAreaAdmin)
-admin.site.register(Report, ReportAdmin)
 admin.site.register(ReportTypeCategory, ReportTypeCategoryAdmin)
 admin.site.register(ReportType, ReportTypeAdmin)
 admin.site.register(ReportState, ReportStateAdmin)

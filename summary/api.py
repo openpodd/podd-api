@@ -27,7 +27,8 @@ from common.functions import (filter_permitted_administration_areas_and_descenda
                               get_administration_area_and_descendants, multi_level_dict_to_one_level_dict,
                               filter_permitted_report_types,
                               filter_permitted_users, filter_permitted_users_by_authorities,
-                              filter_permitted_report_types_by_authorities)
+                              filter_permitted_report_types_by_authorities,
+                              filter_permitted_authority, filter_permitted_authority_by_authorities)
 from common.podd_elasticsearch import get_elasticsearch_instance
 from reports.functions import _search
 from reports.models import Report, AdministrationArea, ReportType
@@ -64,17 +65,20 @@ def run_aggregate_report(request, id):
 
     date_start = body['dateStart']
     date_end = body['dateEnd']
+    ids = filter_permitted_authority(request.user)
 
     file_name = ''.join([random.choice(string.ascii_lowercase) for i in range(16)]) + '.xls'
     path = settings.SENDFILE_ROOT
     output = os.path.join(path, file_name)
     report = AggregateReport.objects.get(pk=id)
     m = __import__(report.module)
-    success = m.process.run({
+    params = {
         'domain_id': request.user.domain_id,
         'date_begin': date_start,
         'date_end': date_end,
-    }, connection, output)
+        'authority_ids': ids,
+    }
+    success = m.process.run(params, connection, output)
 
     return HttpResponse(json.dumps({
         'success': success,

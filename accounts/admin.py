@@ -12,24 +12,24 @@ from accounts.models import User, UserDevice, Configuration, NearbyArea, Authori
 class UserAdmin(UserAdmin):
     add_fieldsets = (
         (None,
-            {'fields': ('domain', 'username', 'password', 'email', 'administration_area')}
+            {'fields': ('domain', 'username', 'password', 'email')}
         ),
         ('Personal Info',
             {'fields': ('first_name', 'last_name', 'contact', 'telephone', 'status')}
         ),
         ('Permissions',
-            {'fields': ('is_superuser', 'is_staff', 'is_active', 'groups')}
+            {'fields': ('is_superuser', 'is_staff', 'is_active')}
         ),
     )
     fieldsets = (
         (None,
-            {'fields': ('username', 'password', 'email', 'administration_area')}
+            {'fields': ('username', 'password', 'email')}
         ),
         ('Personal Info',
             {'fields': ('first_name', 'last_name', 'contact', 'telephone', 'status')}
         ),
         ('Permissions',
-            {'fields': ('is_superuser', 'is_staff', 'is_active', 'groups', 'domain', 'domains')}
+            {'fields': ('is_superuser', 'is_staff', 'is_active', 'domain', 'domains')}
         ),
         ('Important dates',
             {'fields': ('date_joined', 'last_login')}
@@ -64,7 +64,7 @@ class AuthorityAdmin(admin.ModelAdmin):
     form = AuthorityForm
 
     readonly_fields = ('report_types',)
-    exclude = ('tags', 'area')
+    exclude = ('tags', 'area', 'users', 'inherits', 'deep_subscribes', 'admins')
 
 
 
@@ -85,7 +85,7 @@ admin.site.register(User, UserAdmin)
 admin.site.register(UserDevice, UserDeviceAdmin)
 
 admin.site.unregister(Group)
-admin.site.register(Group, GroupAdmin)
+# admin.site.register(Group, GroupAdmin)
 
 admin.site.register(Configuration, ConfigurationAdmin)
 admin.site.register(NearbyArea)
