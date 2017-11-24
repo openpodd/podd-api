@@ -12,7 +12,8 @@ from common.functions import has_permission_on_report_type, has_permission_on_ad
 from logs.models import LogItem
 from plans.serializers import PlanSerializer
 from reports.models import Report, ReportType, ReportImage, ReportComment, AdministrationArea, ReportState, \
-    CaseDefinition, ReportTypeCategory, ReportLike, ReportMeToo, ReportAbuse, AnimalLaboratoryCause, ReportLaboratoryItem
+    CaseDefinition, ReportTypeCategory, ReportLike, ReportMeToo, ReportAbuse, AnimalLaboratoryCause, \
+    ReportLaboratoryItem, ReportAccomplishment
 
 
 class AdministrationAreaSerializer(serializers.ModelSerializer, AttachCanEditSerializer):
@@ -955,3 +956,35 @@ class ReportLaboratoryItemSerializer(serializers.ModelSerializer):
         fields = ('id', 'case', 'sampleNo', 'positiveCauses', 'negativeCauses', 'note',
                   'positiveCausesText', 'negativeCausesText')
 
+
+class ReportAccomplishmentSerializer(serializers.ModelSerializer):
+    reportId = serializers.PrimaryKeyRelatedField('report', widget=widgets.TextInput)
+    createdBy = serializers.PrimaryKeyRelatedField('created_by', read_only=True)
+    createdAt = serializers.WritableField('created_at', read_only=True)
+    updatedBy = serializers.PrimaryKeyRelatedField('updated_by', read_only=True)
+    updatedAt = serializers.WritableField('updated_at', read_only=True)
+
+    class Meta:
+        model = ReportAccomplishment
+        fields = ('id', 'reportId', 'title', 'description', 'createdBy', 'createdAt', 'updatedBy', 'updatedAt')
+        read_only_fields = ('created_at', 'created_by', 'updated_at', 'updated_by')
+
+    def transform_createdBy(self, obj, value):
+        if obj and obj.id:
+            return UserSerializer(obj.created_by).data
+        return ''
+
+    def transform_updatedBy(self, obj, value):
+        if obj and obj.id:
+            return UserSerializer(obj.updated_by).data
+        return ''
+
+    def transform_createdAt(self, obj, value):
+        if value:
+            return value.isoformat()
+        return value
+
+    def transform_updatedAt(self, obj, value):
+        if value:
+            return value.isoformat()
+        return value

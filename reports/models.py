@@ -2034,3 +2034,15 @@ class ReportLaboratoryFile(DomainMixin):
 
     def __unicode__(self):
         return "%s-%s" % (self.case.id, self.file)
+
+
+class ReportAccomplishment(DomainMixin):
+    report = models.ForeignKey('Report', related_name='accomplishments', unique=True)
+    title = models.CharField(max_length=255, null=False, blank=False)
+    description = models.TextField(null=False, blank=False)
+
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='accomplishment_created_by')
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='accomplishment_updated_by', null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)

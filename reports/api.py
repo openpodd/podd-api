@@ -27,6 +27,7 @@ from dateutil.relativedelta import relativedelta
 
 from rest_framework import viewsets, status, filters
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
+from rest_framework.compat import RequestFactory
 from rest_framework.decorators import api_view, action, authentication_classes, link, permission_classes, list_route
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -54,16 +55,21 @@ from reports import tasks
 from reports.functions import _search
 from reports.models import Report, ReportType, ReportComment, AdministrationArea, ReportState, CaseDefinition, \
     ReportTypeCategory, ReportLike, ReportMeToo, ReportAbuse, AnimalLaboratoryCause, ReportLaboratoryItem, \
-    ReportLaboratoryFile, ReportLaboratoryCase, ReportImage
+    ReportLaboratoryFile, ReportLaboratoryCase, ReportImage, ReportAccomplishment
 from reports.paginations import PaginatedReportListESSerializer, PaginatedReportListESWFormDataSerializer, PaginatedReportListESLiteSerializer, \
     PaginatedAdministrationContactSerializer, PaginatedReportListFullSerializer
 from reports.pub_tasks import publish_report_flag
 from reports.serializers import (ReportSerializer, ReportListESSerializer, ReportTypeSerializer,
-                                 ReportTypeListSerializer, ReportImageSerializer, ReportCommentSerializer, DashboardSerializer,
-                                 AdministrationAreaSerializer, ReportStateSerializer, CaseDefinitionSerializer, ReportTypeCategorySerializer,
-                                 ReportLikeSerializer, ReportMeTooSerializer, AdministrationAreaDetailSerializer, ReportAbuseSerializer,
-                                 AdministrationAreaContactSerializer, AdministrationAreaListSerializer, AnimalLaboratoryCauseSerializer,
-                                 ReportLaboratoryItemSerializer, CaseDefinitionExplainedSerializer)
+                                 ReportTypeListSerializer, ReportImageSerializer, ReportCommentSerializer,
+                                 DashboardSerializer,
+                                 AdministrationAreaSerializer, ReportStateSerializer, CaseDefinitionSerializer,
+                                 ReportTypeCategorySerializer,
+                                 ReportLikeSerializer, ReportMeTooSerializer, AdministrationAreaDetailSerializer,
+                                 ReportAbuseSerializer,
+                                 AdministrationAreaContactSerializer, AdministrationAreaListSerializer,
+                                 AnimalLaboratoryCauseSerializer,
+                                 ReportLaboratoryItemSerializer, CaseDefinitionExplainedSerializer,
+                                 ReportAccomplishmentSerializer)
 from reports.pub_tasks import publish_report, publish_comment, publish_report_image
 from reports.search_indexes import ReportIndex
 
@@ -554,6 +560,45 @@ class ReportViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_403_FORBIDDEN)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @link()
+    def accomplishments(self, request, pk=None):
+        report = self.get_object()
+        if (has_permission_on_report_type(user=request.user, report_type=report.type) and
+                has_permission_on_administration_area(user=request.user,
+                                                      administration_area=report.administration_area,
+                                                      subscribes=True)):
+            queryset = ReportAccomplishment.objects.filter(report=report)
+            serializer = ReportAccomplishmentSerializer(queryset[0], many=False)
+            return Response(serializer.data)
+        else:
+            return Response({u'detail': u'You do not have permission to perform this action.'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+
+    @action()
+    def accomplishment(self, request, pk=None):
+        data = request.DATA.copy()
+        data['reportId'] = pk
+
+        serializer = ReportAccomplishmentSerializer(data=data, context={'request': request})
+
+        if serializer.is_valid():
+            if (has_permission_on_administration_area(user=request.user,
+                                                      administration_area=serializer.object.report.administration_area)):
+                target = serializer
+                target.object.title = strip_tags(serializer.object.title)
+                target.object.description = strip_tags(serializer.object.description)
+                target.object.created_by = request.user
+                target.save()
+
+                return Response(target.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response({u'detail': u'You do not have permission to perform this action.'},
+                                status=status.HTTP_403_FORBIDDEN)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     @link()
     def involved(self, request, pk=None):
@@ -1561,6 +1606,28 @@ class ReportLaboratoryItemViewSet(viewsets.ModelViewSet):
     serializer_class = ReportLaboratoryItemSerializer
     authentication_classes = (TokenAuthentication, SessionAuthentication)
     permission_classes = (IsAuthenticated, )
+
+
+class ReportAccomplishmentViewSet(viewsets.ModelViewSet):
+    model = ReportAccomplishment
+    serializer_class = ReportAccomplishmentSerializer
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,)
+
+    def update(self, request, *args, **kwargs):
+        try:
+            report = Report.objects.get(pk=request.DATA['reportId'])
+        except Report.DoesNotExist:
+            return Response({u'detail': u'Report not found'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        if (has_permission_on_administration_area(user=request.user,
+                                                  administration_area=report.administration_area)):
+
+            return super(ReportAccomplishmentViewSet, self).update(request, *args, **kwargs)
+        else:
+            return Response({u'detail': u'You do not have permission to perform this action.'},
+                            status=status.HTTP_403_FORBIDDEN)
 
 
 @api_view(['POST'])
