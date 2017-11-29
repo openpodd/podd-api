@@ -2,6 +2,7 @@
 
 import datetime
 import json
+import urllib2
 
 from django.db.models import Count, Q
 from django.http import HttpResponse
@@ -148,3 +149,13 @@ def log_dashboard_view(request):
     )
 
     return HttpResponse('{"detail":"ok"}', content_type="application/json")
+
+
+@api_view(['GET'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated, ))
+def proxy_fetch(request):
+    url = request.GET.get('url')
+    req = urllib2.Request(url)
+    response = urllib2.urlopen(url)
+    return HttpResponse(response.read())

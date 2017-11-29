@@ -117,6 +117,7 @@ urlpatterns = patterns('',
     url(r'^summary/authority-dashboard/', 'summary.api.summary_report_by_authority', name='summary_report_by_authority'),
     url(r'^summary/aggregateReport/run/(?P<id>\d+)/$', 'summary.api.run_aggregate_report', name='summary_aggregate_report_run'),
     url(r'^summary/aggregateReport/result/(?P<name>.+)/', 'summary.api.serve_aggregate_report', name='summary_serve_aggregate_report'),
+    url(r'^pages/fetch/', 'pages.api.proxy_fetch', name='pages_proxy_fetch'),
     url(r'^pages/dashboard/', 'pages.api.dashboard', name='pages_dashboard'),
     url(r'^services/broadcast_via_gcm', 'services.api.broadcast_via_gcm', name='services_broadcast_via_gcm'),
 
