@@ -28,6 +28,7 @@ celerybeat-schedule
 
 sitestatic
 .env
+.envrc
 
 # Log file
 cbeat.log
