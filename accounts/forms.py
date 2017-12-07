@@ -23,7 +23,6 @@ class UserCreateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(UserCreateForm, self).__init__(*args, **kwargs)
-        self.fields['groups'].choices = [(group.id, u'%s: %s' % (group.get_type_display(), group.name)) for group in self.fields['groups'].choices.queryset]
 
     def save(self, commit=True, *args, **kwargs):
         user = super(UserCreateForm, self).save(commit=False, *args, **kwargs)
