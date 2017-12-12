@@ -34,7 +34,7 @@ from reports.functions import _search
 from reports.models import Report, AdministrationArea, ReportType
 from reports.serializers import ReportListESSerializer, AdministrationAreaListSerializer
 from summary.functions import get_elastic_search_body
-from summary.models import AggregateReport
+from summary.models import AggregateReport, SummaryReport
 from summary.objects import (AreaDate, AreaDetail,
                              ReporterDetail, ReportTypeTemplate, MonthlyReporter)
 from summary.serializers import ReportSummarySerializer, AggregateReportSerializer
@@ -91,6 +91,39 @@ def serve_aggregate_report(request, name):
     path = settings.SENDFILE_ROOT
     output = os.path.join(path, name)
     return sendfile(request, output)
+
+
+@api_view(['GET'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated,))
+def monthly_summary(request):
+    user = request.user
+    results = []
+    mapAuthority = {}
+    for report in SummaryReport.objects.filter(authority__in=(Authority.objects.filter(users=user))).order_by('authority__name', '-year', '-month'):
+        authority_id = report.authority.id
+        authority_name = report.authority.name
+
+        auth = None
+        if report.authority.id not in mapAuthority:
+            auth = {
+                'name': authority_name,
+                'id': authority_id,
+                'reports': []
+            }
+            mapAuthority[authority_id] = auth
+            results.append(auth)
+
+        else:
+            auth = mapAuthority[authority_id]
+
+        auth['reports'].append({
+            'year': report.year,
+            'month': report.month,
+            'url': report.url,
+        })
+
+    return HttpResponse(json.dumps(results), content_type="application/json")
 
 
 @api_view(['GET'])

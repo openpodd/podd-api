@@ -11,3 +11,8 @@ class AggregateReport(AbstractCachedModel, DomainMixin):
     authorities = models.ManyToManyField(Authority, related_name='aggregate_report_authority', null=True, blank=True)
 
 
+class SummaryReport(AbstractCachedModel, DomainMixin):
+    year = models.IntegerField()
+    month = models.IntegerField()
+    authority = models.ForeignKey(Authority)
+    url = models.TextField()
