@@ -489,7 +489,11 @@ class UserViewSet(viewsets.ModelViewSet):
 @permission_classes((AllowAny, ))
 def profile_image(request, pk=None):
     user = get_object_or_404(User.objects.all(), pk=pk)
-    return redirect(user.avatar_url)
+    url = '/images/avatar.6a5c9777.png'
+    if user.avatar_url:
+        url = user.avatar_url
+    return redirect(url)
+
 
 
 @api_view(['GET'])
