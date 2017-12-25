@@ -361,8 +361,12 @@ class Notification(DomainMixin):
         chatroom_token = ''
         if self.notification_authority.template.type == NotificationTemplate.TYPE_CHATROOM:
             user_id = 0
-            authority_id = self.notification_authority.authority.id
-            authority_name = self.notification_authority.authority.name
+            authority_id = 0,
+            authority_name = ''
+            if (self.notification_authority):
+                authority_id = self.notification_authority.authority.id
+                authority_name = self.notification_authority.authority.name
+
             if self.receive_user:
                 user_id = self.receive_user_id
                 try:
