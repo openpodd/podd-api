@@ -1337,6 +1337,7 @@ def chatroom_invites(request):
             notification = Notification(
                 to=inviteTelno,
                 original_to=origin_to,
+                anonymous_send=Notification.SMS_ONLY,
                 message=template.format(subject=subject, token=token),
             )
             notification.save()
