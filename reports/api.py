@@ -569,8 +569,12 @@ class ReportViewSet(viewsets.ModelViewSet):
                                                       administration_area=report.administration_area,
                                                       subscribes=True)):
             queryset = ReportAccomplishment.objects.filter(report=report)
-            serializer = ReportAccomplishmentSerializer(queryset[0], many=False)
-            return Response(serializer.data)
+            if queryset.count() > 0:
+                serializer = ReportAccomplishmentSerializer(queryset[0], many=False)
+                return Response(serializer.data)
+            else:
+                return Response(None)
+
         else:
             return Response({u'detail': u'You do not have permission to perform this action.'},
                             status=status.HTTP_403_FORBIDDEN)
