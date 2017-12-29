@@ -1135,6 +1135,7 @@ class Report(AbstractCachedModel, DomainMixin):
                         elif len(clean_tels) > 0:
                             clean_phone_number = clean_tels[0]
                             notification_data['to'] = clean_phone_number
+                            notification_data['original_to'] = to
                             notification_data['anonymous_send'] = Notification.SMS_ONLY
 
                             receive_user = '@[tel:%s]' % to

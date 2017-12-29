@@ -316,6 +316,7 @@ class Notification(DomainMixin):
 
     notification_authority = models.ForeignKey(NotificationAuthority, related_name='notice_item_notice', null=True, blank=True)
     to = models.CharField(max_length=255)
+    original_to = models.CharField(max_length=255, null=True, blank=True)
     anonymous_send = models.IntegerField(null=True, blank=True)
     subscribe_authority = models.ForeignKey(Authority, related_name='subscribe_authority_notice', null=True, blank=True)
 
@@ -360,8 +361,12 @@ class Notification(DomainMixin):
         chatroom_token = ''
         if self.notification_authority.template.type == NotificationTemplate.TYPE_CHATROOM:
             user_id = 0
-            authority_id = 0
+            authority_id = 0,
             authority_name = ''
+            if (self.notification_authority):
+                authority_id = self.notification_authority.authority.id
+                authority_name = self.notification_authority.authority.name
+
             if self.receive_user:
                 user_id = self.receive_user_id
                 try:
@@ -377,6 +382,8 @@ class Notification(DomainMixin):
 
             room_id = self.report.id
             username = self.to
+            if self.original_to:
+                username = self.original_to
 
             if username != '@[chatroom]':
                 cache_key = 'chattoken-%s-%s' % (room_id, username)

@@ -489,7 +489,11 @@ class UserViewSet(viewsets.ModelViewSet):
 @permission_classes((AllowAny, ))
 def profile_image(request, pk=None):
     user = get_object_or_404(User.objects.all(), pk=pk)
-    return redirect(user.avatar_url)
+    url = '/images/avatar.6a5c9777.png'
+    if user.avatar_url:
+        url = user.avatar_url
+    return redirect(url)
+
 
 
 @api_view(['GET'])
@@ -1301,24 +1305,41 @@ def chatroom_invites(request):
     body = request.DATA.copy()
 
     report_id = body.get('reportId')
-    user_ids = body.get('userIds')
+    inviteList = body.get('inviteList')
     subject = body.get('subject')
     template = body.get('template') or u'คุณได้รับการเชิญเข้าร่วมปรึกษาเรื่อง {subject} เข้าร่วมห้องแชทได้ที่ https://podd-chat.firebaseapp.com/#/?token={token}'
 
-    for user_id in user_ids:
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            continue
+    for invite in inviteList:
+        inviteType = invite.get('type')
+        if inviteType == 'podd':
+            try:
+                user = User.objects.get(id=invite.get('id'))
+            except User.DoesNotExist:
+                continue
+            authority = user.authority_users.all()[0]
+            token = chat_create_token(report_id, user.id, user.username, authority.id, authority.name)
 
-        authority = user.authority_users.all()[0]
-        token = chat_create_token(report_id, user_id, user.username, authority.id, authority.name)
+            notification = Notification(
+                receive_user=user,
+                to=user.username,
+                message=template.format(subject=subject, token=token),
+            )
+            notification.save()
 
-        notification = Notification(
-            receive_user=user,
-            to=user.username,
-            message=template.format(subject=subject, token=token),
-        )
-        notification.save()
+        elif inviteType == 'anonymous':
+            inviteName = invite.get('name')
+            inviteTelno = invite.get('telno')
+            inviteAuthorityName = invite.get('authorityName')
+
+            origin_to = '%s %s' % (inviteName, inviteTelno)
+            token = chat_create_token(report_id, 0, origin_to, 0, inviteAuthorityName)
+
+            notification = Notification(
+                to=inviteTelno,
+                original_to=origin_to,
+                anonymous_send=Notification.SMS_ONLY,
+                message=template.format(subject=subject, token=token),
+            )
+            notification.save()
 
     return Response('{ "message": "ok" }', status=status.HTTP_200_OK)
