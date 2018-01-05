@@ -494,7 +494,10 @@ class Notification(DomainMixin):
             if 'SUPPORT_' not in self.type:
                 tels = clean_phone_numbers(self.receive_user.telephone)
                 if len(tels):
-                    publish_sms_message(self.render_message('sms'), tels)
+                    if not self.message:
+                        self.message = self.render_message('sms')
+                        super(Notification, self).save()
+                    publish_sms_message(self.message, tels)
 
             report_id = self.report and self.report.id
             badge = Notification.objects.filter(receive_user=self.receive_user, is_seen=False).count()
@@ -511,7 +514,10 @@ class Notification(DomainMixin):
         # Two case email or phone number
         else:
             if self.anonymous_send == self.SMS_ONLY:
-                publish_sms_message(self.render_message('sms'), clean_phone_numbers(self.to))
+                if not self.message:
+                    self.message = self.render_message('sms')
+                    super(Notification, self).save()
+                publish_sms_message(self.message, clean_phone_numbers(self.to))
             elif self.anonymous_send == self.EMAIL_ONLY:
                 if settings.NOTIFICATION_DISABLED and settings.EMAIL_BACKEND != 'django.core.mail.backends.locmem.EmailBackend':
                     print '------ EMAIL PARAMS ------'
