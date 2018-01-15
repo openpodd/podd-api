@@ -78,6 +78,7 @@ INSTALLED_APPS = (
     'plans',
     'pages',
     'summary',
+    'firebase',
 )
 
 MIDDLEWARE_CLASSES = (
