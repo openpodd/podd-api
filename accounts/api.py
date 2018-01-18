@@ -37,10 +37,11 @@ import xlwt
 
 from accounts import tasks
 from accounts.models import Configuration, UserDevice, User, Authority, UserCode, GroupInvite, AuthorityInvite
-from accounts.serializers import (UserDeviceSerializer, UserListESSerializer, UserSerializer, 
-    AuthoritySerializer, UserRegistrationSerializer, GroupInviteSerializer, UserCommonSerializer,
+from accounts.serializers import (UserDeviceSerializer, UserListESSerializer, UserSerializer,
+                                  AuthoritySerializer, UserRegistrationSerializer, GroupInviteSerializer,
+                                  UserCommonSerializer,
                                   AuthorityListSerializer, AuthorityShortListSerializer,
-                                  UserCommonDetailSerializer, AuthorityInviteSerializer)
+                                  UserCommonDetailSerializer, AuthorityInviteSerializer, UserCommonAdminSerializer)
 from accounts.pub_tasks import publish_user_profile
 from common.constants import (GROUP_WORKING_TYPE_REPORT_TYPE, USER_STATUS_VOLUNTEER,
     USER_STATUS_PODD, USER_STATUS_LIVESTOCK, USER_STATUS_PUBLIC_HEALTH, USER_STATUS_VOLUNTEER, USER_STATUS_ADDITION_VOLUNTEER,
@@ -360,7 +361,7 @@ class AuthorityViewSet(viewsets.ModelViewSet):
 
 class UserViewSet(viewsets.ModelViewSet):
     model = User
-    serializer_class = UserCommonSerializer
+    serializer_class = UserCommonAdminSerializer
     authentication_classes = (TokenAuthentication, SessionAuthentication)
     permission_classes = (CanEditModel, )
 
@@ -416,20 +417,35 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = UserCommonDetailSerializer(user)
         return Response(serializer.data)
 
+    def update(self, request, pk=None):
+        data = request.DATA.copy()
+        password = data.get('password')
+        if password and password.strip() != '':
+            queryset = self.get_queryset()
+            user = get_object_or_404(queryset, pk=pk)
+
+            password = password.strip()
+            user.set_password(password)
+            user.display_password = password
+            user.save()
+
+        return super(UserViewSet, self).update(request, pk)
+
     def create(self, validated_data):
         data = validated_data.DATA.copy()
 
         now = timezone.now()
         pass_time = now - datetime.timedelta(minutes=5)
 
-        try:
-            user = User.objects.filter(serial_number=data['serialNumber'], date_joined__lt=pass_time).latest('id')
-            if user:
-                return Response({'detail': 'serialNumber already exist.', 'serialNumber': ['Serial number is not found.']},
-                    status=status.HTTP_400_BAD_REQUEST)
+        if data.get('serialNumber'):
+            try:
+                user = User.objects.filter(serial_number=data['serialNumber'], date_joined__lt=pass_time).latest('id')
+                if user:
+                    return Response({'detail': 'serialNumber already exist.', 'serialNumber': ['Serial number is not found.']},
+                        status=status.HTTP_400_BAD_REQUEST)
 
-        except User.DoesNotExist:
-            pass
+            except User.DoesNotExist:
+                pass
 
         if not data.get('username'):
            data['username'] = str(uuid.uuid4())[:10].replace('-', '')

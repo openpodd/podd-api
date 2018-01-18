@@ -61,6 +61,11 @@ class UserCommonSerializer(serializers.ModelSerializer):
                   'isAnonymous', 'isPublic', 'authority', 'dateJoined')
 
 
+class UserCommonAdminSerializer(UserCommonSerializer):
+    username = serializers.WritableField('username')
+    password = serializers.WritableField('password')
+
+
 class UserCommonDetailSerializer(UserCommonSerializer):
 
     dateJoined = serializers.WritableField('date_joined', read_only=True)
@@ -95,7 +100,7 @@ class UserCommonShortDetailSerializer(UserCommonSerializer):
 class UserRegistrationSerializer(serializers.ModelSerializer):
     firstName = serializers.WritableField('first_name')
     lastName = serializers.WritableField('last_name')
-    serialNumber = serializers.WritableField('serial_number')
+    serialNumber = serializers.WritableField('serial_number', required=False)
     # authority = serializers.PrimaryKeyRelatedField()
 
     class Meta:
