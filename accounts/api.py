@@ -1323,7 +1323,7 @@ def chatroom_invites(request):
     report_id = body.get('reportId')
     inviteList = body.get('inviteList')
     subject = body.get('subject')
-    template = body.get('template') or u'คุณได้รับการเชิญเข้าร่วมปรึกษาเรื่อง {subject} เข้าร่วมห้องแชทได้ที่ https://podd-chat.firebaseapp.com/#/?token={token}'
+    template = body.get('template') or u'คุณได้รับการเชิญเข้าร่วมปรึกษาเรื่อง {subject} เข้าร่วมห้องแชทได้ที่ http://www.cmonehealth.org/dashboard/fire/#/?token={token}'
 
     for invite in inviteList:
         inviteType = invite.get('type')

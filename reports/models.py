@@ -1597,12 +1597,14 @@ class Report(AbstractCachedModel, DomainMixin):
 
         # evaluate pre_save custom script.
         report_pre_save = (self.type.report_pre_save or '').strip()
+        from dateutil.parser import parse
         if report_pre_save:
             symtable = {
                 'report': self,
                 'json': json,
                 'geos': geos,
-                'geos_util': geos_util
+                'geos_util': geos_util,
+                'parse': parse,
             }
             safe_eval(report_pre_save, symtable)
 
