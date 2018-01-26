@@ -464,8 +464,8 @@ class Authority(DomainMixin):
         from notifications.models import NotificationTemplate
 
         allow_id_list = set(self.get_inherits_all()) | set(self.get_subscribes_all())
-
-        return NotificationTemplate.objects.filter(Q(authority=self) | (Q(notice_template__isnull=False) & Q(authority__in=allow_id_list))).distinct()
+        allow_id_list.add(self.id)
+        return NotificationTemplate.objects.filter(authority__in=allow_id_list).distinct()
 
     def notification_template_enabled_list(self):
         from notifications.models import NotificationTemplate

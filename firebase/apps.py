@@ -10,5 +10,6 @@ class FireAppConfig(AppConfig):
     verbose_name = 'firebase'
 
     def ready(self):
-        cred = credentials.Certificate(settings.FIREBASE_SERVICE_ACCOUNT_CERT)
-        FireAppConfig.app = firebase_admin.initialize_app(cred)
+        if settings.FIREBASE_SERVICE_ACCOUNT_CERT:
+            cred = credentials.Certificate(settings.FIREBASE_SERVICE_ACCOUNT_CERT)
+            FireAppConfig.app = firebase_admin.initialize_app(cred)
