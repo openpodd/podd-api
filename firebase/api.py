@@ -13,8 +13,8 @@ def obtain_firebase_token(request):
     firebase_token = auth.create_custom_token(uid)
     return JsonResponse({
         'username': uid,
+        'domainId': request.user.domain_id,
         'id': request.user.id,
         'firebase_token': firebase_token,
         'authorities': [],
-
     })
