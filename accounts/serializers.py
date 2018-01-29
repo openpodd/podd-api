@@ -6,7 +6,7 @@ from accounts.models import User, UserDevice, Authority, GroupInvite, AuthorityI
 from common.constants import USER_STATUS_CHOICES
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     name = serializers.Field('name')
     firstName = serializers.WritableField('first_name')
     lastName = serializers.WritableField('last_name')
@@ -23,6 +23,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             'id', 'name', 'username', 'firstName', 'lastName', 'status', 'contact', 'avatarUrl',
             'thumbnailAvatarUrl', 'authorityAdmins', 'isStaff', 'isSuperuser', 'isAnonymous', 'isPublic',
+            'domain'
         )
 
 

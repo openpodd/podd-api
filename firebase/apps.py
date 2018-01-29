@@ -12,4 +12,6 @@ class FireAppConfig(AppConfig):
     def ready(self):
         if settings.FIREBASE_SERVICE_ACCOUNT_CERT:
             cred = credentials.Certificate(settings.FIREBASE_SERVICE_ACCOUNT_CERT)
-            FireAppConfig.app = firebase_admin.initialize_app(cred)
+            FireAppConfig.app = firebase_admin.initialize_app(cred, {
+                'databaseURL': settings.FIREBASE_PODD_CHAT_URL
+            })

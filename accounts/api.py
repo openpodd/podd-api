@@ -1,63 +1,58 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-
-import operator
-from django.forms import model_to_dict
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect
-import facebook
 import json
-import os
-import uuid
+import operator
 import random
+import uuid
 
+import facebook
+import os
+import xlwt
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import Group
+from django.contrib.auth.tokens import default_token_generator
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.contrib.auth import authenticate
-from django.contrib.auth.tokens import default_token_generator
 from django.db.models import Q, Count
+from django.forms import model_to_dict
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-
-from dateutil.relativedelta import relativedelta
 from haystack.query import SearchQuerySet
-from rest_framework import viewsets, status, decorators
+from rest_framework import viewsets, status
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.decorators import action, api_view, authentication_classes, permission_classes, detail_route, link
+from rest_framework.decorators import action, api_view, authentication_classes, permission_classes, link
 from rest_framework.permissions import IsAuthenticated, BasePermission, AllowAny
 from rest_framework.response import Response
-import xlwt
 
 from accounts import tasks
-from accounts.models import Configuration, UserDevice, User, Authority, UserCode, GroupInvite, AuthorityInvite
+from accounts.models import Configuration, UserDevice, User, Authority, UserCode, AuthorityInvite
+from accounts.pub_tasks import publish_user_profile
 from accounts.serializers import (UserDeviceSerializer, UserListESSerializer, UserSerializer,
-                                  AuthoritySerializer, UserRegistrationSerializer, GroupInviteSerializer,
-                                  UserCommonSerializer,
+                                  AuthoritySerializer, UserRegistrationSerializer, UserCommonSerializer,
                                   AuthorityListSerializer, AuthorityShortListSerializer,
                                   UserCommonDetailSerializer, AuthorityInviteSerializer, UserCommonAdminSerializer)
-from accounts.pub_tasks import publish_user_profile
-from common.constants import (GROUP_WORKING_TYPE_REPORT_TYPE, USER_STATUS_VOLUNTEER,
-    USER_STATUS_PODD, USER_STATUS_LIVESTOCK, USER_STATUS_PUBLIC_HEALTH, USER_STATUS_VOLUNTEER, USER_STATUS_ADDITION_VOLUNTEER,
+from common.constants import (USER_STATUS_PODD, USER_STATUS_LIVESTOCK, USER_STATUS_PUBLIC_HEALTH, USER_STATUS_VOLUNTEER,
+                              USER_STATUS_ADDITION_VOLUNTEER,
                               USER_STATUS_CHOICES)
 from common.functions import (filter_permitted_administration_areas_and_descendants,
-                              upload_to_s3, resize_and_crop, publish_gcm_message, decode_generate_key,
-                              generate_username,
+                              upload_to_s3, resize_and_crop, publish_gcm_message, generate_username,
                               get_public_authority, publish_apns_message, filter_permitted_report_types,
                               filter_permitted_users, filter_permitted_authority,
                               filter_permitted_users_for_authorities_admin)
 from common.models import Domain, get_current_domain_id
 from common.serializers import DomainSerializer
+from firebase.functions import create_token
 from logs.models import LogItem
-from notifications.models import NotificationTemplate, Notification
-from notifications.serializers import NotificationTemplateSerializer
-from reports.functions import chat_create_token
+from notifications.models import Notification
 from reports.models import ReportType, AdministrationArea
 from reports.serializers import ReportTypeSerializer, AdministrationAreaListSerializer
 from summary.functions import summary_by_show_user_detail
@@ -1333,7 +1328,7 @@ def chatroom_invites(request):
             except User.DoesNotExist:
                 continue
             authority = user.authority_users.all()[0]
-            token = chat_create_token(report_id, user.id, user.username, authority.id, authority.name)
+            token = create_token(request.user.domain_id, report_id, user.id, user.username, authority.id, authority.name)
 
             notification = Notification(
                 receive_user=user,
@@ -1348,7 +1343,7 @@ def chatroom_invites(request):
             inviteAuthorityName = invite.get('authorityName')
 
             origin_to = '%s %s' % (inviteName, inviteTelno)
-            token = chat_create_token(report_id, 0, origin_to, 0, inviteAuthorityName)
+            token = create_token(request.user.domain_id, report_id, 0, origin_to, 0, inviteAuthorityName)
 
             notification = Notification(
                 to=inviteTelno,

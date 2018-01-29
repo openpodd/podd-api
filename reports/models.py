@@ -1,57 +1,42 @@
 # -*- encoding: utf-8 -*-
 import calendar
-import copy
-import json
-import re
-import operator
-import threading
-from django.contrib.gis import geos
-import uuid
 import datetime
-
-from asteval import Interpreter
-from django.contrib.gis.db.models import GeoManager
-from django.forms import model_to_dict
-from django_redis import get_redis_connection
-from cacheops import invalidate_obj
 import itertools
-from treebeard.exceptions import NodeAlreadySaved
+import json
 
+import re
+import requests
+from cacheops import invalidate_obj
 from celery.contrib.methods import task_method
 from crum import get_current_user
+from django.conf import settings
+from django.contrib.gis import geos
+from django.contrib.gis.db import models
+from django.contrib.gis.db.models import GeoManager
 from django.core import validators
-from django.core.urlresolvers import reverse
-from django.db import transaction
-from django.db.models import Q, QuerySet, Prefetch, Count
-from django.db.models.fields import related
+from django.db.models import Q
 from django.template import Template, Context
 from django.template.defaultfilters import striptags
 from django.template.loader import render_to_string
 from django.utils import timezone
-
-import requests
-from treebeard.exceptions import NodeAlreadySaved
-from treebeard.ns_tree import NS_Node, NS_NodeManager, get_result_class
-
-from django.conf import settings
-from django.contrib.gis.db import models
 from django.utils.translation import ugettext_lazy as _
-
+from django_redis import get_redis_connection
 from taggit.managers import TaggableManager
+from treebeard.ns_tree import NS_Node, NS_NodeManager
 
 from accounts.models import User, Authority, user_can_edit_basic_check, Configuration
 from accounts.serializers import UserSerializer
 from common import geos_util
-from common.constants import PRIORITY_CHOICES, NEWS_TYPE_NEWS, NEWS_TYPE_SUBSCRIBE_AUTHORITY, USER_STATUS_VOLUNTEER, \
-    USER_STATUS_ADDITION_VOLUNTEER, \
-    PRIORITY_IGNORE, PRIORITY_OK, PRIORITY_CONTACT, PRIORITY_FOLLOW, PRIORITY_CASE, STATUS_CHOICES, STATUS_PUBLISH, \
-    STATUS_DELETE, INVESTIGATION_TYPE, USER_STATUS_CHOICES, PARENT_TYPE_CHOICES, PARENT_TYPE_GENERAL, PARENT_TYPE_MERGE
+from common.constants import PRIORITY_CHOICES, NEWS_TYPE_NEWS, NEWS_TYPE_SUBSCRIBE_AUTHORITY, PRIORITY_IGNORE, \
+    PRIORITY_OK, PRIORITY_CONTACT, PRIORITY_FOLLOW, PRIORITY_CASE, STATUS_CHOICES, STATUS_PUBLISH, \
+    STATUS_DELETE, USER_STATUS_CHOICES, PARENT_TYPE_CHOICES, PARENT_TYPE_MERGE
 from common.decorators import domain_celery_task
-from common.functions import safe_eval, get_system_user, randstr, filter_permitted_administration_areas_and_descendants, \
-    get_public_area, get_administration_area_and_descendants, clean_phone_numbers, make_hash
+from common.functions import safe_eval, randstr, filter_permitted_administration_areas_and_descendants, \
+    get_public_area, clean_phone_numbers, make_hash
 from common.models import AbstractCachedModel, DomainMixin, DomainManager, get_current_domain_id, \
     Domain
 from feed.functions import get_public_feed_key
+from firebase.functions import create_room
 from logs.models import LogItem
 from mentions.models import Mention
 from mentions.serializers import MentionSerializer
@@ -65,10 +50,6 @@ class ReportTypeCategory(DomainMixin):
     name = models.CharField(max_length=512)
     code = models.CharField(max_length=255)
     description = models.TextField(null=False, blank=True)
-
-    #image_url = models.URLField()
-    #thumbnail_url = models.URLField()
-
 
     class Meta:
         unique_together = ("domain", "code")
@@ -1270,8 +1251,6 @@ class Report(AbstractCachedModel, DomainMixin):
 
     def create_comment_state(self):
 
-        from reports.serializers import ReportCommentSerializer
-
         try:
             template_comment_state = Configuration.objects.get(system='web.template.report',
                                                                key='comment_state').value
@@ -1428,7 +1407,6 @@ class Report(AbstractCachedModel, DomainMixin):
         self._add_to_public_feed(public_feed_key)
 
     def remove_from_public_feed(self):
-        import copy
         """Remove from public feed if report is deleted"""
         name = self.id
         public_feed_key = self.get_public_feed_key()
@@ -1462,10 +1440,9 @@ class Report(AbstractCachedModel, DomainMixin):
             plan_report.save()
 
     def create_chatroom(self, room_name, meta={}):
-        from .functions import chat_create_room
         user_id = self.created_by.id
         username = self.created_by.username
-        chat_create_room(self.id, room_name, user_id, username, self.rendered_data, meta)
+        create_room(self.domain_id, self.id, user_id, username, room_name, self.rendered_data, meta)
 
     @app.task(filter=task_method, base=DomainTask, bind=True)
     @domain_celery_task

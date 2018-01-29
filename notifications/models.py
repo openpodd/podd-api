@@ -1,16 +1,16 @@
 # -*- encoding: utf-8 -*-
 
 import json
-import re
+
 from celery.contrib.methods import task
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import models
-from django.db.models import Q
 from django.template import Template, Context
-from django.template.defaultfilters import striptags, truncatechars
-from accounts.models import Authority, UserDevice, user_can_edit_basic_check, Configuration, User
+from django.template.defaultfilters import striptags
+
+from accounts.models import Authority, UserDevice, user_can_edit_basic_check, User
 from common.constants import NewsTypeChoices, NEWS_TYPE_NEWS, NOTIFICATION_SUPPORT_TEMPLATES, \
     NOTIFICATION_SUPPORT_TEMPLATE_PREFIX, NOTIFICATION_SUPPORT_TEMPLATE_SUFFIX
 from common.functions import publish_gcm_message, publish_sms_message, publish_apns_message, \
@@ -18,8 +18,7 @@ from common.functions import publish_gcm_message, publish_sms_message, publish_a
     get_system_user
 from common.models import AbstractCommonTrashModel, DomainMixin
 from common.pub_tasks import get_cache, set_cache
-
-from plans.templatetags import plans_tags # dont' remove this line
+from firebase.functions import create_token, post_message
 
 
 class NotificationTemplate(DomainMixin):
@@ -377,9 +376,6 @@ class Notification(DomainMixin):
                 except User.DoesNotExist:
                     pass
 
-
-            from reports.functions import chat_create_token
-
             room_id = self.report.id
             username = self.to
             if self.original_to:
@@ -389,7 +385,7 @@ class Notification(DomainMixin):
                 cache_key = 'chattoken-%s-%s' % (room_id, username)
                 chatroom_token = get_cache(cache_key)
                 if not chatroom_token:
-                    chatroom_token = chat_create_token(room_id, user_id, username, authority_id, authority_name)
+                    chatroom_token = create_token(self.domain_id, room_id, user_id, username, authority_id, authority_name)
                     set_cache(cache_key, chatroom_token)
 
         return Context({
@@ -548,9 +544,7 @@ class Notification(DomainMixin):
                             'lng': form_data['ct_longitude']
                         }
                     }
-
-                from reports.functions import chat_post_message
-                chat_post_message(chat_room_id, chat_user_id, chat_username, chat_message, meta=meta)
+                post_message(self.domain_id, chat_room_id, chat_user_id, chat_username, chat_message, meta=meta)
 
     def save(self, *args, **kwargs):
         super(Notification, self).save(*args, **kwargs)
