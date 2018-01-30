@@ -2,13 +2,16 @@
 
 import json
 
-from celery.contrib.methods import task
+from celery.contrib.methods import task, task_method
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import models
 from django.template import Template, Context
 from django.template.defaultfilters import striptags
+
+from common.decorators import domain_celery_task
+from podd.celery import app, DomainTask
 
 from accounts.models import Authority, UserDevice, user_can_edit_basic_check, User
 from common.constants import NewsTypeChoices, NEWS_TYPE_NEWS, NOTIFICATION_SUPPORT_TEMPLATES, \
@@ -440,12 +443,11 @@ class Notification(DomainMixin):
 
             return Template(template).render(self.get_message_context())
 
-
     def render_web_message(self):
         return self.render_message('default', 'body')
 
-
-    @task()
+    @app.task(filter=task_method, base=DomainTask, bind=True)
+    @domain_celery_task
     def publish_message(self):
         if not self.message and self.type not in NOTIFICATION_SUPPORT_TEMPLATES.keys():
             self.init_message()
