@@ -51,7 +51,7 @@ from notifications.models import Notification
 from plans.models import PlanReport
 from plans.serializers import PlanReportSerializer
 from reports import Area
-from reports import tasks
+from reports.tasks import extract_image_gps, new_negative_report_rule
 from reports.functions import _search
 from reports.models import Report, ReportType, ReportComment, AdministrationArea, ReportState, CaseDefinition, \
     ReportTypeCategory, ReportLike, ReportMeToo, ReportAbuse, AnimalLaboratoryCause, ReportLaboratoryItem, \
@@ -378,7 +378,7 @@ class ReportViewSet(viewsets.ModelViewSet):
             if settings.ESPER_CONNECTION_URL:
                 pass
             else:
-                tasks.new_negative_report_rule.delay(obj) # deprecate when authority comes...
+                new_negative_report_rule.delay(obj) # deprecate when authority comes...
 
     def create(self, request):
 
@@ -1109,7 +1109,7 @@ def add_report_image(request):
 
         publish_report_image(data_to_publish)
         # extract image gps data
-        tasks.extract_image_gps.delay(data_to_publish['guid'])
+        extract_image_gps.delay(data_to_publish['guid'])
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     else:

@@ -40,7 +40,7 @@ from reports.pub_tasks import publish_report_flag
 from celery.utils.log import get_task_logger
 
 
-@app.task(filter=task_method, base=DomainTask, bind=True)
+@app.task(base=DomainTask, bind=True)
 @domain_celery_task
 def extract_image_gps(report_image_guid):
     '''
