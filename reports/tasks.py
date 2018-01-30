@@ -39,7 +39,7 @@ from reports.pub_tasks import publish_report_flag
 from celery.utils.log import get_task_logger
 
 
-@shared_task
+@app.task
 def extract_image_gps(report_image_guid):
     '''
     Extract location data from image if possible then save it back to DB.
