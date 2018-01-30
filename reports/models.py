@@ -964,14 +964,15 @@ class Report(AbstractCachedModel, DomainMixin):
             if notification_template.type == NotificationTemplate.TYPE_DELAYED_FOLLOW_UP:
                 now = timezone.now()
                 delayed_hours = notification_template.delayed_time
-                follow_up_data = {
-                    'report': self,
-                    'template': notification_template,
-                    'authority': authority,
-                    'date': now + datetime.timedelta(hours=delayed_hours)
-                }
-                FollowUp.objects.create(**follow_up_data)
-                continue
+                if delayed_hours:
+                    follow_up_data = {
+                        'report': self,
+                        'template': notification_template,
+                        'authority': authority,
+                        'date': now + datetime.timedelta(hours=delayed_hours)
+                    }
+                    FollowUp.objects.create(**follow_up_data)
+                    continue
 
             condition = notification_template.condition
             plan_and_notification_template_accepted_list = []
