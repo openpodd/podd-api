@@ -7,6 +7,7 @@ import re
 import StringIO
 import urllib2
 import requests
+from celery.contrib.methods import task_method
 
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -39,7 +40,8 @@ from reports.pub_tasks import publish_report_flag
 from celery.utils.log import get_task_logger
 
 
-@app.task
+@app.task(filter=task_method, base=DomainTask, bind=True)
+@domain_celery_task
 def extract_image_gps(report_image_guid):
     '''
     Extract location data from image if possible then save it back to DB.
