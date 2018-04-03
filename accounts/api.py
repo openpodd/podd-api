@@ -499,10 +499,14 @@ class UserViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 @permission_classes((AllowAny, ))
 def profile_image(request, pk=None):
-    user = get_object_or_404(User.objects.all(), pk=pk)
-    url = '/images/avatar.6a5c9777.png'
-    if user.avatar_url:
-        url = user.avatar_url
+    url = 'http://www.cmonehealth.org/dashboard/images/avatar.6a5c9777.png'
+    try:
+        user = User.objects.get(pk=pk)
+        if user.avatar_url:
+            url = user.avatar_url
+    except User.DoesNotExist:
+        pass
+
     return redirect(url)
 
 
