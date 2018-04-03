@@ -993,7 +993,8 @@ class Report(AbstractCachedModel, DomainMixin):
             subscriber_ids = set(authority.get_subscribers_all())
         elif self.type.notification_type == ReportType.NOTIFY_BY_REPORT_LOCATION_INTERSECTS_WITH_AUTHORITY:
             radius = self.type.notification_buffer or 0.025
-            intersect_authorities = Authority.objects.filter(area__intersects=self.report_location.buffer(radius))
+            report_location = self.report_location or self.administration_area.location # backward compat for no location
+            intersect_authorities = Authority.objects.filter(area__intersects=report_location.buffer(radius))
 
         for plan_report in self._plan_reports:
             # merge all authority for auto subscribe on the fly when plan accepted
