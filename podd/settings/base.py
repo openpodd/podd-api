@@ -79,6 +79,7 @@ INSTALLED_APPS = (
     'pages',
     'summary',
     'firebase',
+    'dodd',
 )
 
 MIDDLEWARE_CLASSES = (

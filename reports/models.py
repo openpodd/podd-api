@@ -29,7 +29,7 @@ from accounts.serializers import UserSerializer
 from common import geos_util
 from common.constants import PRIORITY_CHOICES, NEWS_TYPE_NEWS, NEWS_TYPE_SUBSCRIBE_AUTHORITY, PRIORITY_IGNORE, \
     PRIORITY_OK, PRIORITY_CONTACT, PRIORITY_FOLLOW, PRIORITY_CASE, STATUS_CHOICES, STATUS_PUBLISH, \
-    STATUS_DELETE, USER_STATUS_CHOICES, PARENT_TYPE_CHOICES, PARENT_TYPE_MERGE
+    STATUS_DELETE, USER_STATUS_CHOICES, PARENT_TYPE_CHOICES, PARENT_TYPE_MERGE, PARENT_TYPE_DODD
 from common.decorators import domain_celery_task
 from common.functions import safe_eval, randstr, filter_permitted_administration_areas_and_descendants, \
     get_public_area, clean_phone_numbers, make_hash
@@ -95,6 +95,7 @@ class ReportType(AbstractCachedModel, DomainMixin):
     notification_buffer = models.FloatField(null=True,
                                             blank=True,
                                             help_text='Radius of buffer that use to find intersects authorities')
+    map_to = models.ForeignKey('reports.ReportType', related_name='report_type_map_to', blank=True, null=True)
 
     cached_vars = [('authority', True), 'form_definition', 'summary_template', 'version']
 
@@ -107,7 +108,7 @@ class ReportType(AbstractCachedModel, DomainMixin):
         unique_together = ("domain", "code")
 
     def __unicode__(self):
-        return self.name
+        return '%s (%d) [%s]' % (self.name, self.id, self.code)
 
     def get_schema_fields(self):
 
@@ -1522,15 +1523,16 @@ class Report(AbstractCachedModel, DomainMixin):
             # Force set follow up report state to default state
             self.state = self.type.default_state
 
-            if self.is_new:
-                self.parent.form_data = self.form_data
-                self.parent.save()
-                self.mask_responsed_follow_up()
-                self.add_comment_to_parent()
+            if self.parent_type != PARENT_TYPE_DODD:
+                if self.is_new:
+                    self.parent.form_data = self.form_data
+                    self.parent.save()
+                    self.mask_responsed_follow_up()
+                    self.add_comment_to_parent()
 
-            else:
-                is_merge = (self.parent_type == PARENT_TYPE_MERGE)
-                self.add_comment_to_parent(is_merge=is_merge)
+                else:
+                    is_merge = (self.parent_type == PARENT_TYPE_MERGE)
+                    self.add_comment_to_parent(is_merge=is_merge)
 
         self._plan_accepted_list = None
 
@@ -1587,8 +1589,11 @@ class Report(AbstractCachedModel, DomainMixin):
             }
             safe_eval(report_pre_save, symtable)
 
-        # render form data as save.
-        self.rendered_form_data = self.rendered_data
+        # if parent_type is DODD, no need to create rendererd_form_data
+        if self.parent_type != PARENT_TYPE_DODD:
+            # render form data as save.
+            self.rendered_form_data = self.rendered_data
+
         # load original form data only if this is a new report
         if not self.id:
             self.rendered_original_form_data = self.rendered_form_data

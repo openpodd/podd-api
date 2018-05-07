@@ -366,6 +366,7 @@ class ReportListESSerializer(serializers.ModelSerializer):
     stateCode = serializers.Field('stateCode')
     state = serializers.Field('state')
     parent = serializers.Field('parent')
+    parentType = serializers.Field('parentType')
     formDataExplanation = serializers.Field(source='renderedFormData')
     renderedOriginalFormData = serializers.Field(source='renderedOriginalFormData')
     firstImageThumbnail = serializers.CharField(source='firstImageThumbnail', read_only=True)
@@ -379,7 +380,7 @@ class ReportListESSerializer(serializers.ModelSerializer):
         fields = ('id', 'reportId', 'guid', 'reportTypeId', 'reportTypeName', 'date',
             'administrationAreaId', 'negative', 'incidentDate', 'createdBy', 'createdByName', 'createdByThumbnailUrl', 'flag', 'testFlag',
             'formDataExplanation', 'renderedOriginalFormData', 'administrationAreaAddress', 'firstImageThumbnail',
-            'state', 'stateCode', 'stateName', 'parent', 'tags', 'reportLocation', 'commentCount')
+            'state', 'stateCode', 'stateName', 'parent', 'parentType', 'tags', 'reportLocation', 'commentCount')
 
     def transform_testFlag(self, obj, value):
         if value:
@@ -560,6 +561,7 @@ class ReportSerializer(serializers.ModelSerializer, AttachCanEditSerializer):
     isCurated = serializers.BooleanField('is_curated', read_only=True)
 
     parent = serializers.PrimaryKeyRelatedField('parent', required=False, widget=widgets.TextInput)
+    parentType = serializers.Field('parent_type')
 
     likeCount = serializers.Field(source='like_count')
     commentCount = serializers.Field(source='comment_count')
@@ -578,7 +580,7 @@ class ReportSerializer(serializers.ModelSerializer, AttachCanEditSerializer):
             'isStateChanged', 'stateCode', 'stateName', 'stateId', 'date', 'createdAt', 'isAnonymous', 'createdByObject',
             'incidentDate', 'createdBy', 'createdById', 'createdByName', 'administrationAreaId', 'formData', 'originalFormData', 'negative', 'testFlag',
             'createdByTelephone', 'createdByProjectMobileNumber', 'createdByThumbnailUrl',
-            'parent', 'reportLocation', 'reportLocationString', 'remark', 'images', 'firstImageThumbnail', 'createdByContact',
+            'parent', 'parentType', 'reportLocation', 'reportLocationString', 'remark', 'images', 'firstImageThumbnail', 'createdByContact',
             'administrationAreaAddress', 'administrationAreaName', 'formDataExplanation', 'renderedOriginalFormData', 'parentGuid', 'tags', 'isPublic',
             'likeCount', 'commentCount', 'meTooCount', 'likeId', 'meTooId', 'boundary', 'isCurated',
         )

@@ -1190,29 +1190,23 @@ class ReportCommentViewSet(viewsets.ModelViewSet):
     def create(self, request):
         serializer = ReportCommentSerializer(data=request.DATA, context={'request': request})
         if serializer.is_valid():
-            if (has_permission_on_administration_area(user=request.user,
-                                                      administration_area=serializer.object.report.administration_area,
-                                                      subscribes=True)):
-                if request.FILES.get('file'):
-                    file = request.FILES.get('file')
-                    if file.size <= settings.MAX_ATTACH_FILE_COMMENT_SIZE:
-                        file_url = upload_to_s3(file)
-                        if file_url:
-                            serializer.object.file_url = file_url
-                        else:
-                            return Response({"detail": u"ไม่สามารถอัพโหลดไฟล์สำเร็จ"},
-                                status=status.HTTP_400_BAD_REQUEST)
+            if request.FILES.get('file'):
+                file = request.FILES.get('file')
+                if file.size <= settings.MAX_ATTACH_FILE_COMMENT_SIZE:
+                    file_url = upload_to_s3(file)
+                    if file_url:
+                        serializer.object.file_url = file_url
                     else:
-                        return Response({"detail": u"ไม่สามารถอัพโหลดไฟล์ที่มีขนาดของไฟล์มากกว่า 10MB"},
+                        return Response({"detail": u"ไม่สามารถอัพโหลดไฟล์สำเร็จ"},
                             status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"detail": u"ไม่สามารถอัพโหลดไฟล์ที่มีขนาดของไฟล์มากกว่า 10MB"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
-                serializer.object.message = strip_tags(serializer.object.message)
-                serializer.object.created_by = request.user
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response({u'detail': u'You do not have permission to perform this action.'},
-                        status=status.HTTP_403_FORBIDDEN)
+            serializer.object.message = strip_tags(serializer.object.message)
+            serializer.object.created_by = request.user
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
