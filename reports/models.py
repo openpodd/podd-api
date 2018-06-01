@@ -35,6 +35,7 @@ from common.functions import safe_eval, randstr, filter_permitted_administration
     get_public_area, clean_phone_numbers, make_hash
 from common.models import AbstractCachedModel, DomainMixin, DomainManager, get_current_domain_id, \
     Domain
+from dodd.tasks import create_podd_report_from_public_report
 from feed.functions import get_public_feed_key
 from firebase.functions import create_room
 from logs.models import LogItem
@@ -1538,6 +1539,8 @@ class Report(AbstractCachedModel, DomainMixin):
 
         if self.is_new:
             send_data_to_spreadsheet(self)
+
+        create_podd_report_from_public_report(self.id)
 
         publish_report(ReportSerializer(self).data)
 

@@ -11,9 +11,7 @@ from accounts.models import Authority
 @domain_celery_task
 def create_podd_report_from_public_report(public_report_id):
     dodd_report = Report.objects.get(pk=public_report_id)
-    print dodd_report.type, dodd_report.type.id
-    print dodd_report.type.map_to
-    if dodd_report.type.map_to:
+    if dodd_report.is_public and dodd_report.type.map_to:
 
         # find authority by report location
         dodd_location = dodd_report.report_location
