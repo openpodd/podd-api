@@ -4,12 +4,13 @@ from common.constants import PARENT_TYPE_DODD
 from common.decorators import domain_celery_task
 from podd.celery import app, DomainTask
 
-from reports.models import Report, AdministrationArea, ReportImage
 from accounts.models import Authority
 
 @app.task(base=DomainTask, bind=True)
 @domain_celery_task
 def create_podd_report_from_public_report(public_report_id):
+    from reports.models import Report, AdministrationArea, ReportImage
+
     dodd_report = Report.objects.get(pk=public_report_id)
     if dodd_report.is_public and dodd_report.type.map_to:
 
