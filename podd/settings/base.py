@@ -243,7 +243,6 @@ DEFAULT_DOMAIN = {
 RAVEN_CONFIG = {
     'dsn': '',
     'site': 'PODD Django',
-    'release': raven.fetch_git_sha(os.path.abspath(os.pardir)),
 }
 
 # CELERYBEAT
