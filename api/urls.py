@@ -145,5 +145,6 @@ urlpatterns = patterns('',
     url(r'^reportLaboratoryFiles/', 'reports.api.upload_file_to_laboratory', name='upload_file_to_laboratory'),
 
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^test-dodd/(?P<report_id>\d+)/', 'dodd.views.test_link_report', name='test_dodd'),
     url(r'^', include(router.urls)),
 )
