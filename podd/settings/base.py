@@ -3,6 +3,8 @@
 
 import os
 from os.path import join, abspath, dirname
+
+import raven
 from celery.schedules import crontab
 from datetime import timedelta
 
@@ -240,7 +242,8 @@ DEFAULT_DOMAIN = {
 # raven
 RAVEN_CONFIG = {
     'dsn': '',
-    'site': 'PODD Django'
+    'site': 'PODD Django',
+    'release': raven.fetch_git_sha(os.path.abspath(os.pardir)),
 }
 
 # CELERYBEAT
