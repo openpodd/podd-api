@@ -1092,89 +1092,88 @@ class Report(AbstractCachedModel, DomainMixin):
                     for to in to_list:
 
                         to = to.strip()
+                        if to != '':
+                            users = list(User.objects.filter(Q(email=to) | Q(username=to)).order_by('-last_login')[0:1])
+
+                            notification_data = {
+                                'report': self,
+                                'notification_authority': notification_authority,
+                                'to': to, # TODO: change to receive_user and fix unittest
+                                'type': notification_type,
+                                'subscribe_authority': subscribe_authority
+                            }
+
+                            receive_user = False
+
+                            # detect telephone numbers
+                            clean_tels = clean_phone_numbers(to)
 
 
-                        users = list(User.objects.filter(Q(email=to) | Q(username=to)).order_by('-last_login')[0:1])
+                            # Exist users
+                            if len(users):
+                                for user in users:
+                                    notification_data['receive_user'] = user
+                                    receive_user = '@[%s]' % user.username
 
-                        notification_data = {
-                            'report': self,
-                            'notification_authority': notification_authority,
-                            'to': to, # TODO: change to receive_user and fix unittest
-                            'type': notification_type,
-                            'subscribe_authority': subscribe_authority
-                        }
+                            # Detect phone number for send sms
+                            elif len(clean_tels) > 0:
+                                clean_phone_number = clean_tels[0]
+                                notification_data['to'] = clean_phone_number
+                                notification_data['original_to'] = to
+                                notification_data['anonymous_send'] = Notification.SMS_ONLY
 
-                        receive_user = False
+                                receive_user = '@[tel:%s]' % to
 
-                        # detect telephone numbers
-                        clean_tels = clean_phone_numbers(to)
+                            elif re.match(r'[^@]+@[^@]+\.[^@]+', to):
+                                notification_data['anonymous_send'] = Notification.EMAIL_ONLY
 
+                                receive_user = '@[email:%s]' % to
 
-                        # Exist users
-                        if len(users):
-                            for user in users:
-                                notification_data['receive_user'] = user
-                                receive_user = '@[%s]' % user.username
+                            elif to == '@[contacts]':
+                                to_list.extend(self.administration_area.get_contacts())
 
-                        # Detect phone number for send sms
-                        elif len(clean_tels) > 0:
-                            clean_phone_number = clean_tels[0]
-                            notification_data['to'] = clean_phone_number
-                            notification_data['original_to'] = to
-                            notification_data['anonymous_send'] = Notification.SMS_ONLY
+                            elif re.match(r'^@\[contacts:(.*)\]', to):
+                                keys = re.match(r'^@\[contacts:(.*)\]', to).groups()[0].split(':')
+                                to_list.extend(self.administration_area.get_contacts(keys=keys))
 
-                            receive_user = '@[tel:%s]' % to
+                            elif re.match(r'^@\[plan:(.*)\]', to):
+                                keys = re.match(r'^@\[plan:(.*)\]', to).groups()[0].split(':')
+                                level = keys[0]
+                                keys = keys[1:]
 
-                        elif re.match(r'[^@]+@[^@]+\.[^@]+', to):
-                            notification_data['anonymous_send'] = Notification.EMAIL_ONLY
+                                # log template to plan report for each levels
+                                for plan_report in self._plan_reports:
+                                    if not plan_report.level_templates.get(level):
+                                        plan_report.level_templates[level] = []
+                                    plan_report.level_templates[level].append(accepted)
 
-                            receive_user = '@[email:%s]' % to
+                                for plan in accepted.plan_valid_list: # The config plans should be single plan
 
-                        elif to == '@[contacts]':
-                            to_list.extend(self.administration_area.get_contacts())
+                                    level_areas = plan.level_areas(self.administration_area)
 
-                        elif re.match(r'^@\[contacts:(.*)\]', to):
-                            keys = re.match(r'^@\[contacts:(.*)\]', to).groups()[0].split(':')
-                            to_list.extend(self.administration_area.get_contacts(keys=keys))
+                                    for area in level_areas.get(level) or []:
+                                        to_list.extend(area.get_contacts(keys=keys))
 
-                        elif re.match(r'^@\[plan:(.*)\]', to):
-                            keys = re.match(r'^@\[plan:(.*)\]', to).groups()[0].split(':')
-                            level = keys[0]
-                            keys = keys[1:]
+                            elif re.match(r'^@\[template:(.*)\]', to):
+                                template_id = re.match(r'^@\[template:(.*)\]', to).groups()[0]
 
-                            # log template to plan report for each levels
-                            for plan_report in self._plan_reports:
-                                if not plan_report.level_templates.get(level):
-                                    plan_report.level_templates[level] = []
-                                plan_report.level_templates[level].append(accepted)
+                                try:
+                                    enabled = NotificationAuthority.objects.get(template__id=template_id, authority__id=authority.id)
+                                    if enabled.to:
+                                        to_list.extend(enabled.to.split(','))
 
-                            for plan in accepted.plan_valid_list: # The config plans should be single plan
+                                except NotificationAuthority.DoesNotExist:
+                                    pass
 
-                                level_areas = plan.level_areas(self.administration_area)
-
-                                for area in level_areas.get(level) or []:
-                                    to_list.extend(area.get_contacts(keys=keys))
-
-                        elif re.match(r'^@\[template:(.*)\]', to):
-                            template_id = re.match(r'^@\[template:(.*)\]', to).groups()[0]
-
-                            try:
-                                enabled = NotificationAuthority.objects.get(template__id=template_id, authority__id=authority.id)
-                                if enabled.to:
-                                    to_list.extend(enabled.to.split(','))
-
-                            except NotificationAuthority.DoesNotExist:
-                                pass
-
-                        elif to == '@[chatroom]':
-                            notification_data['to'] = '@[chatroom]'
-                            receive_user = '@[chatroom]'
+                            elif to == '@[chatroom]':
+                                notification_data['to'] = '@[chatroom]'
+                                receive_user = '@[chatroom]'
 
 
-                        if receive_user and not receive_user in sents[accepted.get_comment_render()]:
-                            sents[accepted.get_comment_render()].append(receive_user)
-                            Notification.objects.create(**notification_data)
-                            Notification.plan = accepted.accepted_plan
+                            if receive_user and not receive_user in sents[accepted.get_comment_render()]:
+                                sents[accepted.get_comment_render()].append(receive_user)
+                                Notification.objects.create(**notification_data)
+                                Notification.plan = accepted.accepted_plan
 
 
                 for inherit in authority.inherits.exclude(id__in=stamps):
