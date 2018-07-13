@@ -350,6 +350,8 @@ class Domain(AbstractCommonTrashModel):
     default_language = models.CharField(max_length=20, default=settings.LANGUAGE_CODE)
     timezone = models.FloatField(default=7.0)
 
+    is_active = models.BooleanField(default=False)
+
     # logo ?
 
     def __unicode__(self):

@@ -787,8 +787,10 @@ class Report(AbstractCachedModel, DomainMixin):
             self.date = now
 
     def create_cep(self):
-
         # See https://bitbucket.org/opendream/podd-cep
+
+        if not self.negative:
+            return
 
         data = json.loads(self.form_data)
         data['id'] = self.id
