@@ -15,7 +15,8 @@ urlpatterns = patterns('',
     url(r'^summary/', include('summary.urls')),
     url(r'^public/$', 'reports.views.report_share', name='public'),
 
-                       )
+    url('', include('django_prometheus.urls')),
+)
 
 
 if settings.DEBUG:

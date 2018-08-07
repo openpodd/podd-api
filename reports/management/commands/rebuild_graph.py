@@ -19,7 +19,7 @@ class Command(BaseCommand):
         if not args:
             args = Domain.objects.all().values_list('id', flat=True)
             # graph.cypher.execute("MATCH (n) DETACH DELETE n")
-            graph.run("MATCH (n) DETACH DELETE n")
+            # graph.run("MATCH (n) DETACH DELETE n")
 
         for domain_id in args:
             print '> BUILDING INDEX FOR DOMAIN: %s' % domain_id
@@ -28,7 +28,7 @@ class Command(BaseCommand):
             except Domain.DoesNotExist:
                 raise CommandError('Domain "%s" does not exist' % domain_id)
 
-            graph.run("MATCH (n{domain_id:{d}}) DETACH DELETE n", d=domain_id)
+            # graph.run("MATCH (n{domain_id:{d}}) DETACH DELETE n", d=domain_id)
             self.create_graph(domain.id)
             print "> END"
 

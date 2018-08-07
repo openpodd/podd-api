@@ -38,6 +38,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
     #'opbeat.contrib.django',
+    'django_prometheus',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -86,6 +87,7 @@ INSTALLED_APPS = (
 
 MIDDLEWARE_CLASSES = (
     #'opbeat.contrib.django.middleware.OpbeatAPMMiddleware',
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -97,6 +99,7 @@ MIDDLEWARE_CLASSES = (
     'common.middleware.SwitchDomainMiddleware',
     'crum.CurrentRequestUserMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 )
 
 from crum import CurrentRequestUserMiddleware

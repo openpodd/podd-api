@@ -414,7 +414,7 @@ class ReportListESSerializer(serializers.ModelSerializer):
 
     def transform_administrationAreaAddress(self, obj, value):
         if obj and obj.area:
-           return obj.area
+            return obj.area
         return value
 
     def transform_commentCount(self, obj, value):
