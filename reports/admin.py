@@ -8,7 +8,8 @@ from reports.filters import AdministrationAreaFilter, DateTimeRangeFilter
 from reports.forms import ReportTypeForm, ReportForm, SpreadsheetResponseForm, ReportInvestigationForm, ReportLaboratoryCaseForm, \
                           GoogleCalendarResponseForm
 from reports.models import AdministrationArea, ReportType, Report, ReportState, CaseDefinition, SpreadsheetResponse, \
-    ReportTypeCategory, ReportInvestigation, ReportLaboratoryCase, AnimalLaboratoryCause, ReportLaboratoryItem, GoogleCalendarResponse
+    ReportTypeCategory, ReportInvestigation, ReportLaboratoryCase, AnimalLaboratoryCause, ReportLaboratoryItem, \
+    GoogleCalendarResponse, RecordSpec
 
 
 class AdministrationAreaAdmin(LeafletGeoAdmin):
@@ -33,6 +34,10 @@ class ReportTypeCategoryAdmin(admin.ModelAdmin):
 
 class ReportTypeAdmin(admin.ModelAdmin):
     form = ReportTypeForm
+
+
+class RecordSpecAdmin(admin.ModelAdmin):
+    pass
 
 
 class ReportStateAdmin(admin.ModelAdmin):
@@ -65,6 +70,7 @@ admin.site.register(ReportType, ReportTypeAdmin)
 admin.site.register(ReportState, ReportStateAdmin)
 admin.site.register(CaseDefinition, CaseDefinitionAdmin)
 admin.site.register(SpreadsheetResponse, SpreadsheetResponseAdmin)
+admin.site.register(RecordSpec, RecordSpecAdmin)
 
 
 admin.site.register(ReportInvestigation, ReportInvestigationAdmin)

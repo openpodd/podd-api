@@ -88,6 +88,39 @@ def filter_permitted_administration_areas_and_descendants_by_authorities(domain_
     return AdministrationArea.objects.filter(id__in=area_ids).order_by('name')
 
 
+def filter_permitted_record_specs(user, subscribes=False):
+    authority_ids = user.authority_users.values_list('id', flat=True)
+    authority_ids_string = ','.join(map(str, authority_ids))
+    return filter_permitted_record_specs_by_authorities(user.domain_id, authority_ids_string, subscribes)
+
+
+def filter_permitted_record_specs_by_authorities(domain_id, authority_ids_string, subscribes=False):
+    from common.models import DomainMixin
+
+    query = '''
+        MATCH (au1:Authority{domain_id: %s})-[:Authority_inherits*0..]->(au2:Authority{domain_id: %s})
+        WHERE au1.id IN [%s]
+        WITH DISTINCT au1, au2
+        MATCH(au2)<-[:RecordSpec_authority]-(rt1:RecordSpec{domain_id: %s})
+        RETURN rt1.id AS id
+    ''' % (domain_id, domain_id, authority_ids_string, domain_id)
+
+    if subscribes:
+        query = query + '''
+            UNION
+            MATCH (au1:Authority{domain_id: %s})-[:Authority_deep_subscribes*1..1]->(au2:Authority)<-[:Authority_inherits*0..]-(au3:Authority)
+            WHERE au1.id IN [%s]
+            WITH DISTINCT au2, au3
+            MATCH (au3)<-[:RecordSpec_authority]-(rt2:RecordSpec{domain_id: %s})
+            RETURN rt2.id AS id
+        ''' % (domain_id, authority_ids_string, domain_id)
+    results = DomainMixin().graph_execute(query)
+
+    allowed_record_spec_ids = [record_spec.id for record_spec in results]
+    allowed_record_spec_ids.append(0)
+    return allowed_record_spec_ids
+
+
 def filter_permitted_report_types(user, subscribes=False):
     from reports.models import ReportType
 

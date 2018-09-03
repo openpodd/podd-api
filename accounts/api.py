@@ -1313,6 +1313,7 @@ def all_invitation(request):
 
     return response
 
+
 @api_view(['POST'])
 @authentication_classes((TokenAuthentication, SessionAuthentication))
 @permission_classes((IsAuthenticated, ))

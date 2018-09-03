@@ -38,8 +38,10 @@ from common.constants import PRIORITY_FOLLOW, GROUP_WORKING_TYPE_REPORT_TYPE, PR
     SUPPORT_LIKE_ME_TOO_COMMENT, SUPPORT_ME_TOO_COMMENT, SUPPORT_LIKE_ME_TOO, SUPPORT_LIKE_COMMENT, SUPPORT_LIKE, \
     SUPPORT_ME_TOO, SUPPORT_COMMENT, STATUS_PUBLISH, STATUS_DELETE, PARENT_TYPE_MERGE
 from common.functions import (has_permission_on_report_type, has_permission_on_administration_area,
-    upload_to_s3, filter_permitted_administration_areas_and_descendants, resize_and_crop,
-    publish_into_rabbitmq, get_public_area, filter_permitted_report_types, filter_permitted_administration_areas_and_descendants_by_authorities)
+                              upload_to_s3, filter_permitted_administration_areas_and_descendants, resize_and_crop,
+                              publish_into_rabbitmq, get_public_area, filter_permitted_report_types,
+                              filter_permitted_administration_areas_and_descendants_by_authorities,
+                              filter_permitted_record_specs)
 from common.models import get_current_domain_id
 from common.podd_elasticsearch import get_elasticsearch_instance
 from feed.api import get_area_from_feed
@@ -55,7 +57,7 @@ from reports.tasks import extract_image_gps, new_negative_report_rule
 from reports.functions import _search
 from reports.models import Report, ReportType, ReportComment, AdministrationArea, ReportState, CaseDefinition, \
     ReportTypeCategory, ReportLike, ReportMeToo, ReportAbuse, AnimalLaboratoryCause, ReportLaboratoryItem, \
-    ReportLaboratoryFile, ReportLaboratoryCase, ReportImage, ReportAccomplishment
+    ReportLaboratoryFile, ReportLaboratoryCase, ReportImage, ReportAccomplishment, RecordSpec
 from reports.paginations import PaginatedReportListESSerializer, PaginatedReportListESWFormDataSerializer, PaginatedReportListESLiteSerializer, \
     PaginatedAdministrationContactSerializer, PaginatedReportListFullSerializer
 from reports.pub_tasks import publish_report_flag
@@ -69,7 +71,7 @@ from reports.serializers import (ReportSerializer, ReportListESSerializer, Repor
                                  AdministrationAreaContactSerializer, AdministrationAreaListSerializer,
                                  AnimalLaboratoryCauseSerializer,
                                  ReportLaboratoryItemSerializer, CaseDefinitionExplainedSerializer,
-                                 ReportAccomplishmentSerializer)
+                                 ReportAccomplishmentSerializer, RecordSpecListSerializer, RecordSpecSerializer)
 from reports.pub_tasks import publish_report, publish_comment, publish_report_image
 from reports.search_indexes import ReportIndex
 
@@ -1668,3 +1670,16 @@ def delete_file_to_laboratory(request, file_id):
     file.delete()
     return Response({}, status=status.HTTP_204_NO_CONTENT)
 
+
+class RecordSpecViewSet(viewsets.ModelViewSet):
+    model = RecordSpec
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = RecordSpecSerializer
+
+    def list(self, request):
+        queryset = self.get_queryset()
+        subscribes = request.GET.get('subscribes')
+        queryset = queryset.filter(id__in=filter_permitted_record_specs(request.user, subscribes=subscribes))
+        serializer = RecordSpecListSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)

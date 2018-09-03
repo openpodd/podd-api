@@ -1,4 +1,6 @@
 import datetime
+
+import json
 import re
 
 import requests
@@ -168,3 +170,9 @@ def _search(q, user, params=None, subscribes=True, current_domain_id=None, allow
 
     return queryset
 
+def merge(origin_form_data, followup_form_data):
+    odata = json.loads(origin_form_data)
+    fdata = json.loads(followup_form_data)
+    final = odata.copy()
+    final.update(fdata)
+    return json.dumps(final)

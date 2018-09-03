@@ -1,5 +1,7 @@
 # -*- encoding: utf-8 -*-
 import json
+from collections import OrderedDict
+
 from django.contrib.gis.geos import Point
 from django.forms import widgets
 
@@ -13,7 +15,7 @@ from logs.models import LogItem
 from plans.serializers import PlanSerializer
 from reports.models import Report, ReportType, ReportImage, ReportComment, AdministrationArea, ReportState, \
     CaseDefinition, ReportTypeCategory, ReportLike, ReportMeToo, ReportAbuse, AnimalLaboratoryCause, \
-    ReportLaboratoryItem, ReportAccomplishment
+    ReportLaboratoryItem, ReportAccomplishment, RecordSpec
 
 
 class AdministrationAreaSerializer(serializers.ModelSerializer, AttachCanEditSerializer):
@@ -230,7 +232,7 @@ class ReportTypeSerializer(serializers.ModelSerializer, AttachCanEditSerializer)
     category = serializers.PrimaryKeyRelatedField("category", many=False, read_only=True, required=False)
     categoryCode = serializers.SerializerMethodField('get_category_code')
     categoryName = serializers.SerializerMethodField('get_category_name')
-
+    isFollowAction = serializers.WritableField('is_follow_action', read_only=True)
     authority = serializers.PrimaryKeyRelatedField('authority', required=False, widget=widgets.TextInput)
 
     reportStates = serializers.PrimaryKeyRelatedField('report_state_report_type', required=True, many=True, widget=widgets.TextInput)
@@ -239,12 +241,18 @@ class ReportTypeSerializer(serializers.ModelSerializer, AttachCanEditSerializer)
         model = ReportType
         fields = ('id', 'code', 'name', 'version', 'weight',
                   'followable', 'followDays', 'definition', 'template',
-                  'authority', 'reportStates', 'category', 'categoryCode', 'categoryName')
+                  'authority', 'reportStates', 'category', 'categoryCode',
+                  'categoryName', 'isFollowAction')
 
     def transform_definition(self, obj, value):
         if value:
             return json.loads(value)
         return value
+
+    def transform_isFollowAction(self, obj, value):
+        if value:
+            return value
+        return False
 
     def transform_followable(self, obj, value):
         if obj and obj.followable:
@@ -989,4 +997,51 @@ class ReportAccomplishmentSerializer(serializers.ModelSerializer):
     def transform_updatedAt(self, obj, value):
         if value:
             return value.isoformat()
+        return value
+
+
+class RecordSpecSerializer(serializers.ModelSerializer):
+    tplHeader = serializers.WritableField('tpl_header', read_only=True)
+    tplSubHeader = serializers.WritableField('tpl_subheader', read_only=True)
+    parentId = serializers.PrimaryKeyRelatedField('parent', read_only=True)
+    timestamp = serializers.WritableField('updated_at', read_only=True)
+    typeId = serializers.PrimaryKeyRelatedField('type', read_only=True)
+    groupKey = serializers.WritableField('group_key', read_only=True)
+
+    class Meta:
+        model = RecordSpec
+        fields = ('id', 'timestamp', 'parentId', 'tplHeader', 'tplSubHeader', 'name', 'typeId', 'groupKey')
+
+    def transform_timestamp(self, obj, value):
+        if value:
+            return int(obj.updated_at.strftime('%s'))
+        return value
+
+    def transform_parentId(self, obj, value):
+        if value:
+            return value
+        return 0
+
+    def transform_groupKey(self, recordSpec, value):
+        user = self.context['request'].user
+        if value == RecordSpec.GROUP_KEY_ALL:
+            return "all"
+        elif value == RecordSpec.GROUP_KEY_USER:
+            return user.username.replace('.', '_')
+        elif value == RecordSpec.GROUP_KEY_AUTHORITY:
+            authority = user.authority_users.all()[0]
+            return str(authority.id)
+        return "all"
+
+
+class RecordSpecListSerializer(serializers.ModelSerializer):
+    timestamp = serializers.WritableField('updated_at', read_only=True)
+
+    class Meta:
+        model = RecordSpec
+        fields = ('id', 'timestamp', 'name', 'type')
+
+    def transform_timestamp(self, obj, value):
+        if value:
+            return int(obj.updated_at.strftime('%s'))
         return value

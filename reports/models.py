@@ -97,6 +97,8 @@ class ReportType(AbstractCachedModel, DomainMixin):
                                             blank=True,
                                             help_text='Radius of buffer that use to find intersects authorities')
     map_to = models.ForeignKey('reports.ReportType', related_name='report_type_map_to', blank=True, null=True)
+    is_follow_action = models.BooleanField(default=False)
+
 
     cached_vars = [('authority', True), 'form_definition', 'summary_template', 'version']
 
@@ -1527,7 +1529,14 @@ class Report(AbstractCachedModel, DomainMixin):
 
             if self.parent_type != PARENT_TYPE_DODD:
                 if self.is_new:
-                    self.parent.form_data = self.form_data
+                    if self.type.id == self.parent.type.id:
+                        self.parent.form_data = self.form_data
+                    else:
+                        from reports.functions import merge
+                        # override only existing value in followup report
+                        final_form_data = merge(self.parent.form_data, self.form_data)
+                        self.parent.form_data = final_form_data
+
                     self.parent.save()
                     self.mask_responsed_follow_up()
                     self.add_comment_to_parent()
@@ -2037,3 +2046,32 @@ class ReportAccomplishment(DomainMixin):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+
+class RecordSpec(DomainMixin):
+
+    GROUP_KEY_USER = 0
+    GROUP_KEY_ALL = 1
+    GROUP_KEY_AUTHORITY = 2
+
+    GROUP_KEY_CHOICE = (
+        (GROUP_KEY_USER, "user"),
+        (GROUP_KEY_ALL, "all"),
+        (GROUP_KEY_AUTHORITY, "authority"),
+    )
+
+    name = models.CharField(max_length=200, null=False, blank=False)
+    tpl_header = models.TextField(null=True, blank=True)
+    tpl_subheader = models.TextField(null=True, blank=True)
+    type = models.ForeignKey('ReportType', related_name='specs')
+    is_active = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='children')
+    authority = models.ForeignKey(Authority, related_name='record_spec_authority', blank=True, null=True)
+    group_key = models.IntegerField(choices=GROUP_KEY_CHOICE, default=GROUP_KEY_USER)
+
+    graph_node = True
+    graph_relations = ['authority']
+
+    def __unicode__(self):
+        return "%s [%s]" % (self.name, self.id)
