@@ -194,11 +194,12 @@ class ReportTypeListSerializer(serializers.ModelSerializer, AttachCanEditSeriali
     category = serializers.PrimaryKeyRelatedField("category", many=False, read_only=True, required=False)
     categoryName = serializers.PrimaryKeyRelatedField("category", many=False, read_only=True, required=False)
     categoryCode = serializers.PrimaryKeyRelatedField("category", many=False, read_only=True, required=False)
+    isFollowAction = serializers.WritableField('is_follow_action', read_only=True)
 
     class Meta:
         model = ReportType
         fields = ('id', 'code', 'name', 'version', 'weight', 'followable', 'followDays',
-                  'category', 'categoryName', 'categoryCode')
+                  'category', 'categoryName', 'categoryCode', 'isFollowAction')
 
     def transform_followable(self, obj, value):
         if obj.followable:
@@ -220,6 +221,11 @@ class ReportTypeListSerializer(serializers.ModelSerializer, AttachCanEditSeriali
         if value:
             return obj.category.code
         return value
+
+    def transform_isFollowAction(self, obj, value):
+        if value:
+            return value
+        return False
 
 
 
