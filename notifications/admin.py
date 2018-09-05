@@ -4,6 +4,7 @@ from notifications.models import NotificationTemplate, NotificationAuthority
 
 class NotificationTemplateAdmin(admin.ModelAdmin):
     list_display = ('description', )
+    search_fields = ('description',)
 
 class NotificationAuthorityAdmin(admin.ModelAdmin):
     search_fields = ['template__description', 'authority__name']

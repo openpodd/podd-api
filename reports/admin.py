@@ -41,6 +41,7 @@ class RecordSpecAdmin(admin.ModelAdmin):
 
 
 class ReportStateAdmin(admin.ModelAdmin):
+    search_fields = ('report_type__name', 'code', 'name')
     pass
 
 

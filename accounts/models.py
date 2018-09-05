@@ -308,6 +308,7 @@ class Authority(DomainMixin):
 
     class Meta:
         unique_together = ("domain", "code")
+        ordering = ('name',)
 
 
     def __unicode__(self):
