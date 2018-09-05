@@ -1198,11 +1198,7 @@ class Report(AbstractCachedModel, DomainMixin):
 
         authority = self.administration_area.authority
 
-        template_list = NotificationTemplate.objects.filter(type__in=types).extra(where=['''id in (
-            SELECT na.template_id
-            FROM notifications_notificationauthority na, reports_administrationarea a
-            WHERE na.authority_id = a.authority_id AND a.id = %d
-        )''' % authority.id])
+        template_list = NotificationTemplate.objects.filter(type__in=types)
 
         # Check enable notifications
         for template in template_list:
