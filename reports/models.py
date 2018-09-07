@@ -1197,6 +1197,8 @@ class Report(AbstractCachedModel, DomainMixin):
         # )
 
         authority = self.administration_area.authority
+        if not authority:
+            return
 
         template_list = NotificationTemplate.objects.filter(type__in=types)
 
