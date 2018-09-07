@@ -1213,7 +1213,10 @@ class Report(AbstractCachedModel, DomainMixin):
                     not self.check_report_condition(template.condition)):
                 continue
 
-            notification_authority = NotificationAuthority.objects.filter(template=template, authority=authority).latest('id')
+            try:
+                notification_authority = NotificationAuthority.objects.filter(template=template, authority=authority).latest('id')
+            except NotificationAuthority.DoesNotExist:
+                continue
 
             # =======================================
             # Feedback
