@@ -62,17 +62,26 @@ file example.
                         new_state.name = name
                         new_state.report_type = reportType
                         new_state.save()
-
-            for code, (new_code, new_name) in spec['renameStates'].iteritems():
-                n = ReportState.objects.filter(code=code, report_type=reportType).count()
-                if n == 1:
-                    state = ReportState.objects.get(code=code, report_type=reportType)
-                    if dry_run:
-                        print "rename report state id=%d from %s to %s" % (state.id, state.code, new_code)
-                    else:
-                        state.code = new_code
-                        state.name = new_name
-                        state.save()
+            if 'reportStates' in spec:
+                for code, (new_code, new_name) in spec['renameStates'].iteritems():
+                    n = ReportState.objects.filter(code=code, report_type=reportType).count()
+                    if n == 1:
+                        state = ReportState.objects.get(code=code, report_type=reportType)
+                        if dry_run:
+                            print "rename report state id=%d from %s to %s" % (state.id, state.code, new_code)
+                        else:
+                            state.code = new_code
+                            state.name = new_name
+                            state.save()
+            if 'removeStates' in spec:
+                for code in spec['removeStates']:
+                    n = ReportState.objects.filter(code=code, report_type=reportType).count()
+                    if n == 1:
+                        state = ReportState.objects.get(code=code, report_type=reportType)
+                        if dry_run:
+                            print "delete report state id=%d, name=%s" % (state.id, state.name)
+                        else:
+                            state.delete()
 
 
 
