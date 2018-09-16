@@ -1,0 +1,380 @@
+[
+  {
+    "reportTypeCode": "1084f56e-c3ad-11e4-b",
+    "default_report_to": "อปท., รพสต., สสอ., สสจ.",
+    "states": {
+      "false-report": {
+        "messages": [
+          {
+            "message": "รายงานของท่าน ไม่เข้าข่ายสงสัยเหตุระบาด ขอบคุณที่ร่วมกันทำงานเพื่อชุมชนของเรา",
+            "type": "reporter"
+          }
+        ]
+      },
+      "case": {
+        "messages": [
+          {
+            "message": "รายงานของท่านเข้าข่ายเหตุระบาด โปรดติดตามสถานการณ์และรายงานต่อเนื่องทุกวัน และรอการติดต่อกลับ จากเจ้าหน้าที่",
+            "type": "reporter"
+          },
+          {
+            "message": "มีรายงานสงสัยเกี่ยวกับโรคในคน ข้อมูลดังนี้ {{ report.rendered_data }} \n\n {{ report.rendered_report_footer }} กรุณาดำเนินการตามแผน....",
+            "type": "report",
+            "description": "CASE: โรคในคน: แจ้ง อปท."
+          }
+        ]
+      },
+      "finish": {
+        "messages": [
+          {
+            "message": "รายงานเหตุระบาดของท่านได้รับการควบคุมเป็นที่เรียบร้อยแลว้ โปรดเฝ้าระวัง อย่าง ต่อเนื่อง และขอบคุณที่ร่วมกันทำงานเพื่อชุมชนของเรา",
+            "type": "reporter"
+          },
+          {
+            "message": "รายงานเหตุระบาดเกี่ยวกับโรคในคน โดย {{report.created_by.name}} สถานที่  {{report.administration_area.name}} ได้ดำเนินการควบคุมสำเร็จแล้ว",
+            "type": "report",
+            "description": "FINISH: โรคในคน: แจ้งผู้ที่เกี่ยวข้องทั้งหมด"
+          }
+        ]
+      },
+      "inconclusive-report": {
+        "messages": [
+          {
+            "message": "รายงานของท่านไม่ได้รับการยืนยันจากพื้นที่โปรดติดตามสถานะการณ์และรายงานต่อเนื่องทุกวัน",
+            "type": "reporter"
+          },
+          {
+            "message": "รายงานสงสัยเกี่ยวกับโรคในคน โดย {{report.created_by.name}} สถานที่  {{report.administration_area.name}} ไม่ได้รับการยืนยันเหตุ กรุณาติดตามอย่างไกล้ชิด",
+            "type": "report"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "reportTypeCode": "dengue_gps",
+    "default_report_to": "อปท., รพสต., สสอ., สสจ.",
+    "states": {
+      "suspected-case": {
+        "messages": [
+          {
+            "message": "มีรายงานสงสัยผู้ป่วยไข้เลือดออก จาก {{ report.data.house_no }} หมู่ที่ {{ report.data.village_no }} {{ report.data.address }} ให้ดำเนินการพ่นยาในรัศมี 100 เมตร ตามพิกัด",
+            "type": "report",
+            "to": "อปท."
+          }
+        ]
+      },
+      "false-positive-report": {
+        "messages": [
+          {
+            "message": "รายงานสงสัยผู้ป่วยไข้เลือดออก จาก {{ report.data.house_no }} หมู่ที่ {{ report.data.village_no }} {{ report.data.address }} ได้รับการยืนยันว่าไม่ใช่ไข้เลือดออก โปรดแจ้งข่าวให้ชุมชนช่วยกันเฝ้าระวังพาหะนำโรค",
+            "type": "report",
+            "to": "อปท."
+          },
+          {
+            "message": "รายงานผู้ป่วยไข้เลือดออก รหัส {{ case_no }} ไม่ใช่ไข้เลือดออก",
+            "type": "report",
+            "to": "รพสต. สสอ. สสจ."
+          }
+        ]
+      },
+      "finish": {
+        "messages": [
+          {
+            "message": "ได้ดำเนินการควบคุมโรคไข้เลือดออกได้เสร็จสิ้นแล้ว กรุณาแจ้งให้อาสาสมัครในชุมชนเฝ้าระวังพาหะนำโรคอย่างไกล้ชิดและรายงานทุกสัปดาห์",
+            "type": "report",
+            "to": "อปท., รพสต."
+          }
+        ]
+      },
+      "case": {
+        "messages": [
+          {
+            "message": "รายงานสงสัยผู้ป่วยไข้เลือดออก จาก {{ report.data.house_no }} หมู่ที่ {{ report.data.village_no }} {{ report.data.address }} ได้รับการยืนยันว่าเป็นไข้เลือดออกจริง กรุณาปฏิบัติตามแผน",
+            "type": "report",
+            "to": "อปท."
+          },
+          {
+            "message": "รายงานผู้ป่วยไข้เลือดออก รหัส {{ case_no }} ได้รับการยืนยันว่าเป็นไข้เลือดออกจริง กรุณาปฏิบัติตามแผน",
+            "type": "report",
+            "to": "รพสต. สสอ. สสจ."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "reportTypeCode": "10865da0-c3ad-11e4-b",
+    "default_report_to": "อปท., รพสต., สสอ., สสจ.",
+    "states": {
+      "report": {
+        "messages": [
+          {
+            "message": "รายงานของท่านเข้าข่ายปัญหาสิ่งแวดล้อม กรุณารอการติดต่อกลับจากเจ้าหน้าที่",
+            "type": "reporter"
+          },
+          {
+            "message": "มีรายงานสิ่งแวดล้อม ประเภท {{ report.data.topic }} โดย {{report.created_by.name}} พื้นที่  {{report.administration_area.name}} ติดต่อกลับที่ {{report.created_by.telephone}}",
+            "type": "report",
+            "to": "อปท.",
+            "description": "CASE: สิ่งแวดล้อม: แจ้ง อปท."
+          },
+          {
+             "message": "มีรายงานสิ่งแวดล้อม ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} ข้อมูลเพิ่มเติมที่ http://www.cmonehealth.org/dashboard/#/reports/{{ report.id }}",
+            "type": "report",
+            "to": "ปภ. อบจ."
+          }
+        ]
+      },
+      "false-report": {
+        "messages": [
+          {
+            "message": "รายงานของท่านได้รับการตรวจสอบแล้ว พบว่าไม่ส่งผลรุนแรงต่อชุมชน ขอบคุณที่ร่วมกันทำงานเพื่อชุมชนของเรา",
+            "type": "reporter"
+          },
+          {
+            "message": "รายงานสิ่งแวดล้อม ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} ไม่ส่งผลกระทบต่อชุมชน",
+            "type": "report",
+            "to": "อปท. ปภ. อบจ."
+          }          
+        ]
+      },
+      "case": {
+        "messages": [
+          {
+            "message": "รายงานของท่านได้รับการตรวจสอบแล้ว เจ้าหน้าที่กำลังดำเนินการตามแผน",
+            "type": "reporter"
+          },
+          {
+            "message": "รายงานสิ่งแวดล้อม ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} กำลังดำเนินการแก้ไขตามแผน",
+            "type": "report",
+            "to": "อปท."
+          },
+          {
+            "message": "รายงานสิ่งแวดล้อม ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} กำลังดำเนินการแก้ไขตามแผน จากหน่วยงานในพื้นที่",
+            "type": "report",
+            "to": "ปภ. อบจ."
+          }
+        ]
+      },
+      "finish": {
+        "messages": [
+          {
+            "message": "รายงานของท่านได้รับการตอบสนองเป็นที่เรียบร้อยแล้ว ขอบคุณที่ร่วมกันทำงานเพื่อชุมชนของเรา",
+            "type": "reporter"
+          },
+          {
+            "message": "รายงานสิ่งแวดล้อม ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} รายงานเหตุได้รับการดำเนินการแล้ว",
+            "type": "report",
+            "to": "อปท."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "reportTypeCode": "natural-disaster",
+    "default_report_to": "อปท., รพสต., สสอ., สสจ.",
+    "states": {
+      "report": {
+        "messages": [
+          {
+            "message": "รายงานของท่านเข้าข่ายปัญหาภัยธรรมชาติ กรุณารอการติดต่อกลับจากเจ้าหน้าที่",
+            "type": "reporter"
+          },
+          {
+            "message": "มีรายงานภัยธรรมชาติ ประเภท {{ report.data.topic }} โดย {{report.created_by.name}} พื้นที่  {{report.administration_area.name}} ติดต่อกลับที่ {{report.created_by.telephone}}",
+            "type": "report",
+            "to": "อปท."
+          },
+          {
+             "message": "มีรายงานภัยธรรมชาติ ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} ข้อมูลเพิ่มเติมที่ http://www.cmonehealth.org/dashboard/#/reports/{{ report.id }} ",
+            "type": "report",
+            "to": "ปภ. อบจ."
+          }
+        ]
+      },
+      "false-report": {
+        "messages": [
+          {
+            "message": "รายงานของท่านได้รับการตรวจสอบแล้ว พบว่าไม่ส่งผลรุนแรงต่อชุมชน ขอบคุณที่ร่วมกันทำงานเพื่อชุมชนของเรา",
+            "type": "reporter"
+          },
+          {
+            "message": "รายงานภัยธรรมชาติ ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} ไม่ส่งผลกระทบต่อชุมชน",
+            "type": "report",
+            "to": "อปท. ปภ. อบจ."
+          }          
+        ]
+      },
+      "case": {
+        "messages": [
+          {
+            "message": "รายงานของท่านได้รับการตรวจสอบแล้ว เจ้าหน้าที่กำลังดำเนินการตามแผน",
+            "type": "reporter"
+          },
+          {
+            "message": "รายงานภัยธรรมชาติ ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} กำลังดำเนินการแก้ไขตามแผน",
+            "type": "report",
+            "to": "อปท.",
+            "description": "CASE: ภัยธรรมชาติ: แจ้ง อปท."
+          },
+          {
+            "message": "รายงานภัยธรรมชาติ ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} กำลังดำเนินการแก้ไขตามแผน จากหน่วยงานในพื้นที่",
+            "type": "report",
+            "to": "ปภ. อบจ."
+          }
+        ]
+      },
+      "finish": {
+        "messages": [
+          {
+            "message": "รายงานของท่านได้รับการตอบสนองเป็นที่เรียบร้อยแล้ว ขอบคุณที่ร่วมกันทำงานเพื่อชุมชนของเรา",
+            "type": "reporter"
+          },
+          {
+            "message": "รายงานภัยธรรมชาติ ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} รายงานเหตุได้รับการดำเนินการแล้ว",
+            "type": "report",
+            "to": "อปท."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "reportTypeCode": "10868f6e-c3ad-11e4-b",
+    "default_report_to": "อปท., รพสต., สสอ., สสจ.",
+    "states": {
+      "report": {
+        "messages": [
+          {
+            "message": "รายงานของท่านเข้าข่ายปัญหาอาหารปลอดภัย กรุณารอการติดต่อกลับจากเจ้าหน้าที่",
+            "type": "reporter"
+          },
+          {
+            "message": "มีรายงานปัญหาอาหารปลอดภัย ประเภท {{ report.data.topic }} โดย {{report.created_by.name}} พื้นที่  {{report.administration_area.name}} ติดต่อกลับที่ {{report.created_by.telephone}}",
+            "type": "report",
+            "to": "อปท. รพสต."
+          },
+          {
+            "message": "มีรายงานปัญหาอาหารปลอดภัย ประเภท {{ report.data.topic }} โดย {{report.created_by.name}} พื้นที่  {{report.administration_area.name}} ข้อมูลเพิ่มเติมที่ http://www.cmonehealth.org/dashboard/#/reports/{{ report.id }}",
+            "type": "report",
+            "to": "สสจ. สสอ."
+          }
+        ]        
+      },
+      "false-report": {
+        "messages": [
+          {
+            "message": "รายงานของท่านได้รับการตรวจสอบแล้ว พบว่าไม่เข้าข่ายปัญหาที่ส่งผลต่อผู้บริโภค ขอบคุณที่ร่วมกันทำงานเพื่อชุมชนของเรา",
+            "type": "reporter"
+          },
+          {
+            "message": "รายงานอาหารปลอดภัย ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} ได้รับการตรวจสอบแล้วไม่ส่งผลกระทบต่อชุมชน",
+            "type": "report",
+            "to": "อปท. รพสต. สสจ. สสอ."
+          }
+        ]        
+      },
+      "case": {
+        "messages": [
+          {
+            "message": "รายงานของท่านได้รับการตรวจสอบแล้ว เจ้าหน้าที่กำลังดำเนินการตามแผน",
+            "type": "reporter"
+          },
+          {
+            "message": "รายงานอาหารปลอดภัย ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} กำลังดำเนินการแก้ไขตามแผน",
+            "type": "report",
+            "to": "อปท. รพสต."
+          },
+          {
+            "message": "รายงานอาหารปลอดภัย ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} กำลังดำเนินการแก้ไขตามแผน จากหน่วยงานในพื้นที่",
+            "type": "report",
+            "to": "สสจ. สสอ."
+          }
+        ]        
+      },
+      "finish": {
+        "messages": [
+          {
+            "message": "รายงานของท่านได้รับการตอบสนองเป็นที่เรียบร้อยแล้ว ขอบคุณที่ร่วมกันทำงานเพื่อชุมชนของเรา",
+            "type": "reporter"
+          },
+          {
+            "message": "รายงานอาหารปลอดภัย ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} ได้รับการแก้ไขเรียบร้อยแล้ว",
+            "type": "report",
+            "to": "อปท. รพสต. สสจ. สสอ."
+          }
+        ]        
+      }
+    }
+  },
+  {
+    "reportTypeCode": "10873e00-c3ad-11e4-b",
+    "default_report_to": "อปท., รพสต., สสอ., สสจ.",
+    "states": {
+      "report": {
+        "messages": [
+          {
+            "message": "รายงานของท่านเข้าข่ายปัญหาคุ้มครองผู้บริโภค กรุณารอการติดต่อกลับจากเจ้าหน้าที่",
+            "type": "reporter"
+          },
+          {
+            "message": "มีรายงานปัญหาคุ้มครองผู้บริโภค ประเภท {{ report.data.topic }} โดย {{report.created_by.name}} พื้นที่  {{report.administration_area.name}} ติดต่อกลับที่ {{report.created_by.telephone}}",
+            "type": "report",
+            "to": "อปท. รพสต."
+          },
+          {
+            "message": "มีรายงานปัญหาคุ้มครองผู้บริโภค ประเภท {{ report.data.topic }} โดย {{report.created_by.name}} พื้นที่  {{report.administration_area.name}} ข้อมูลเพิ่มเติมที่ http://www.cmonehealth.org/dashboard/#/reports/{{ report.id }}",
+            "type": "report",
+            "to": "สสจ. สสอ."
+          }
+        ]
+      },
+      "false-report": {
+        "messages": [
+          {
+            "message": "รายงานของท่านได้รับการตรวจสอบแล้ว พบว่าไม่เข้าข่ายปัญหาที่ส่งผลต่อผู้บริโภค ขอบคุณที่ร่วมกันทำงานเพื่อชุมชนของเรา",
+            "type": "reporter"
+          },
+          {
+            "message": "รายงานคุ้มครองผู้บริโภค ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} ได้รับการตรวจสอบแล้วไม่ส่งผลกระทบต่อชุมชน",
+            "type": "report",
+            "to": "อปท. รพสต. สสจ. สสอ."
+          }
+        ]
+      },
+      "case": {
+        "messages": [
+          {
+            "message": "รายงานของท่านได้รับการตรวจสอบแล้ว เจ้าหน้าที่กำลังดำเนินการตามแผน",
+            "type": "reporter"
+          },
+          {
+            "message": "รายงานคุ้มครองผู้บริโภค ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} กำลังดำเนินการแก้ไขตามแผน",
+            "type": "report",
+            "to": "อปท. รพสต."
+          },
+          {
+            "message": "รายงานคุ้มครองผู้บริโภค ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} กำลังดำเนินการแก้ไขตามแผน จากหน่วยงานในพื้นที่",
+            "type": "report",
+            "to": "สสจ. สสอ."
+          }
+        ]
+      },
+      "finish": {
+        "messages": [
+          {
+            "message": "รายงานของท่านได้รับการตอบสนองเป็นที่เรียบร้อยแล้ว ขอบคุณที่ร่วมกันทำงานเพื่อชุมชนของเรา",
+            "type": "reporter"
+          },
+          {
+            "message": "รายงานคุ้มครองผู้บริโภค ประเภท {{ report.data.topic }} โดย พื้นที่  {{report.administration_area.name}} ได้รับการแก้ไขเรียบร้อยแล้ว",
+            "type": "report",
+            "to": "อปท. รพสต. สสจ. สสอ."
+          }
+        ]
+      }
+    }
+  }
+]
