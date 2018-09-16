@@ -752,10 +752,17 @@ class UserCode(models.Model):
     def __unicode__(self):
         return self.code
 
+    def _gen_unique_code(self):
+        from random import randint
+        for i in range(0, 10):
+            rand = randint(0, 99999)
+            if UserCode.objects.filter(code=rand).count() == 0:
+                return rand
+        return 0
+
     def save(self, *args, **kwargs):
         if not self.id and not self.code:
-            from random import randint
-            rand = randint(0, 99999)
+            rand = self._gen_unique_code()
             self.code = '{0:05d}'.format(rand)
 
         if not self.expired:
