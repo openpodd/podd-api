@@ -8,7 +8,7 @@ import json
 from django.core.management import BaseCommand
 
 from common.models import Domain
-from notifications.models import NotificationTemplate
+from notifications.models import NotificationTemplate, NotificationAuthority
 from reports.models import ReportType, ReportState
 
 
@@ -117,6 +117,20 @@ file example.
         ''' % (message,)
 
     def upsert_notification_template(self, upd_noti_template):
+        pass_authority_ids = set([])
+        def enable(authority, template):
+            if authority.id in pass_authority_ids:
+                return
+            pass_authority_ids.add(authority.id)
+
+            try:
+                NotificationAuthority.objects.get(template=template, authority=authority)
+            except NotificationAuthority.DoesNotExist:
+                NotificationAuthority.objects.create(template=template, authority=authority, domain=template.domain)
+
+            for child in authority.authority_inherits.all():
+                enable(child, template)
+
         templates = NotificationTemplate.objects.filter(
             domain = upd_noti_template.domain,
             description = upd_noti_template.description,
@@ -126,15 +140,15 @@ file example.
             orig_noti_template = templates[0]
             orig_noti_template.template = upd_noti_template.template
             orig_noti_template.condition = upd_noti_template.condition
-            if self.dry_run:
-                self._print_noti(orig_noti_template, "update")
-            else:
+            self._print_noti(orig_noti_template, "update")
+            if not self.dry_run:
                 orig_noti_template.save()
+                enable(orig_noti_template.authority, orig_noti_template)
         else:
-            if self.dry_run:
-                self._print_noti(upd_noti_template, "create")
-            else:
+            self._print_noti(upd_noti_template, "create")
+            if not self.dry_run:
                 upd_noti_template.save()
+                enable(upd_noti_template.authority, upd_noti_template)
 
 
     def _print_noti(self, noti, action):
@@ -180,10 +194,13 @@ file example.
                                     send_to = noti_msg['to'] if 'to' in noti_msg else noti_group['default_report_to']
                                 else:
                                     print("notification type not match, %s" % (noti_msg_type,))
-                                template.condition = "report.type.code=='%s' and report.state.code=='%s' and report.parent is None" %\
+                                template.condition = "report.type.code == '%s' and report.state.code == '%s' and report.parent is None" %\
                                                     (report_type.code, report_state.code)
                                 template.template = self._gen_template(noti_msg['message'])
-                                template.description = u'%s: %s: แจ้ง %s' % (report_state.name , report_type.name, send_to)
+                                if 'description' in noti_msg:
+                                    template.description = noti_msg['description']
+                                else:
+                                    template.description = u'%s: %s: แจ้ง %s' % (report_state.name , report_type.name, send_to)
                                 save_list.append(template)
                         else:
                             print ("no report state found for state:%s, reportType:%s" % (state_code, code))
