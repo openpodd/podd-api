@@ -143,7 +143,6 @@ file example.
             self._print_noti(orig_noti_template, "update")
             if not self.dry_run:
                 orig_noti_template.save()
-                enable(orig_noti_template.authority, orig_noti_template)
         else:
             self._print_noti(upd_noti_template, "create")
             if not self.dry_run:

@@ -18,7 +18,7 @@
             "type": "reporter"
           },
           {
-            "message": "มีรายงานสงสัยเกี่ยวกับโรคในคน ข้อมูลดังนี้ {{ report.rendered_data }} \n\n {{ report.rendered_report_footer }} กรุณาดำเนินการตามแผน....",
+            "message": "มีรายงานสงสัยเกี่ยวกับโรคในคน ข้อมูลดังนี้ {{ report.rendered_data }} {{ report.rendered_report_footer }} กรุณาดำเนินการตามแผน....",
             "type": "report",
             "description": "CASE: โรคในคน: แจ้ง อปท."
           }
