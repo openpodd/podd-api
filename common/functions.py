@@ -556,7 +556,7 @@ def publish_sms_message(message, telephones):
             telephone = '%s%s' % (country_code , telephone.replace('-', '').split('0', 1)[1])
             send_telephones = '%s;%s' % (telephone, send_telephones)
 
-    message = message.encode(encoding)
+    message = message.replace(u'\u0e32\u200b', '').encode(encoding)
     params = {
         'Sender': sender,
         'Msnlist': send_telephones,
