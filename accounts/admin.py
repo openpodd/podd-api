@@ -6,7 +6,8 @@ from django.contrib.auth.models import Group
 from common.constants import GROUP_WORKING_TYPE_CHOICES
 
 from accounts.forms import GroupForm, UserCreateForm, UserSetPasswordForm, UserForm, ConfigurationForm, AuthorityForm, GroupInviteForm
-from accounts.models import User, UserDevice, Configuration, NearbyArea, Authority, GroupInvite, CustomPermission, RoleCustomPermission
+from accounts.models import User, UserDevice, Configuration, NearbyArea, Authority, GroupInvite, CustomPermission, \
+    RoleCustomPermission, Party
 
 
 class UserAdmin(UserAdmin):
@@ -81,6 +82,11 @@ class RoleCustomPermissionAdmin(admin.ModelAdmin):
     list_display = ('role', 'role_custom_permissions')
 
 
+class PartyAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    readonly_fields = ('join_code',)
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(UserDevice, UserDeviceAdmin)
 
@@ -95,3 +101,5 @@ admin.site.register(GroupInvite, GroupInviteAdmin)
 
 admin.site.register(CustomPermission)
 admin.site.register(RoleCustomPermission, RoleCustomPermissionAdmin)
+
+admin.site.register(Party, PartyAdmin)

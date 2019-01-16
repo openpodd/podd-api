@@ -34,12 +34,13 @@ from rest_framework.permissions import IsAuthenticated, BasePermission, AllowAny
 from rest_framework.response import Response
 
 from accounts import tasks
-from accounts.models import Configuration, UserDevice, User, Authority, UserCode, AuthorityInvite
+from accounts.models import Configuration, UserDevice, User, Authority, UserCode, AuthorityInvite, Party
 from accounts.pub_tasks import publish_user_profile
 from accounts.serializers import (UserDeviceSerializer, UserListESSerializer, UserSerializer,
                                   AuthoritySerializer, UserRegistrationSerializer, UserCommonSerializer,
                                   AuthorityListSerializer, AuthorityShortListSerializer,
-                                  UserCommonDetailSerializer, AuthorityInviteSerializer, UserCommonAdminSerializer)
+                                  UserCommonDetailSerializer, AuthorityInviteSerializer, UserCommonAdminSerializer,
+                                  PartySerializer)
 from common.constants import (USER_STATUS_PODD, USER_STATUS_LIVESTOCK, USER_STATUS_PUBLIC_HEALTH, USER_STATUS_VOLUNTEER,
                               USER_STATUS_ADDITION_VOLUNTEER,
                               USER_STATUS_CHOICES)
@@ -1359,3 +1360,14 @@ def chatroom_invites(request):
             notification.save()
 
     return Response('{ "message": "ok" }', status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def retrive_party_by_join_code(request, join_code):
+    try:
+        party = Party.objects.get(join_code=join_code)
+    except Party.DoesNotExist:
+        return Response({'error': 'Incorrect join code'}, status=403)
+
+    serializer = PartySerializer(party)
+    return Response(serializer.data, status=status.HTTP_200_OK)

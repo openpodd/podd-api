@@ -771,3 +771,21 @@ class UserCode(models.Model):
 
         super(UserCode, self).save(*args, **kwargs)
 
+
+class Party(models.Model):
+    name = models.CharField(max_length=500)
+    join_code = models.CharField(max_length=16, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name_plural = "parties"
+
+    def __unicode__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.id and not self.join_code:
+            self.join_code = randint(100000, 999999)
+        super(Party, self).save(*args, **kwargs)

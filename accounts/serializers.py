@@ -2,7 +2,7 @@ from crum import get_current_user
 from django.forms import widgets
 from rest_framework import serializers
 
-from accounts.models import User, UserDevice, Authority, GroupInvite, AuthorityInvite, user_can_edit_basic_check
+from accounts.models import User, UserDevice, Authority, GroupInvite, AuthorityInvite, user_can_edit_basic_check, Party
 from common.constants import USER_STATUS_CHOICES
 
 
@@ -280,10 +280,14 @@ class AuthoritySerializer(serializers.ModelSerializer, AttachCanEditSerializer):
                   'reportTypes', 'inherits', 'children', 'inviteCode', 'inviteExpiredAt')
 
 
-
 class GroupInviteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GroupInvite
         fields = ('id', 'name')
 
+
+class PartySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Party
+        fields = ('id', 'name')
