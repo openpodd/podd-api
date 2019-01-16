@@ -40,6 +40,7 @@ router.register(r'reportLaboratoryItems', reports_api.ReportLaboratoryItemViewSe
 urlpatterns = patterns('',
     url(r'^api-token-auth/', 'accounts.api.obtain_auth_token', name='obtain_auth_token'),
     url(r'^firebase/token', 'firebase.api.obtain_firebase_token', name='obtain_firebase_token'),
+    url(r'^firebase/podd/auth', 'firebase.api.podd_auth', name='firebase_podd_auth'),
     url(r'^configuration/', 'accounts.api.configuration', name='configuration'),
     url(r'^gcm/', 'accounts.api.gcm_registration', name='gcm_registration'),
     # url(r'^users/register/facebook-connect/(?P<domain_id>[0-9]+)/', 'accounts.api.facebook_connect', name='facebook_connect'),
