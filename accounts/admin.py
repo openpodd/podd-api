@@ -85,6 +85,7 @@ class RoleCustomPermissionAdmin(admin.ModelAdmin):
 class PartyAdmin(admin.ModelAdmin):
     list_display = ('name',)
     readonly_fields = ('join_code',)
+    exclude = ('users',)
 
 
 admin.site.register(User, UserAdmin)
