@@ -50,6 +50,12 @@ def podd_auth(request):
             'id': authority.id,
             'name': authority.name
         })
+    parties = []
+    for party in user.party_set.all():
+        parties.append({
+            'id': party.id,
+            'name': party.name
+        })
 
     return JsonResponse({
         'username': user.username,
@@ -57,5 +63,6 @@ def podd_auth(request):
         'id': user.id,
         'firebaseToken': firebase_token,
         'token': token.key,
-        'authorities': authorities
+        'authorities': authorities,
+        'parties': parties
     })

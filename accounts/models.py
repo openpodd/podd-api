@@ -775,6 +775,7 @@ class UserCode(models.Model):
 class Party(models.Model):
     name = models.CharField(max_length=500)
     join_code = models.CharField(max_length=16, unique=True)
+    users = models.ManyToManyField(User)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)

@@ -9,6 +9,7 @@ import uuid
 import facebook
 import os
 import xlwt
+from crum import get_current_user
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -1362,12 +1363,16 @@ def chatroom_invites(request):
     return Response('{ "message": "ok" }', status=status.HTTP_200_OK)
 
 
-@api_view(['GET'])
-def retrive_party_by_join_code(request, join_code):
+@api_view(['POST'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated, ))
+def join_party(request, join_code):
     try:
         party = Party.objects.get(join_code=join_code)
     except Party.DoesNotExist:
         return Response({'error': 'Incorrect join code'}, status=403)
 
+    user = get_current_user()
+    party.users.add(user)
     serializer = PartySerializer(party)
     return Response(serializer.data, status=status.HTTP_200_OK)
