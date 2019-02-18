@@ -59,12 +59,15 @@ class GroupAdmin(admin.ModelAdmin):
 
 class ConfigurationAdmin(admin.ModelAdmin):
     form = ConfigurationForm
+
+    search_fields = ('system', 'key',)
     list_display = ('system', 'key', 'value')
 
 
 class AuthorityAdmin(admin.ModelAdmin):
     form = AuthorityForm
 
+    search_fields = ('name', 'code',)
     readonly_fields = ('report_types',)
     exclude = ('tags', 'area', 'users', 'inherits', 'deep_subscribes', 'admins')
 
@@ -72,7 +75,9 @@ class AuthorityAdmin(admin.ModelAdmin):
 class AuthorityInviteAdmin(admin.ModelAdmin):
     form = AuthorityInviteForm
 
-    list_display = ('code', 'authority', 'created_at', 'expired_at')
+    search_fields = ('authority__name',)
+    readonly_fields = ('code', 'expired_at',)
+    list_display = ('code', 'authority', 'status', 'created_at', 'expired_at')
 
 
 class GroupInviteAdmin(admin.ModelAdmin):
