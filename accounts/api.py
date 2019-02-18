@@ -41,7 +41,7 @@ from accounts.serializers import (UserDeviceSerializer, UserListESSerializer, Us
                                   AuthoritySerializer, UserRegistrationSerializer, UserCommonSerializer,
                                   AuthorityListSerializer, AuthorityShortListSerializer,
                                   UserCommonDetailSerializer, AuthorityInviteSerializer, UserCommonAdminSerializer,
-                                  PartySerializer)
+                                  PartySerializer, AuthorityShortSerializer)
 from common.constants import (USER_STATUS_PODD, USER_STATUS_LIVESTOCK, USER_STATUS_PUBLIC_HEALTH, USER_STATUS_VOLUNTEER,
                               USER_STATUS_ADDITION_VOLUNTEER,
                               USER_STATUS_CHOICES)
@@ -860,7 +860,7 @@ def get_authority_by_invitation_code(request):
     except (ValueError, AuthorityInvite.DoesNotExist):
         return Response({'detail': 'invitationCode is not found.', 'invitationCode': ['Invitation code is not found.']}, status=status.HTTP_400_BAD_REQUEST)
 
-    serializer = AuthoritySerializer(authority)
+    serializer = AuthorityShortSerializer(authority)
     return Response(serializer.data)
 
 
@@ -874,7 +874,6 @@ def user_register_by_authority(request):
 
 
     data = request.DATA.copy()
-    print data
     data['username'] = str(uuid.uuid4())[:10].replace('-', '')
     data['status'] = data.get('status') or USER_STATUS_ADDITION_VOLUNTEER
 
@@ -943,11 +942,16 @@ def user_register_by_authority(request):
         authority.users.add(user)
 
         token, created = Token.objects.get_or_create(user=user)
+
+        area_queryset = filter_permitted_administration_areas_and_descendants(user)
+
         user_data = UserSerializer(user).data
         user_data.update({
             'token': token.key,
             'permissions': user.get_all_custom_permissions(),
             'displayPassword': user.display_password,
+            'administrationAreas': AdministrationAreaListSerializer(area_queryset, many=True).data,
+            'authority': AuthorityShortSerializer(authority).data,
         })
 
         return Response(user_data, status=status.HTTP_201_CREATED)

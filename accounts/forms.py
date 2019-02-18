@@ -4,7 +4,8 @@ from django.contrib.auth.forms import AdminPasswordChangeForm, AuthenticationFor
 from django.contrib.auth.models import Group
 from django.core.validators import validate_integer, MinLengthValidator
 
-from accounts.models import User, GroupReportType, GroupAdministrationArea, Configuration, Authority, GroupInvite
+from accounts.models import User, GroupReportType, GroupAdministrationArea, Configuration, Authority, GroupInvite, \
+    AuthorityInvite
 from common.constants import (GROUP_WORKING_TYPE_CHOICES, GROUP_WORKING_TYPE_ADMINSTRATION_AREA,
     GROUP_WORKING_TYPE_REPORT_TYPE, GROUP_WORKING_TYPE_ALERT_REPORT_ADMINSTRATION_AREA,
     GROUP_WORKING_TYPE_ALERT_CASE_ADMINSTRATION_AREA, GROUP_WORKING_TYPE_ALERT_REPORT_REPORT_TYPE,
@@ -183,6 +184,11 @@ class AuthorityForm(forms.ModelForm):
             'users': FilteredSelectMultiple("User", False, attrs={'rows':'1'}),
             'administration_areas': FilteredSelectMultiple("AdministrationArea", False, attrs={'rows':'1'})
         }
+
+
+class AuthorityInviteForm(forms.ModelForm):
+    class Meta:
+        model = AuthorityInvite
 
 
 class GroupInviteForm(forms.ModelForm):

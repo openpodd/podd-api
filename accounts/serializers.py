@@ -247,6 +247,15 @@ class AuthorityInviteSerializer(serializers.ModelSerializer):
             return val
 
 
+class AuthorityShortSerializer(serializers.ModelSerializer):
+    code = serializers.WritableField('code')
+    name = serializers.WritableField('name')
+    description = serializers.WritableField('description', required=False)
+    class Meta:
+        model = Authority
+        fields = ('id', 'code', 'name',)
+
+
 class AuthoritySerializer(serializers.ModelSerializer, AttachCanEditSerializer):
 
     code = serializers.WritableField('code')

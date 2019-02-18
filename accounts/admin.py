@@ -5,9 +5,10 @@ from django.contrib.auth.models import Group
 
 from common.constants import GROUP_WORKING_TYPE_CHOICES
 
-from accounts.forms import GroupForm, UserCreateForm, UserSetPasswordForm, UserForm, ConfigurationForm, AuthorityForm, GroupInviteForm
+from accounts.forms import GroupForm, UserCreateForm, UserSetPasswordForm, UserForm, ConfigurationForm, AuthorityForm, \
+    GroupInviteForm, AuthorityInviteForm
 from accounts.models import User, UserDevice, Configuration, NearbyArea, Authority, GroupInvite, CustomPermission, \
-    RoleCustomPermission, Party
+    RoleCustomPermission, Party, AuthorityInvite
 
 
 class UserAdmin(UserAdmin):
@@ -68,6 +69,11 @@ class AuthorityAdmin(admin.ModelAdmin):
     exclude = ('tags', 'area', 'users', 'inherits', 'deep_subscribes', 'admins')
 
 
+class AuthorityInviteAdmin(admin.ModelAdmin):
+    form = AuthorityInviteForm
+
+    list_display = ('code', 'authority', 'created_at', 'expired_at')
+
 
 class GroupInviteAdmin(admin.ModelAdmin):
     form = GroupInviteForm
@@ -97,6 +103,7 @@ admin.site.unregister(Group)
 admin.site.register(Configuration, ConfigurationAdmin)
 admin.site.register(NearbyArea)
 admin.site.register(Authority, AuthorityAdmin)
+admin.site.register(AuthorityInvite, AuthorityInviteAdmin)
 
 admin.site.register(GroupInvite, GroupInviteAdmin)
 
