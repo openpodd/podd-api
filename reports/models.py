@@ -1757,8 +1757,8 @@ class ReportImage(DomainMixin):
     report = models.ForeignKey('Report', related_name='images')
     guid = models.TextField()                                       # unique identifier
     note = models.TextField(blank=True)
-    image_url = models.URLField()
-    thumbnail_url = models.URLField()
+    image_url = models.URLField(max_length=800)
+    thumbnail_url = models.URLField(max_length=800)
     location = models.PointField(null=True, blank=True)
 
 
