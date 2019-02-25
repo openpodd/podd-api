@@ -98,14 +98,8 @@ class Command(BaseCommand):
                             authority=authority
                         )
 
-                        ph_invite = AuthorityInvite(
-                            authority=authority,
-                            status=USER_STATUS_PUBLIC_HEALTH
-                        )
-
                         # save for update elasticsearch, graph-neo4j
                         authority.save()
-                        ph_invite.save()
 
                         print 'Authority: ', area
             transaction.commit(sid)
