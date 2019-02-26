@@ -193,6 +193,33 @@ class ObtainNewAuthToken(ObtainAuthToken):
 obtain_auth_token = ObtainNewAuthToken.as_view()
 
 
+class LineLoginObtainNewAuthToken(ObtainAuthToken):
+    def post(self, request):
+        serializer = self.serializer_class(data=request.DATA)
+        if serializer.is_valid():
+            user = serializer.object['user']
+
+            if user.is_deleted:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            token, created = Token.objects.get_or_create(user=user)
+
+            user_data = UserSerializer(user).data
+            area_queryset = filter_permitted_administration_areas_and_descendants(user)
+
+            user_data.update({
+                'token': token.key,
+                'permissions': user.get_all_custom_permissions(),
+                'authority': user.get_authority(),
+                'administrationAreas': AdministrationAreaListSerializer(area_queryset, many=True).data,
+            })
+            return Response(user_data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+line_login_obtain_auth_token = LineLoginObtainNewAuthToken.as_view()
+
+
 class CanEditModel(BasePermission):
 
     def has_permission(self, request, view):
@@ -883,6 +910,8 @@ def user_register_by_authority(request):
 
     invitation_code = data.get('group') or data.get('authority') or data.get('code')
 
+    lineId = data.get('lineId') or None
+
     if not invitation_code:
         return Response({"detail": "code is required.", 'group': ['Code is required.']},
                         status=status.HTTP_400_BAD_REQUEST)
@@ -933,6 +962,8 @@ def user_register_by_authority(request):
             user.status = user_status
             user.trainer_status = trainer_status
             user.trainer_authority_id = trainer_authority_id
+            if lineId:
+                user.lineId = lineId
             user.save()
 
             LogItem.objects.log_action(key='USER_CREATE', created_by=user, object1=user, data={

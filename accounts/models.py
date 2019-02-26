@@ -58,6 +58,7 @@ class User(AbstractUser, MultiDomainMixin, UserNotificationMixin, AbstractCommon
     is_anonymous = models.BooleanField(default=False)
     is_public = models.BooleanField(default=False)
     fbuid = models.CharField(blank=True, null=True, max_length=255, unique=True)
+    lineId = models.CharField(blank=True, null=True, max_length=255)
     contact = models.TextField(blank=True, verbose_name=u'ที่อยู่')
     telephone = models.CharField(max_length=100, blank=True, verbose_name=u'เบอร์โทรศัพท์ส่วนตัว')
     project_mobile_number = models.CharField(max_length=100, blank=True, null=True, verbose_name=u'เบอร์โทรศัพท์โครงการ')
