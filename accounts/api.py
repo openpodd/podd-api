@@ -210,7 +210,7 @@ class LineLoginObtainNewAuthToken(ObtainAuthToken):
             user_data.update({
                 'token': token.key,
                 'permissions': user.get_all_custom_permissions(),
-                'authority': user.get_authority(),
+                'authority': AuthorityShortSerializer(user.get_authority()).data,
                 'administrationAreas': AdministrationAreaListSerializer(area_queryset, many=True).data,
             })
             return Response(user_data)
