@@ -10,7 +10,7 @@ from cacheops import invalidate_obj
 from crum import set_current_user
 
 from django.conf import settings
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Point
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -1683,3 +1683,23 @@ class RecordSpecViewSet(viewsets.ModelViewSet):
         queryset = queryset.filter(id__in=filter_permitted_record_specs(request.user, subscribes=subscribes))
         serializer = RecordSpecListSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
+
+
+@api_view(['POST'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated,))
+def upd_report_location(request, guid):
+    # content-type json
+    data = request.DATA
+    longitude = data.get('longitude')
+    latitude = data.get('latitude')
+    try:
+        report = Report.objects.get(guid=guid)
+    except Report.DoesNotExist:
+        return Response({"detail": "Cannot update your location"},
+                        status=status.HTTP_400_BAD_REQUEST)
+    location = Point(float(longitude), float(latitude))
+
+    report.report_location = location
+    report.save()
+    return Response({}, status=status.HTTP_200_OK)
