@@ -9,8 +9,8 @@ from reports.models import AdministrationArea
 
 
 class Command(BaseCommand):
-    args = 'file_path.csv domain_id'
-    help = 'Import Authority with code from csv: file_path.csv'
+    args = 'domain_id'
+    help = 'create invitation code for public health authority.'
 
     def handle(self, *args, **options):
 

@@ -12,6 +12,8 @@ class Command(BaseCommand):
     help = 'Import Authority with code from csv: file_path.csv'
 
     def handle(self, *args, **options):
+        areas = []
+        authorities = []
 
         if not args:
             raise CommandError('Please input csv path')
@@ -19,7 +21,7 @@ class Command(BaseCommand):
         file_path = args[0]
         data = get_data_from_csv(file_path)
 
-        domain_id = args[1]
+        domain_id = int(args[1])
         settings.CURRENT_DOMAIN_ID = domain_id
 
 
@@ -50,6 +52,7 @@ class Command(BaseCommand):
                         print row['code']
                         authority.code = row['code']
                         authority.group = int(row['group'])
+                        authorities.append(authority)
                         authority.save()
                     else:
                         print 'skip authority %s' % (authority.code)
@@ -81,6 +84,7 @@ class Command(BaseCommand):
                         code=code,
                         authority=authority
                     )
+                    areas.append(area)
                     area.save()
 
                 if row['inherits']:
@@ -112,4 +116,15 @@ class Command(BaseCommand):
             if found:
                 print 'saving inherits relationship for %s' % (authority.code,)
                 authority.save()
+
+        # third pass
+        print("======== third pass ==========")
+        for a in Authority.objects.filter(domain_id=domain_id):
+            print '.'
+            a.update_graph_relations()
+
+        for a in AdministrationArea.objects.filter(domain_id=domain_id):
+            print 'x'
+            a.update_graph_relations()
+
 
