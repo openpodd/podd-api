@@ -21,7 +21,7 @@ class Command(BaseCommand):
         file_path = args[0]
         data = get_data_from_csv(file_path)
 
-        domain_id = int(args[1])
+        domain_id = args[1]
         settings.CURRENT_DOMAIN_ID = domain_id
 
 
