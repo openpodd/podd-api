@@ -400,6 +400,7 @@ def summary_by_report_detail(request):
                         status=status.HTTP_400_BAD_REQUEST)
     try:
         date_end = datetime.datetime.strptime(date_end, '%d/%m/%Y')
+        date_end = date_end.replace(minute=59, hour=23, second=59)
     except TypeError:
         return Response({"dateEnd": "Invalid dateEnd. Please try again. (eg. 01/01/2015)"},
                         status=status.HTTP_400_BAD_REQUEST)
