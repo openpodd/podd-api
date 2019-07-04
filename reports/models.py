@@ -111,7 +111,7 @@ class ReportType(AbstractCachedModel, DomainMixin):
         unique_together = ("domain", "code")
 
     def __unicode__(self):
-        return '%s (%d) [%s]' % (self.name, self.id, self.code)
+        return '%s (%d) [%s]' % (self.name, self.id or 0, self.code)
 
     def get_schema_fields(self):
 
