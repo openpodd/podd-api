@@ -69,7 +69,7 @@ class Command(BaseCommand):
                     )
                     authority.save()
                     address = row['name']
-                    if group == 2:
+                    if group == 2 or group == '2':
                         address = '%s %s' % (row['name'], row['district_name'])
 
                     lat = row['lat']
