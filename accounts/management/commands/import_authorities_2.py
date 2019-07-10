@@ -35,11 +35,8 @@ class Command(BaseCommand):
                 try:
                     authority = Authority.objects.get(code=row['code'])
                 except Authority.DoesNotExist:
-                    try:
-                        authority = Authority.objects.get(name=row['name'])
-                    except Authority.DoesNotExist:
-                        if row['exists'] == 'True':
-                            authority = Authority.objects.get(pk=row['podd_id'])
+                    if row['exists'] == 'True':
+                        authority = Authority.objects.get(pk=row['podd_id'])
 
                 # update existing authority code, group
                 if authority:
