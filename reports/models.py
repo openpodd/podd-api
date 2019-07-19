@@ -1460,6 +1460,7 @@ class Report(AbstractCachedModel, DomainMixin):
         from reports.tasks import send_data_to_spreadsheet, send_data_to_calendar, delete_calendar_data, undelete_calendar_data
         from reports.serializers import ReportSerializer
         from notifications.models import NotificationTemplate
+        from reports.tasks import report_sns_notification
 
         unique, state_change_unique = ReportStateUnique.objects.get_or_create(report=self, state=self.state)
 
@@ -1554,7 +1555,7 @@ class Report(AbstractCachedModel, DomainMixin):
             send_data_to_spreadsheet(self)
 
         create_podd_report_from_public_report(self.id)
-
+        report_sns_notification(self)
         publish_report(ReportSerializer(self).data)
 
     def make_default_area(self):

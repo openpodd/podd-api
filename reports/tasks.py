@@ -36,6 +36,7 @@ from notifications.functions import create_notification
 from podd.celery import app, DomainTask
 from reports.models import (ReportImage, SpreadsheetResponse, AdministrationArea, GoogleCalendarResponse,
                             GoogleCalendarResponseEvent)
+from reports.serializers import ReportSerializer
 from reports.pub_tasks import publish_report_flag
 from celery.utils.log import get_task_logger
 
@@ -695,3 +696,23 @@ def report_cep(report_id, payload):
                 report.create_cep()
 
 
+@app.task(base=DomainTask, bind=True)
+@domain_celery_task
+def report_sns_notification(report):
+    if settings.SNS_REPORT_ENABLE:
+        import boto3
+        if report.negative:
+            if report.type.code in settings.SNS_REPORT_MAPPING:
+                arn = settings.SNS_REPORT_MAPPING[report.type.code]
+                sns = boto3.client(
+                    'sns',
+                    aws_access_key_id=settings.SNS_ACCESS_KEY,
+                    aws_secret_access_key=settings.SNS_SECRET_KEY,
+                    region_name='ap-southeast-1'
+                )
+                reportData = ReportSerializer(report).data
+                response = sns.publish(
+                    TopicArn=arn,
+                    Message=json.dumps(reportData)
+                )
+                print 'send sns', report.id, arn, response['MessageId']

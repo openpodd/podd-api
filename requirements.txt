@@ -55,3 +55,4 @@ future==0.16.0
 django-sendfile==0.3.2
 -e git+git://github.com/openpodd/larva-count@master#egg=larva
 firebase-admin==2.8.0
+boto3=1.9.190
