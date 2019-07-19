@@ -59,6 +59,7 @@ def podd_auth(request):
 
     return JsonResponse({
         'username': user.username,
+        'name': user.get_full_name(),
         'domainId': user.domain_id,
         'id': user.id,
         'firebaseToken': firebase_token,
