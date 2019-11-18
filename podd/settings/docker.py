@@ -20,8 +20,8 @@ if postgres:
     DATABASES = {
         "default": {
             "ENGINE": "django.contrib.gis.db.backends.postgis",
-            "NAME": env("PODD_DB_NAME") or env("POSTGRES_ENV_POSTGRES_USER") or 'postgres',
-            "USER": env("PODD_DB_NAME") or env("POSTGRES_ENV_POSTGRES_USER") or 'postgres',
+            "NAME": env("PODD_DB_NAME") or env("POSTGRES_ENV_POSTGRES_DB") or 'postgres',
+            "USER": env("PODD_DB_USER") or env("POSTGRES_ENV_POSTGRES_USER") or 'postgres',
             "PASSWORD": env("PODD_DB_PASSWORD") or env("POSTGRES_ENV_POSTGRES_PASSWORD") or 'secret1234',
             "HOST": postgres,
             "PORT": env('PODD_DB_PORT') or '',

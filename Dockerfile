@@ -1,9 +1,8 @@
-FROM python:2.7
+FROM python:2.7.14
 
 RUN apt-get update && apt-get install -y \
 		gcc \
 		gettext \
-		mysql-client libmysqlclient-dev \
 		postgresql-client libpq-dev \
 		sqlite3 \
 		libgeos-dev libproj-dev gdal-bin libjpeg-dev \
@@ -14,6 +13,8 @@ WORKDIR /usr/src/app
 
 COPY requirements.txt /usr/src/app/
 RUN pip install --no-cache-dir -r requirements.txt
+# QUICK FIX
+RUN pip install -e "git+https://bitbucket.org/opendream/podd-form-generator#egg=podd_form_generator"
 
 VOLUME /usr/src/app
 EXPOSE 8000
