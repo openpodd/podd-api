@@ -48,7 +48,7 @@ from common.constants import (USER_STATUS_PODD, USER_STATUS_LIVESTOCK, USER_STAT
 from common.functions import (filter_permitted_administration_areas_and_descendants,
                               upload_to_s3, resize_and_crop, publish_gcm_message, generate_username,
                               get_public_authority, publish_apns_message, filter_permitted_report_types,
-                              filter_permitted_users, filter_permitted_authority,
+                              filter_permitted_users, filter_permitted_authority, publish_fcm_message,
                               filter_permitted_users_for_authorities_admin)
 from common.models import Domain, get_current_domain_id
 from common.serializers import DomainSerializer
@@ -138,31 +138,29 @@ def gcm_registration(request):
         return Response({'detail': 'This user does not register this device.'},
             status=status.HTTP_400_BAD_REQUEST)
 
-    gcm = request.DATA.get('gcmRegId', '')
-    
-    if gcm:
-        try:
-            gcm_device = UserDevice.objects.filter(gcm_reg_id=gcm)
-        except UserDevice.DoesNotExist:
-            pass
-        else:
-            gcm_device.delete()
+    try:
+        welcome_message = Configuration.objects.get(system='android.server.push_notification',
+                                                    key='welcome_message').value
+    except Configuration.DoesNotExist:
+        pass
 
+    gcm = request.DATA.get('gcmRegId', '')
+    fcm = request.DATA.get('fcmRegId', '')
+    if gcm:
         device.gcm_reg_id = gcm
+        found = True
+    if fcm:
+        device.fcm_reg_id = fcm
+        found = True
+    if found:
         device.save()
 
-        ######### SEND GCM MESSAGE #########
-        try:
-            welcome_message = Configuration.objects.get(system='android.server.push_notification', key='welcome_message').value
-        except Configuration.DoesNotExist:
-            pass
-        else:
-            message_type = 'news'
-            publish_gcm_message([device.gcm_reg_id], welcome_message, message_type)
-            publish_apns_message([device.apns_reg_id], welcome_message)
-    else:
-        return Response({'gcmRegId': 'This field is required.'},
-            status=status.HTTP_400_BAD_REQUEST)
+    ######### SEND GCM MESSAGE #########
+    message_type = 'news'
+    if gcm:
+        publish_gcm_message([device.gcm_reg_id], welcome_message, message_type)
+    if fcm:
+        publish_fcm_message([device.fcm_reg_id], welcome_message, message_type)
 
     return Response()
 

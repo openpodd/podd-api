@@ -1,6 +1,28 @@
 import re
 import time
+from podd.celery import app
+
 from firebase_admin import db
+from firebase_admin import messaging
+
+
+@app.task
+def send_fcm_message(message, message_type, report_id, notification_id, fcm_reg_id):
+    data = {
+        'id': notification_id or '',
+        'message': message,
+        'type': message_type,
+        'reportId': report_id or ''
+    }
+    print(data)
+    print(fcm_reg_id)
+    message = messaging.Message(
+        data=data,
+        token=fcm_reg_id,
+    )
+
+    response = messaging.send(message)
+    return response
 
 
 def create_room(domain_id, room_id, user_id, user_name, room_name, welcome_msg, meta=None):
