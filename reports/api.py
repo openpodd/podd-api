@@ -424,7 +424,7 @@ class ReportViewSet(viewsets.ModelViewSet):
 
             headers = self.get_success_headers(serializer.data)
 
-            return Response(status=status.HTTP_201_CREATED, headers=headers)
+            return Response({"id": self.object.id}, status=status.HTTP_201_CREATED, headers=headers)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
