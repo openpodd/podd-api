@@ -83,6 +83,8 @@ class AuthorityNotificationTemplateFullSerializer(AuthorityNotificationTemplateS
 
 class NotificationSerializer(serializers.ModelSerializer):
     receiveUser = serializers.PrimaryKeyRelatedField(source='receive_user', required=False, read_only=True)
+    to = serializers.Field(source='to')
+    refNo = serializers.Field(source='ref_no')
     reportFirstThumbnailUrl = serializers.Field(source='get_first_image_thumbnail_url')
     reportTypeName = serializers.Field(source='report.type.name')
     seenAt = serializers.Field(source='seen_at')
@@ -96,4 +98,4 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Notification
-        fields = ('id', 'report', 'receiveUser', 'type', 'createdAt', 'createdBy', 'reportTypeName', 'reportFirstThumbnailUrl', 'renderWebMessage', 'message', 'seenAt')
+        fields = ('id', 'report', 'to', 'refNo', 'receiveUser', 'type', 'createdAt', 'createdBy', 'reportTypeName', 'reportFirstThumbnailUrl', 'renderWebMessage', 'message', 'seenAt')

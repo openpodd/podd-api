@@ -137,7 +137,15 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
 
 
     def get_queryset(self):
-        queryset = Notification.objects.filter(receive_user=self.request.user)
+        only_self = self.request.QUERY_PARAMS.get('onlySelf', True)
+        if only_self == 'no':
+            queryset = Notification.objects.filter()
+        else:
+            queryset = Notification.objects.filter(receive_user=self.request.user)
+
+        ref_no = self.request.QUERY_PARAMS.get('ref_no', None)
+        if ref_no:
+            queryset = queryset.filter(ref_no=ref_no)
 
         createdAt__gt = self.request.QUERY_PARAMS.get('createdAt__gt', None)
         if createdAt__gt is not None:
@@ -146,6 +154,10 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         createdAt__lt = self.request.QUERY_PARAMS.get('createdAt__lt', None)
         if createdAt__lt is not None:
             queryset = queryset.filter(created_at__lt=createdAt__lt)
+
+        report_id = self.request.QUERY_PARAMS.get('report__id', None)
+        if report_id:
+            queryset = queryset.filter(report__id=report_id)
 
         return queryset
 

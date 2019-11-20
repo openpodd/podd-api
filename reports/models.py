@@ -1106,7 +1106,8 @@ class Report(AbstractCachedModel, DomainMixin):
                                 'notification_authority': notification_authority,
                                 'to': to, # TODO: change to receive_user and fix unittest
                                 'type': notification_type,
-                                'subscribe_authority': subscribe_authority
+                                'subscribe_authority': subscribe_authority,
+                                'ref_no': accepted.ref_no,
                             }
 
                             receive_user = False
@@ -1230,6 +1231,7 @@ class Report(AbstractCachedModel, DomainMixin):
                     'receive_user': self.created_by,
                     'to': self.created_by.username,
                     'type': NEWS_TYPE_NEWS,
+                    'ref_no': template.ref_no,
                 }
                 Notification.objects.create(**notification_data)
 
