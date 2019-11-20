@@ -65,6 +65,9 @@ class NotificationTemplate(DomainMixin):
 
     delta = models.IntegerField(max_length=5, default=0)
 
+    # reference number of this message
+    ref_no = models.CharField(max_length=20, null=True, blank=True)
+
     class Meta:
         ordering = ['-delta', 'id']
 
@@ -321,6 +324,9 @@ class Notification(DomainMixin):
     original_to = models.CharField(max_length=255, null=True, blank=True)
     anonymous_send = models.IntegerField(null=True, blank=True)
     subscribe_authority = models.ForeignKey(Authority, related_name='subscribe_authority_notice', null=True, blank=True)
+
+    # reference number from notification template
+    ref_no = models.CharField(max_length=20, null=True, blank=True)
 
     # Cache attribute
     authority = None
