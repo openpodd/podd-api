@@ -11,6 +11,7 @@ from py2neo.packages.httpstream import SocketError
 import requests
 import uuid
 import copy
+import traceback
 # import signal
 import unicodecsv as csv
 from uuid import uuid1
@@ -29,13 +30,14 @@ from boto.s3.key import Key
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 from asteval import Interpreter
-
+from podd.celery import app
 
 from common.constants import (GROUP_WORKING_TYPE_ADMINSTRATION_AREA,
     GROUP_WORKING_TYPE_REPORT_TYPE, PRIORITY_IGNORE, PRIORITY_OK, PRIORITY_CONTACT, PRIORITY_FOLLOW, PRIORITY_CASE)
 from common.pub_tasks import publish
 
 from accounts.models import Configuration
+from firebase.functions import send_fcm_message
 
 
 def filter_permitted_administration_areas_and_descendants(user, ids_only=False, subscribes=False, graph_fields_only=False):
@@ -478,6 +480,18 @@ def get_lat_lon(exif_data):
                 lon = 0 - lon
 
     return lat, lon
+
+
+def publish_fcm_message(fcm_reg_ids, message, message_type, notification_id=None, report_id=None, badge=None):
+    for fcm_reg_id in fcm_reg_ids:
+        if settings.NOTIFICATION_DISABLED:
+            print '------ FCM PARAMS ------'
+            print '  ---- androidRegistrationIds:', fcm_reg_id
+            # print '  ---- message:', message
+            print '  ---- id:', notification_id
+            print '------ /FCM PARAMS -----'
+        else:
+            send_fcm_message.delay(message, message_type, report_id, notification_id, fcm_reg_id)
 
 
 def publish_gcm_message(gcm_reg_id, message, message_type, notification_id=None, report_id=None, badge=None):
@@ -926,85 +940,108 @@ DEFAULT_MAP_SRID = 3857
 
 
 def get_utm_zone(point):
-	"""
-		Guess the UTM zone ID for the supplied point
-	"""
-	# hardcode the target reference system:
-	# this is WGS84 by spec
-	wgspoint = point.transform('WGS84', clone=True)
-	# remember, geographers are sideways
-	lon = wgspoint.x
-	return int(1 + (lon + 180.0) / 6.0)
+    """
+        Guess the UTM zone ID for the supplied point
+    """
+    # hardcode the target reference system:
+    # this is WGS84 by spec
+    wgspoint = point.transform('WGS84', clone=True)
+    # remember, geographers are sideways
+    lon = wgspoint.x
+    return int(1 + (lon + 180.0) / 6.0)
 
 def is_utm_northern(point):
-	"""
-		Determine if the supplied point is in the northern or southern part
-		for the UTM coordinate system.
-	"""
-	wgspoint = point.transform('WGS84', clone=True)
-	lat = wgspoint.y
-	return lat >= 0.0
+    """
+        Determine if the supplied point is in the northern or southern part
+        for the UTM coordinate system.
+    """
+    wgspoint = point.transform('WGS84', clone=True)
+    lat = wgspoint.y
+    return lat >= 0.0
 
 def get_utm_srid(point):
-	"""
-		Given the input point, guess the UTM zone and hemissphere and
-		return the SRID for the UTM appropriate UTM zone.
+    """
+        Given the input point, guess the UTM zone and hemissphere and
+        return the SRID for the UTM appropriate UTM zone.
 
-		Note that this does not do any range checking, so supplying bogus
-		points yields undefined results.
-	"""
-	utm_zone = get_utm_zone(point)
-	is_northern = is_utm_northern(point)
-	if is_northern:
-		return UTM_NORTHERN_BASE + utm_zone
-	else:
-		return UTM_SOUTHERN_BASE + utm_zone
+        Note that this does not do any range checking, so supplying bogus
+        points yields undefined results.
+    """
+    utm_zone = get_utm_zone(point)
+    is_northern = is_utm_northern(point)
+    if is_northern:
+        return UTM_NORTHERN_BASE + utm_zone
+    else:
+        return UTM_SOUTHERN_BASE + utm_zone
 
 def buffer_from_meters(geom, buffer_meters):
-	"""
-		Create a buffer around the supplied geometry
-		with the specified distance.
+    """
+        Create a buffer around the supplied geometry
+        with the specified distance.
 
-		This is a wrapper around GEOMSGeometry.buffer()
-		but with the buffer distance specified in meters.
+        This is a wrapper around GEOMSGeometry.buffer()
+        but with the buffer distance specified in meters.
 
-		GEOM should be in the coordinate system the map will be drawn in,
-		this is usually "web mercator", i.e. EPSG:3857
-	"""
-	# The buffer calculation needs to happen in the source
-	# coordinate system, otherwise stretching occurs
-	# (e.g. circles become more and more egg-like further away from the equator)
-	#
-	# At the same time we want distances in meters to be
-	# as close to correct as possible given the local environment.
-	#
-	# The approach taken here is
-	# (1) use the centroid of the input geometry to determine a single reference
-	#     point
-	# (2) transform this reference point into the appropriate UTM coordinate system
-	#     This is done using the correct UTM zone for the reference put.
-	#     to keep differences to a minimum.
-	# (3) shift the UTM version of the reference point to the north and east
-	#     by buffer_meters / sqrt(2).
-	# (4) transform the shifted point back from UTM to the input coordinate system
-	#     and calculate the distance between the shifted point and the original point
-	#     in the input coordinate system.
-	# (5) Use this newly obtain distance value to create
-	#     a buffered geometry from the original.
-	ref_point = geom.centroid.clone()
-	if not ref_point.srid:
-		# default to WGS84
-		ref_point.srid = 4326
+        GEOM should be in the coordinate system the map will be drawn in,
+        this is usually "web mercator", i.e. EPSG:3857
+    """
+    # The buffer calculation needs to happen in the source
+    # coordinate system, otherwise stretching occurs
+    # (e.g. circles become more and more egg-like further away from the equator)
+    #
+    # At the same time we want distances in meters to be
+    # as close to correct as possible given the local environment.
+    #
+    # The approach taken here is
+    # (1) use the centroid of the input geometry to determine a single reference
+    #     point
+    # (2) transform this reference point into the appropriate UTM coordinate system
+    #     This is done using the correct UTM zone for the reference put.
+    #     to keep differences to a minimum.
+    # (3) shift the UTM version of the reference point to the north and east
+    #     by buffer_meters / sqrt(2).
+    # (4) transform the shifted point back from UTM to the input coordinate system
+    #     and calculate the distance between the shifted point and the original point
+    #     in the input coordinate system.
+    # (5) Use this newly obtain distance value to create
+    #     a buffered geometry from the original.
+    ref_point = geom.centroid.clone()
+    if not ref_point.srid:
+        # default to WGS84
+        ref_point.srid = 4326
 
-	utm_srid = get_utm_srid(ref_point)
-	utm_point = ref_point.transform(utm_srid, clone=True)
+    utm_srid = get_utm_srid(ref_point)
+    utm_point = ref_point.transform(utm_srid, clone=True)
 
-	shift_distance = buffer_meters / math.sqrt(2.0)
-	shifted_point = utm_point.clone()
-	shifted_point.set_x(shifted_point.get_x() + shift_distance)
-	shifted_point.set_y(shifted_point.get_y() + shift_distance)
+    shift_distance = buffer_meters / math.sqrt(2.0)
+    shifted_point = utm_point.clone()
+    shifted_point.set_x(shifted_point.get_x() + shift_distance)
+    shifted_point.set_y(shifted_point.get_y() + shift_distance)
 
-	shifted_ref = shifted_point.transform(ref_point.srid, clone=True)
+    shifted_ref = shifted_point.transform(ref_point.srid, clone=True)
 
-	distance = shifted_ref.distance(ref_point)
-	return distance
+    distance = shifted_ref.distance(ref_point)
+    return distance
+
+
+# from https://github.com/celery/kombu/blob/master/kombu/utils/encoding.py
+def safe_str(s, errors='replace'):
+    return _safe_str(s, errors)
+
+
+def _ensure_str(s, encoding, errors):
+    if isinstance(s, bytes):
+        return s.decode(encoding, errors)
+    return s
+
+
+def _safe_str(s, errors='replace'):  # noqa
+        encoding = 'utf-8'
+        try:
+            if isinstance(s, unicode):
+                return _ensure_str(s.encode(encoding, errors),
+                                   encoding, errors)
+            return unicode(s, encoding, errors)
+        except Exception as exc:
+            return '<Unrepresentable {0!r}: {1!r} {2!r}>'.format(
+                type(s), exc, '\n'.join(traceback.format_stack()))

@@ -26,9 +26,11 @@ from common.constants import (GROUP_WORKING_TYPE_ALERT_REPORT_ADMINSTRATION_AREA
     GROUP_WORKING_TYPE_ALERT_CASE_REPORT_TYPE, PRIORITY_IGNORE, PRIORITY_CONTACT, NEWS_TYPE_NEWS)
 from common.decorators import domain_celery_task
 from common.functions import (get_exif_data, get_lat_lon, get_administration_area_and_ancestors_ids,
-    filter_permitted_administration_areas_and_descendants, publish_gcm_message, publish_sms_message,
-    put_data_to_spreadsheet, publish_apns_message, has_permission_area_in_authorities, put_event_to_calendar,
-    delete_calendar_events)
+                              filter_permitted_administration_areas_and_descendants, publish_gcm_message,
+                              publish_sms_message,
+                              put_data_to_spreadsheet, publish_apns_message, has_permission_area_in_authorities,
+                              put_event_to_calendar,
+                              delete_calendar_events, safe_str)
 from flags.functions import create_flag_comment
 from flags.serializers import FlagSerializer
 from logs.models import LogItem
@@ -395,9 +397,9 @@ def _send_new_report_email(report, emails):
         # SEND MAIL
         if settings.NOTIFICATION_DISABLED and settings.EMAIL_BACKEND != 'django.core.mail.backends.locmem.EmailBackend':
             print '------ EMAILS PARAMS ------'
-            print '  ---- emails:', emails
-            print '  ---- email_title_template_rendered:', email_title_template_rendered
-            print '  ---- email_body_template_rendered:', email_body_template_rendered
+            print '  ---- emails:', safe_str(emails)
+            print '  ---- email_title_template_rendered:', safe_str(email_title_template_rendered)
+            print '  ---- email_body_template_rendered:', safe_str(email_body_template_rendered)
             print '------ /EMAILS PARAMS -----'
         else:
             send_mail(
@@ -690,7 +692,7 @@ def report_cep(report_id, payload):
                     state.create_cep()
                 for case_definition in report.type.case_definition_report_type.all():
 
-                    print 'create_cep', case_definition
+                    print 'create_cep', safe_str(case_definition)
                     case_definition.create_cep()
 
                 report.create_cep()
