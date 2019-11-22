@@ -674,7 +674,12 @@ class ReportViewSet(viewsets.ModelViewSet):
 
         try:
             report.updated_by = request.user
-            report.state = ReportState.objects.get(id=request.DATA.get('stateId', None), report_type=report.type)
+            state_id = request.DATA.get('stateId', None)
+            state_code = request.DATA.get('stateCode', None)
+            if state_id:
+                report.state = ReportState.objects.get(id=state_id, report_type=report.type)
+            elif state_code:
+                report.state = ReportState.objects.get(code=state_code, report_type=report.type)
             report.save()
         except ReportState.DoesNotExist:
             return Response({u'detail': u'You do not have permission to perform this action.'},

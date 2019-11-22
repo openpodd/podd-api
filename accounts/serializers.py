@@ -17,13 +17,14 @@ class UserSerializer(serializers.ModelSerializer):
     isSuperuser = serializers.BooleanField('is_superuser')
     isAnonymous = serializers.BooleanField('is_anonymous')
     isPublic = serializers.BooleanField('is_public')
+    administrationArea = serializers.PrimaryKeyRelatedField('administration_area', required=False, read_only=True)
 
     class Meta:
         model = User
         fields = (
             'id', 'name', 'username', 'firstName', 'lastName', 'status', 'contact', 'avatarUrl',
             'thumbnailAvatarUrl', 'authorityAdmins', 'isStaff', 'isSuperuser', 'isAnonymous', 'isPublic',
-            'domain'
+            'domain', 'administrationArea',
         )
 
 
