@@ -42,6 +42,7 @@ def create_room(domain_id, room_id, user_id, user_name, room_name, welcome_msg, 
         'description': room_name,
         'assigned': False,
         'done': False,
+        'ts': int(time.time() * 1000),
         'meta': meta
     })
     db.reference('/%s/messages/%s' % (domain_id, room_id)).push({
