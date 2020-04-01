@@ -4,6 +4,7 @@ from leaflet.admin import LeafletGeoAdmin
 from treebeard.forms import movenodeform_factory
 from treebeard.admin import TreeAdmin
 
+from common.models import Domain
 from reports.filters import AdministrationAreaFilter, DateTimeRangeFilter
 from reports.forms import ReportTypeForm, ReportForm, SpreadsheetResponseForm, ReportInvestigationForm, ReportLaboratoryCaseForm, \
                           GoogleCalendarResponseForm
@@ -46,7 +47,16 @@ class ReportStateAdmin(admin.ModelAdmin):
 
 
 class CaseDefinitionAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ['report_type__name', 'code']
+
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name == 'from_state' or db_field.name == 'to_state':
+            kwargs["queryset"] = ReportState.objects.order_by('report_type__name', 'code')
+        elif db_field.name == 'domain':
+            kwargs["queryset"] = Domain.objects.order_by('name')
+        elif db_field.name == 'report_type':
+            kwargs["queryset"] = ReportType.objects.order_by('name')
+        return super(CaseDefinitionAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class SpreadsheetResponseAdmin(admin.ModelAdmin):
