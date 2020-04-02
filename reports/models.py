@@ -98,7 +98,7 @@ class ReportType(AbstractCachedModel, DomainMixin):
                                             help_text='Radius of buffer that use to find intersects authorities')
     map_to = models.ForeignKey('reports.ReportType', related_name='report_type_map_to', blank=True, null=True)
     is_follow_action = models.BooleanField(default=False)
-
+    merge_with_parent = models.BooleanField(default=False)
 
     cached_vars = [('authority', True), 'form_definition', 'summary_template', 'version']
 
@@ -624,6 +624,7 @@ class AdministrationArea(CustomNS_Node, AbstractCachedModel, DomainMixin):
 
 class GeoDomainManager(GeoManager, DomainManager):
     pass
+
 
 class Report(AbstractCachedModel, DomainMixin):
     """
@@ -1535,11 +1536,21 @@ class Report(AbstractCachedModel, DomainMixin):
 
             if self.parent_type != PARENT_TYPE_DODD:
                 if self.is_new:
+                    from reports.functions import merge
+                    print('follow')
                     if self.type.id == self.parent.type.id:
-                        self.parent.form_data = self.form_data
+                        print('follow type === parent.type')
+                        if self.type.merge_with_parent:
+                            # override only existing value in followup report
+                            print('merge with parent = true')
+                            final_form_data = merge(self.parent.form_data, self.form_data)
+                            self.parent.form_data = final_form_data
+                        else:
+                            print('merge with parent = false')
+                            self.parent.form_data = self.form_data
                     else:
-                        from reports.functions import merge
                         # override only existing value in followup report
+                        print('follow type !=== parent.type')
                         final_form_data = merge(self.parent.form_data, self.form_data)
                         self.parent.form_data = final_form_data
 
