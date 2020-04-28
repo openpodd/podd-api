@@ -737,7 +737,7 @@ class Report(AbstractCachedModel, DomainMixin):
         return self.get_type_code()
 
     def get_schema_name(self):
-        if self.parent:
+        if self.parent and self.type.id == self.parent.type.id:
             state_code = self.parent.get_state_code()
         else:
             state_code = self.get_state_code()
