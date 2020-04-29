@@ -7,11 +7,8 @@ import re
 import StringIO
 import urllib2
 import requests
-from celery.contrib.methods import task_method
 
 from django.conf import settings
-from django.contrib.auth.models import Group
-from django.contrib.gis.measure import D
 from django.core.mail import send_mail
 from django.template import Template, Context
 from django.template.loader import render_to_string
@@ -19,14 +16,16 @@ from django.template.loader import render_to_string
 from celery import shared_task
 from PIL import Image
 
-from accounts.models import (Configuration, User,  UserDevice, GroupReportType,
-    GroupAdministrationArea, Authority)
+from accounts.models import (Configuration, UserDevice, GroupReportType,
+                             GroupAdministrationArea, Authority)
 from common.constants import (GROUP_WORKING_TYPE_ALERT_REPORT_ADMINSTRATION_AREA,
-    GROUP_WORKING_TYPE_ALERT_CASE_ADMINSTRATION_AREA, GROUP_WORKING_TYPE_ALERT_REPORT_REPORT_TYPE,
-    GROUP_WORKING_TYPE_ALERT_CASE_REPORT_TYPE, PRIORITY_IGNORE, PRIORITY_CONTACT, NEWS_TYPE_NEWS)
+                              GROUP_WORKING_TYPE_ALERT_CASE_ADMINSTRATION_AREA,
+                              GROUP_WORKING_TYPE_ALERT_REPORT_REPORT_TYPE,
+                              GROUP_WORKING_TYPE_ALERT_CASE_REPORT_TYPE, PRIORITY_IGNORE, PRIORITY_CONTACT,
+                              NEWS_TYPE_NEWS)
 from common.decorators import domain_celery_task
 from common.functions import (get_exif_data, get_lat_lon, get_administration_area_and_ancestors_ids,
-                              filter_permitted_administration_areas_and_descendants, publish_gcm_message,
+                              publish_gcm_message,
                               publish_sms_message,
                               put_data_to_spreadsheet, publish_apns_message, has_permission_area_in_authorities,
                               put_event_to_calendar,
@@ -36,7 +35,7 @@ from flags.serializers import FlagSerializer
 from logs.models import LogItem
 from notifications.functions import create_notification
 from podd.celery import app, DomainTask
-from reports.models import (ReportImage, SpreadsheetResponse, AdministrationArea, GoogleCalendarResponse,
+from reports.models import (ReportImage, SpreadsheetResponse, GoogleCalendarResponse,
                             GoogleCalendarResponseEvent)
 from reports.serializers import ReportSerializer
 from reports.pub_tasks import publish_report_flag
@@ -68,8 +67,8 @@ def extract_image_gps(report_image_guid):
                 report_image.location = 'POINT(%f %f)' % (lon, lat)
                 report_image.save()
 
-def ignore(report, user=None):
 
+def ignore(report, user=None):
     if not user:
         from common.functions import get_system_user
         user = get_system_user()
@@ -93,6 +92,8 @@ def ignore(report, user=None):
 
 # !!!!!!!!!! Deprecate, don't add any your coding in this function !!!!!!!!!!!!
 logger = get_task_logger(__name__)
+
+
 @app.task
 def new_negative_report_rule(report):
     from common.functions import get_system_user
@@ -143,8 +144,8 @@ def new_negative_report_rule(report):
 
         form_data = json.loads(report.form_data)
         if form_data.get('disease') in [u'ห่าไก่', u'กาลี/แอนแทรกซ์', u'ปากและเท้าเปื่อย'] or \
-            form_data.get('deathCount', 0) > 2 or form_data.get('sickCount', 0) > 10 or \
-            form_data.get('nearByCount', 0) > 2:
+                form_data.get('deathCount', 0) > 2 or form_data.get('sickCount', 0) > 10 or \
+                form_data.get('nearByCount', 0) > 2:
 
             comment = create_flag_comment(report=report, priority=PRIORITY_CONTACT, flag_owner=user)
             serializer = FlagSerializer(data={
@@ -163,10 +164,11 @@ def new_negative_report_rule(report):
             send_alert_new_report_sms(report)
             send_alert_new_report_gcm_message(report)
 
-    elif report.type.name in [u'อาหารปลอดภัย', u'สิ่งแวดล้อม', u'ภัยธรรมชาติ', u'เครื่องสำอาง/ยา', u'โรคสัตว์สู่คน'] and not report.test_flag:
+    elif report.type.name in [u'อาหารปลอดภัย', u'สิ่งแวดล้อม', u'ภัยธรรมชาติ', u'เครื่องสำอาง/ยา',
+                              u'โรคสัตว์สู่คน'] and not report.test_flag:
 
-         send_alert_new_report_email(report)
-         send_alert_new_report_sms(report)
+        send_alert_new_report_email(report)
+        send_alert_new_report_sms(report)
 
     # SEND EVERY NEGATIVE EMAIL TO SUPERUSER
     if not report.test_flag:
@@ -179,7 +181,8 @@ def new_negative_report_rule(report):
 @app.task(base=DomainTask, bind=True)
 @domain_celery_task
 def send_data_to_spreadsheet_by_authority(report):
-    authorities = Authority.objects.filter(administration_areas__id__in=get_administration_area_and_ancestors_ids(report.administration_area)).distinct()
+    authorities = Authority.objects.filter(
+        administration_areas__id__in=get_administration_area_and_ancestors_ids(report.administration_area)).distinct()
     for authority in authorities:
         if authority.spreadsheet_key:
             template = report.type.django_template
@@ -203,7 +206,8 @@ def send_data_to_spreadsheet_by_authority(report):
 @domain_celery_task
 def send_data_to_spreadsheet(report):
     spreadsheets = SpreadsheetResponse.objects.filter(report_types=report.type)
-    spreadsheets = [spreadsheet for spreadsheet in spreadsheets if has_permission_area_in_authorities(report.administration_area, spreadsheet.authorities)]
+    spreadsheets = [spreadsheet for spreadsheet in spreadsheets if
+                    has_permission_area_in_authorities(report.administration_area, spreadsheet.authorities)]
 
     for spreadsheet in spreadsheets:
         template = report.type.django_template
@@ -230,7 +234,8 @@ def send_data_to_calendar(report):
     now = timezone.now()
 
     calendars = GoogleCalendarResponse.objects.filter(report_states=report.state)
-    calendars = [calendar for calendar in calendars if has_permission_area_in_authorities(report.administration_area, calendar.authorities)]
+    calendars = [calendar for calendar in calendars if
+                 has_permission_area_in_authorities(report.administration_area, calendar.authorities)]
     for calendar in calendars:
         template = calendar.render_template
         form_data = json.loads(report.form_data)
@@ -241,7 +246,8 @@ def send_data_to_calendar(report):
         data = {
             u'title': template_rendered,
             u'address': report.administration_area.address,
-            u'description': '<a href="http://www.cmonehealth.org/dashboard/#/reports/%s">http://www.cmonehealth.org/dashboard/#/reports/%s</a>' % (report.id, report.id),
+            u'description': '<a href="http://www.cmonehealth.org/dashboard/#/reports/%s">http://www.cmonehealth.org/dashboard/#/reports/%s</a>' % (
+                report.id, report.id),
         }
 
         resp = put_event_to_calendar(calendar.calendar_id, data, now)
@@ -292,11 +298,12 @@ def undelete_calendar_data(report):
 def send_alert_new_report_email_superuser(report):
     # FILTER PERMITTED GROUP ON REPORT TYPE
     allowed_report_type_groups = GroupReportType.objects.filter(report_type=report.type,
-        group__type=GROUP_WORKING_TYPE_ALERT_REPORT_REPORT_TYPE)
+                                                                group__type=GROUP_WORKING_TYPE_ALERT_REPORT_REPORT_TYPE)
 
     allowed_report_type_emails = []
     for group in allowed_report_type_groups:
-        allowed_report_type_emails.extend(group.group.user_set.filter(is_superuser=True).values_list('email', flat=True))
+        allowed_report_type_emails.extend(
+            group.group.user_set.filter(is_superuser=True).values_list('email', flat=True))
 
     # FILTER PERMITTED GROUP ON ADMINISTRATION AREA
     area_ids = get_administration_area_and_ancestors_ids(report.administration_area)
@@ -305,7 +312,8 @@ def send_alert_new_report_email_superuser(report):
 
     allowed_administration_area_emails = []
     for group in allowed_administration_area_groups:
-        allowed_administration_area_emails.extend(group.group.user_set.filter(is_superuser=True).values_list('email', flat=True))
+        allowed_administration_area_emails.extend(
+            group.group.user_set.filter(is_superuser=True).values_list('email', flat=True))
 
     # INTERSECT BOTH PERMITTED GROUP ON REPORT TYPE AND AREA
     emails = list(set(allowed_report_type_emails) & set(allowed_administration_area_emails))
@@ -319,11 +327,12 @@ def send_alert_new_report_email_superuser(report):
 def send_alert_new_report_email(report):
     # FILTER PERMITTED GROUP ON REPORT TYPE
     allowed_report_type_groups = GroupReportType.objects.filter(report_type=report.type,
-        group__type=GROUP_WORKING_TYPE_ALERT_REPORT_REPORT_TYPE)
+                                                                group__type=GROUP_WORKING_TYPE_ALERT_REPORT_REPORT_TYPE)
 
     allowed_report_type_emails = []
     for group in allowed_report_type_groups:
-        allowed_report_type_emails.extend(group.group.user_set.filter(is_superuser=False).values_list('email', flat=True))
+        allowed_report_type_emails.extend(
+            group.group.user_set.filter(is_superuser=False).values_list('email', flat=True))
 
     # FILTER PERMITTED GROUP ON ADMINISTRATION AREA
     area_ids = get_administration_area_and_ancestors_ids(report.administration_area)
@@ -332,7 +341,8 @@ def send_alert_new_report_email(report):
 
     allowed_administration_area_emails = []
     for group in allowed_administration_area_groups:
-        allowed_administration_area_emails.extend(group.group.user_set.filter(is_superuser=False).values_list('email', flat=True))
+        allowed_administration_area_emails.extend(
+            group.group.user_set.filter(is_superuser=False).values_list('email', flat=True))
 
     # INTERSECT BOTH PERMITTED GROUP ON REPORT TYPE AND AREA
     emails = list(set(allowed_report_type_emails) & set(allowed_administration_area_emails))
@@ -353,7 +363,7 @@ def _send_new_report_email(report, emails):
         try:
             try:
                 email_title_template = Configuration.objects.get(
-                    system='web.email_template.alert_new_report', key='title:%s' % (report.type.code, ))
+                    system='web.email_template.alert_new_report', key='title:%s' % (report.type.code,))
             except Configuration.DoesNotExist:
                 email_title_template = Configuration.objects.get(
                     system='web.email_template.alert_new_report', key='title')
@@ -375,7 +385,7 @@ def _send_new_report_email(report, emails):
         try:
             try:
                 email_body_template = Configuration.objects.get(
-                    system='web.email_template.alert_new_report', key='body:%s' % (report.type.code, ))
+                    system='web.email_template.alert_new_report', key='body:%s' % (report.type.code,))
             except Configuration.DoesNotExist:
                 email_body_template = Configuration.objects.get(
                     system='web.email_template.alert_new_report', key='body')
@@ -414,7 +424,7 @@ def _send_new_report_email(report, emails):
         system = get_system_user()
 
         LogItem.objects.log_action(key='REPORT_SEND_MAIL_NEW_REPORT', created_by=system,
-            object1=report, data={
+                                   object1=report, data={
                 'emails': ','.join(emails)
             })
     except:
@@ -432,19 +442,19 @@ def send_alert_new_report_gcm_message(report):
             try:
                 reply_message_to_reporter = Configuration.objects.get(
                     system='android.server.push_notification',
-                    key='reply_message_to_reporter:%s' % (report.type.code, )
+                    key='reply_message_to_reporter:%s' % (report.type.code,)
                 ).value
             except Configuration.DoesNotExist:
                 reply_message_to_reporter = Configuration.objects.get(system='android.server.push_notification',
                                                                       key='reply_message_to_reporter').value
         except Configuration.DoesNotExist:
             reply_message_to_reporter = u'<p>ขณะนี้ศูนย์ประสานงานโครงการผ่อดีดีได้รับรายงานเหตุผิดปกติของท่านแล้ว</p>' \
-                + u'<p>เจ้าหน้าที่ศูนย์ประสานงานจะดำเนินการเก็บข้อมูล, ประเมินสถานการณ์ในเหตุผิดปกติ และอาจมีการติดต่อกลับไป</p>' \
-                + u'<p>ขอความร่วมมือให้ท่านติดตามรายงานผิดปกติอย่างใกล้ชิด ขอบคุณค่ะ</p>'
+                                        + u'<p>เจ้าหน้าที่ศูนย์ประสานงานจะดำเนินการเก็บข้อมูล, ประเมินสถานการณ์ในเหตุผิดปกติ และอาจมีการติดต่อกลับไป</p>' \
+                                        + u'<p>ขอความร่วมมือให้ท่านติดตามรายงานผิดปกติอย่างใกล้ชิด ขอบคุณค่ะ</p>'
 
         message_type = NEWS_TYPE_NEWS
         notification = create_notification(report=report, receive_user=report.created_by,
-            message=reply_message_to_reporter, message_type=message_type)
+                                           message=reply_message_to_reporter, message_type=message_type)
         publish_gcm_message([device.gcm_reg_id], reply_message_to_reporter, message_type, notification.id)
         publish_apns_message([device.apns_reg_id], reply_message_to_reporter, notification.id)
 
@@ -457,7 +467,7 @@ def send_alert_new_report_gcm_message(report):
 def send_alert_new_report_sms(report):
     # FILTER PERMITTED GROUP ON REPORT TYPE
     allowed_report_type_groups = GroupReportType.objects.filter(report_type=report.type,
-        group__type=GROUP_WORKING_TYPE_ALERT_REPORT_REPORT_TYPE)
+                                                                group__type=GROUP_WORKING_TYPE_ALERT_REPORT_REPORT_TYPE)
 
     allowed_report_type_telephones = []
     for group in allowed_report_type_groups:
@@ -478,13 +488,13 @@ def send_alert_new_report_sms(report):
     try:
         try:
             new_report_sms = Configuration.objects.get(system='web.sms_templete.new_report',
-                                                       key='message:%s' % (report.type.code, )).value
+                                                       key='message:%s' % (report.type.code,)).value
         except Configuration.DoesNotExist:
             new_report_sms = Configuration.objects.get(system='web.sms_templete.new_report', key='message').value
     except Configuration.DoesNotExist:
         new_report_sms = u'{% if follow %}[ติดตาม] {% endif %}มีรายงานประเภท {{ report.type.name }} {{ template_rendered }} ที่{{ report.administration_area.address }}' \
-            + u' รายงานโดย {{ report.created_by.get_full_name }} ติดต่อกลับ {{ report.created_by.project_mobile_number }}' \
-            + u'{% if report.created_by.telephone %}หรือ {{ report.created_by.telephone }}{% endif %}'
+                         + u' รายงานโดย {{ report.created_by.get_full_name }} ติดต่อกลับ {{ report.created_by.project_mobile_number }}' \
+                         + u'{% if report.created_by.telephone %}หรือ {{ report.created_by.telephone }}{% endif %}'
 
     template = report.type.django_template
     form_data = json.loads(report.form_data)
@@ -511,7 +521,7 @@ def send_alert_new_case(flag):
 
     # FILTER PERMITTED GROUP ON REPORT TYPE
     allowed_report_type_groups = GroupReportType.objects.filter(report_type=report.type,
-        group__type=GROUP_WORKING_TYPE_ALERT_CASE_REPORT_TYPE)
+                                                                group__type=GROUP_WORKING_TYPE_ALERT_CASE_REPORT_TYPE)
 
     allowed_report_type_emails = []
     allowed_report_type_telephones = []
@@ -529,7 +539,6 @@ def send_alert_new_case(flag):
     for group in allowed_administration_area_groups:
         allowed_administration_area_emails.extend(group.group.user_set.values_list('email', flat=True))
         allowed_administration_area_telephones.extend(group.group.user_set.values_list('telephone', flat=True))
-
 
     # INTERSECT BOTH PERMITTED GROUP ON REPORT TYPE AND AREA
     emails = list(set(allowed_report_type_emails) & set(allowed_administration_area_emails))
@@ -595,7 +604,7 @@ def send_alert_new_case(flag):
         system = get_system_user()
 
         LogItem.objects.log_action(key='REPORT_SEND_MAIL_NEW_CASE', created_by=system,
-            object1=report, data={
+                                   object1=report, data={
                 'emails': ','.join(emails)
             })
 
@@ -618,12 +627,13 @@ def send_alert_new_case(flag):
 
         # ALERT NEW CASE MESSEGE
         try:
-            new_case_message = Configuration.objects.get(system='android.server.push_notification', key='new_case_message')
+            new_case_message = Configuration.objects.get(system='android.server.push_notification',
+                                                         key='new_case_message')
         except Configuration.DoesNotExist:
             pass
         else:
             if report.created_by.project_mobile_number:
-                project_mobile_number_link = report.created_by.project_mobile_number.split('0',1)[1]
+                project_mobile_number_link = report.created_by.project_mobile_number.split('0', 1)[1]
             else:
                 project_mobile_number_link = ''
 
@@ -638,7 +648,8 @@ def send_alert_new_case(flag):
             new_case_message_rendered = tt.render(cc)
 
             for device in devices:
-                notification = create_notification(report=report, receive_user=device.user, message=new_case_message_rendered, message_type=message_type)
+                notification = create_notification(report=report, receive_user=device.user,
+                                                   message=new_case_message_rendered, message_type=message_type)
 
             publish_gcm_message(gcm_devices, new_case_message_rendered, message_type)
             publish_apns_message(apns_devices, new_case_message_rendered)
@@ -648,8 +659,8 @@ def send_alert_new_case(flag):
             new_case_sms = Configuration.objects.get(system='web.sms_templete.new_case', key='message').value
         except Configuration.DoesNotExist:
             new_case_sms = u'เกิดเหตุประเภท {{ report.type.name }} {{ template_rendered }} ที่{{ report.administration_area.address }}' \
-            + u' รายงานโดย {{ report.created_by.get_full_name  }} ติดต่อกลับ {{ report.created_by.project_mobile_number }}' \
-            + u'{% if report.created_by.telephone %}หรือ {{ report.created_by.telephone }}{% endif %}'
+                           + u' รายงานโดย {{ report.created_by.get_full_name  }} ติดต่อกลับ {{ report.created_by.project_mobile_number }}' \
+                           + u'{% if report.created_by.telephone %}หรือ {{ report.created_by.telephone }}{% endif %}'
         else:
             template = report.type.django_template
             form_data = json.loads(report.form_data)
@@ -674,16 +685,50 @@ def send_alert_new_case(flag):
 @app.task(base=DomainTask, bind=True)
 @domain_celery_task
 def report_cep(report_id, payload):
-
     from reports.models import Report
-
     if settings.ESPER_CONNECTION_URL:
+        report = Report.objects.get(id=report_id)
+
         resp = requests.post('%sreport' % settings.ESPER_CONNECTION_URL, data=json.dumps(payload))
         print '======== CEP Response Code============='
         print resp.status_code
         print '==================================='
-        report = Report.objects.get(id=report_id)
-
+        from common.functions import get_system_user
+        system_user = get_system_user()
+        LogItem.objects.log_action(key='REPORT_TO_CEP',
+                                   created_by=system_user,
+                                   object1=report,
+                                   object2=report.type,
+                                   data={
+                                       'data': payload['data'] if 'data' in payload else {},
+                                       'name': payload['name'] if 'name' in payload else '',
+                                       'status_code': resp.status_code
+                                   })
+        try:
+            response = requests.post(
+                url="https://www.google-analytics.com/collect",
+                headers={
+                    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+                },
+                data={
+                    "v": "1",
+                    "t": "event",
+                    "ds": "podd-api",
+                    "ec": "cep",
+                    "ea": "report_cep",
+                    "el": report_id,
+                    "cd1": payload['name'] if 'name' in payload else '',
+                    "cd2": resp.status_code,
+                    "tid": "UA-164898471-1",
+                    "cid": "99999",
+                },
+            )
+            print('Google analytic Response HTTP Status Code: {status_code}'.format(
+                status_code=response.status_code))
+        except requests.exceptions.RequestException:
+            print('Google analytic HTTP Request failed')
+        except:
+            print('Google error unknown')
         # Auto regenerate schema from report, state, case when Esper restart
         if resp.status_code == 500:
             if "Event type named '%s' could not be found" % report.get_schema_name() in resp.text:
@@ -691,7 +736,6 @@ def report_cep(report_id, payload):
                 for state in report.type.report_state_report_type.all():
                     state.create_cep()
                 for case_definition in report.type.case_definition_report_type.all():
-
                     print 'create_cep', safe_str(case_definition)
                     case_definition.create_cep()
 
