@@ -16,9 +16,9 @@ from podd.celery import app, DomainTask
 from accounts.models import Authority, UserDevice, user_can_edit_basic_check, User
 from common.constants import NewsTypeChoices, NEWS_TYPE_NEWS, NOTIFICATION_SUPPORT_TEMPLATES, \
     NOTIFICATION_SUPPORT_TEMPLATE_PREFIX, NOTIFICATION_SUPPORT_TEMPLATE_SUFFIX
-from common.functions import publish_gcm_message, publish_sms_message, publish_apns_message, \
+from common.functions import publish_sms_message, publish_apns_message, \
     email_title_render_template, email_body_render_template, send_email_with_template, clean_phone_numbers, \
-    get_system_user
+    get_system_user, publish_fcm_message
 from common.models import AbstractCommonTrashModel, DomainMixin
 from common.pub_tasks import get_cache, set_cache
 from firebase.functions import create_token, post_message
@@ -503,11 +503,12 @@ class Notification(DomainMixin):
             report_id = self.report and self.report.id
             badge = Notification.objects.filter(receive_user=self.receive_user, is_seen=False).count()
 
-            # Send gcm
+            # Send fcm
             if not self.receive_user.is_anonymous or self.type == NEWS_TYPE_NEWS:
                 try:
                     device = UserDevice.objects.get(user=self.receive_user)
-                    publish_gcm_message([device.gcm_reg_id], self.render_message('gcm'), NEWS_TYPE_NEWS, self.id, report_id=report_id, badge=badge)
+                    if device.fcm_reg_id:
+                        publish_fcm_message([device.fcm_reg_id], self.render_message('gcm'), NEWS_TYPE_NEWS, self.id, report_id=report_id, badge=badge)
                     publish_apns_message([device.apns_reg_id], self.render_message('apns'), self.id, report_id=report_id, badge=badge)
                 except UserDevice.DoesNotExist:
                     pass

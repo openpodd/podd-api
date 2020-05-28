@@ -53,7 +53,7 @@ from notifications.models import Notification
 from plans.models import PlanReport
 from plans.serializers import PlanReportSerializer
 from reports import Area
-from reports.tasks import extract_image_gps, new_negative_report_rule
+from reports.tasks import extract_image_gps
 from reports.functions import _search
 from reports.models import Report, ReportType, ReportComment, AdministrationArea, ReportState, CaseDefinition, \
     ReportTypeCategory, ReportLike, ReportMeToo, ReportAbuse, AnimalLaboratoryCause, ReportLaboratoryItem, \
@@ -374,13 +374,8 @@ class ReportViewSet(viewsets.ModelViewSet):
                 pass
 
     def post_save(self, obj, created=False):
-
         if obj.negative:
             LogItem.objects.log_action(key='REPORT_CREATE', created_by=obj.created_by, object1=obj)
-            if settings.ESPER_CONNECTION_URL:
-                pass
-            else:
-                new_negative_report_rule.delay(obj) # deprecate when authority comes...
 
     def create(self, request):
 

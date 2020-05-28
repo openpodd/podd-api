@@ -4,12 +4,11 @@ import datetime
 from django.contrib import admin
 from django.contrib.admin.templatetags.admin_static import static
 from django.utils.html import format_html
-from accounts.models import User
+from accounts.models import User, UserDevice
 from common.constants import NEWS_TYPE_NEWS
+from common.functions import publish_fcm_message
 
 from .models import News
-from notifications.models import Notification
-from .pub_tasks import publish_news
 
 
 @admin.register(News)
@@ -45,13 +44,9 @@ class NewsAdmin(admin.ModelAdmin):
                     receive_user_list = User.objects.filter(domains=news.domain, is_active=True)
 
                 for receive_user in receive_user_list:
-                    Notification.objects.create(
-                        receive_user=receive_user,
-                        to=receive_user.username,
-                        created_by=news.created_by,
-                        type=NEWS_TYPE_NEWS,
-                        message=news.message
-                    )
+                    device = UserDevice.objects.get(user=receive_user)
+                    if device.fcm_reg_id:
+                        publish_fcm_message([device.fcm_reg_id], news.message, NEWS_TYPE_NEWS)
 
         if rows_updated:
             self.message_user(request, "%s news were successfully marked as published." % rows_updated)

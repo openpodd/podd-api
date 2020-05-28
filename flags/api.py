@@ -1,24 +1,19 @@
 from django.shortcuts import get_object_or_404
-
 from rest_framework import viewsets, status
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
-from rest_framework.decorators import api_view, authentication_classes, link, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from accounts.models import GroupReportType, GroupAdministrationArea
 from common.constants import (PRIORITY_IGNORE, PRIORITY_CASE,
-    GROUP_WORKING_TYPE_ALERT_CASE_REPORT_TYPE, GROUP_WORKING_TYPE_ALERT_CASE_ADMINSTRATION_AREA,
-    USER_STATUS_VOLUNTEER, USER_STATUS_ADDITION_VOLUNTEER)
+                              USER_STATUS_VOLUNTEER, USER_STATUS_ADDITION_VOLUNTEER)
 from common.functions import (has_permission_on_report_type, has_permission_on_administration_area,
-    filter_permitted_administration_areas_and_descendants, get_administration_area_and_ancestors_ids)
+                              get_administration_area_and_ancestors_ids)
 from flags.functions import create_flag_comment
 from flags.models import Flag
 from flags.serializers import FlagSerializer
 from logs.models import LogItem
 from reports.models import Report
 from reports.pub_tasks import publish_report_flag
-from reports.tasks import send_alert_new_case
 
 
 # Deprecate

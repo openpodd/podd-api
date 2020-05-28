@@ -1086,10 +1086,6 @@ class Report(AbstractCachedModel, DomainMixin):
                 if direct_to_list is None and not self.check_report_condition(accepted.condition, plan_list=self.accepted_plans(), authority=authority):
                     allow = False
 
-
-
-
-
                 if allow:
                     if direct_to_list is not None:
                         to_list = direct_to_list
