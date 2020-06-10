@@ -7,6 +7,17 @@ from firebase_admin import messaging
 
 
 @app.task
+def send_fcm_notification(fcm_reg_id, title, body):
+    messaging.send(messaging.Message(
+        token=fcm_reg_id,
+        notification=messaging.Notification(
+            title=title,
+            body=body
+        )
+    ))
+
+
+@app.task
 def send_fcm_message(message, message_type, report_id, notification_id, fcm_reg_id):
     data = {
         'id': notification_id or '',
@@ -14,8 +25,6 @@ def send_fcm_message(message, message_type, report_id, notification_id, fcm_reg_
         'type': message_type,
         'reportId': report_id or ''
     }
-    print(data)
-    print(fcm_reg_id)
     message = messaging.Message(
         data=data,
         token=fcm_reg_id,
