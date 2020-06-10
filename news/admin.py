@@ -44,9 +44,12 @@ class NewsAdmin(admin.ModelAdmin):
                     receive_user_list = User.objects.filter(domains=news.domain, is_active=True)
 
                 for receive_user in receive_user_list:
-                    device = UserDevice.objects.get(user=receive_user)
-                    if device.fcm_reg_id:
-                        publish_fcm_message([device.fcm_reg_id], news.message, NEWS_TYPE_NEWS)
+                    try:
+                        device = UserDevice.objects.get(user=receive_user)
+                        if device.fcm_reg_id:
+                            publish_fcm_message([device.fcm_reg_id], news.message, NEWS_TYPE_NEWS)
+                    except UserDevice.DoesNotExist:
+                        pass
 
         if rows_updated:
             self.message_user(request, "%s news were successfully marked as published." % rows_updated)
