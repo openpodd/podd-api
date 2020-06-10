@@ -47,7 +47,7 @@ class NewsAdmin(admin.ModelAdmin):
                     try:
                         device = UserDevice.objects.get(user=receive_user)
                         if device.fcm_reg_id:
-                            publish_fcm_message([device.fcm_reg_id], news.message, NEWS_TYPE_NEWS)
+                            publish_fcm_message([device.fcm_reg_id], news.message, 'news')
                     except UserDevice.DoesNotExist:
                         pass
 
