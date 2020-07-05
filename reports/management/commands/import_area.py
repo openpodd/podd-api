@@ -42,7 +42,7 @@ class Command(BaseCommand):
                 name = u'อำเภอ%s' % row[u'ชื่อ']
                 address = name
 
-                area = AdministrationArea.add_root(
+                area = AdministrationArea.objects.create(
                     name = name,
                     address = address,
                     location = point,

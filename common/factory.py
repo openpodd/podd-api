@@ -173,7 +173,7 @@ def create_administration_area(name=None, location='POINT (100.552206 13.808277)
     authority_name = randstr()
     authority = authority or Authority.objects.create(code=authority_name, name=authority_name)
 
-    area = AdministrationArea.add_root(
+    area = AdministrationArea.objects.create(
         name = name,
         location = location,
         address = address,

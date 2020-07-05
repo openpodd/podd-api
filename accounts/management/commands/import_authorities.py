@@ -50,7 +50,7 @@ class Command(BaseCommand):
             )
 
             authority.inherits.add(parent)
-            area = AdministrationArea.add_root(
+            area = AdministrationArea.objects.create(
                 name=name,
                 address=address or name,
                 location=point,

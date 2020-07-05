@@ -40,7 +40,7 @@ class Command(BaseCommand):
                                                                                             administration_area.id,
                                                                                             area.code))
                 except AdministrationArea.DoesNotExist:
-                    AdministrationArea.add_root(
+                    AdministrationArea.objects.create(
                         domain=domain,
                         name=area.name_th,
                         location=location,

@@ -492,46 +492,12 @@ class CaseDefinition(DomainMixin):
 
 
 
-class MixAdministrationAreaManager(DomainManager, NS_NodeManager):
+class MixAdministrationAreaManager(DomainManager):
     pass
-
-class CustomNS_Node(NS_Node):
-
-    parent = models.ForeignKey('self', null=True, blank=True)
-
-    class Meta:
-        abstract = True
-
-    def get_parent(self, update=False):
-        """
-        :returns: the parent node of the current node object.
-            Caches the result in the object itself to help in loops.
-        """
-
-        if self.parent:
-            return self.parent
-
-        if self.is_root():
-            return
-        try:
-            if update:
-                del self._cached_parent_obj
-            else:
-                self.parent = self._cached_parent_obj
-                self.save()
-                return self._cached_parent_obj
-        except AttributeError:
-            pass
-        # parent = our most direct ancestor
-        self._cached_parent_obj = self.get_ancestors().reverse()[0]
-        self.parent = self._cached_parent_obj
-        self.save()
-
-        return self._cached_parent_obj
 
 
 # NS_Node deprecate
-class AdministrationArea(CustomNS_Node, AbstractCachedModel, DomainMixin):
+class AdministrationArea(AbstractCachedModel, DomainMixin):
     name = models.CharField(max_length=200)
     location = models.PointField()
     area_code = models.CharField(max_length=10, null=True, blank=True)
@@ -544,8 +510,8 @@ class AdministrationArea(CustomNS_Node, AbstractCachedModel, DomainMixin):
 
     contacts = models.TextField(null=True, blank=True)
     remark = models.TextField(null=True, blank=True)
+    parent = models.ForeignKey('self', null=True, blank=True)
 
-    node_order_by = ['name']
     parent_name = None
     cached_vars = [('authority', True)]
 
@@ -558,6 +524,9 @@ class AdministrationArea(CustomNS_Node, AbstractCachedModel, DomainMixin):
 
     def __unicode__(self):
         return self.name
+
+    def get_parent(self, update=False):
+        return self.parent
 
     def warm_cache_public_feed(self):
         reports = Report.objects.filter(administration_area=self)
@@ -586,37 +555,6 @@ class AdministrationArea(CustomNS_Node, AbstractCachedModel, DomainMixin):
                 contacts = ''
 
         return clean_phone_numbers(contacts)
-
-
-    def save(self, *args, **kwargs):
-        if not self.id and (not self.lft or not self.rgt):
-            # Need to force to assign domain value here, because NS_Tree will raise
-            # ValidationError before DomainMixin assign it.
-            self.domain = Domain.objects.get(id=get_current_domain_id())
-            obj_dict = {}
-            for field in self._meta.fields:
-                try:
-                    obj_dict[field.name] = getattr(self, field.name)
-                except Domain.DoesNotExist:
-                    pass
-
-            obj = self.add_root(**obj_dict)
-            #if self.authority:
-            #    self.authority.administration_areas.add(obj)
-
-            self.id = obj.id
-            self.tree_id = obj.tree_id
-            self.lft = obj.lft
-            self.rgt = obj.rgt
-        else:
-            super(AdministrationArea, self).save(*args, **kwargs)
-
-        #if self.authority:
-        #    self.authority.update_stores.delay(field_names=['administration_areas'])
-
-        #if self.var_cache['authority'] and self.var_cache['authority'] != self.authority.id:
-        #    old_authority = Authority.objects.get(id=self.var_cache['authority'])
-        #    old_authority.update_stores(field_names=['administration_areas'])
 
     def user_can_edit(self, user):
         return user_can_edit_basic_check(user, self.authority and self.authority.admins.filter(id=user.id).count() > 0)

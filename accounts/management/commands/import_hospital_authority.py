@@ -51,7 +51,7 @@ class Command(BaseCommand):
                     level2 = Authority.objects.create(name=row['level2'], code=str(uuid.uuid4())[:8])
                     level2.inherits.add(level1)
 
-                    AdministrationArea.add_root(
+                    AdministrationArea.objects.create(
                         name=row['level2'],
                         address=row['level2'],
                         location='POINT (%s %s)' % (row['longitude'], row['latitude']),

@@ -73,7 +73,7 @@ class Command(BaseCommand):
                     lng = row['lng']
                     point = 'POINT (%s %s)' % (lng, lat)
 
-                    area = AdministrationArea.add_root(
+                    area = AdministrationArea.objects.create(
                         name=name,
                         address=address,
                         location=point,
