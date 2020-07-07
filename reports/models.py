@@ -559,6 +559,9 @@ class AdministrationArea(AbstractCachedModel, DomainMixin):
     def user_can_edit(self, user):
         return user_can_edit_basic_check(user, self.authority and self.authority.admins.filter(id=user.id).count() > 0)
 
+    def is_leaf(self):
+        return True
+
 
 class GeoDomainManager(GeoManager, DomainManager):
     pass
