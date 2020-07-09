@@ -81,6 +81,12 @@ class Command(BaseCommand):
                 if case_definition.description != original_case_definition.description:
                     case_definition.description = original_case_definition.description
                     should_save_case_definition = True
+                if case_definition.accumulate != original_case_definition.accumulate:
+                    case_definition.accumulate = original_case_definition.accumulate
+                    should_save_case_definition = True
+                if case_definition.window != original_case_definition.window:
+                    case_definition.window = original_case_definition.window
+                    should_save_case_definition = True
             except CaseDefinition.DoesNotExist:
                 should_save_case_definition = True
                 case_definition = copy.deepcopy(original_case_definition)
