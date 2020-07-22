@@ -20,10 +20,10 @@ def send_fcm_notification(fcm_reg_id, title, body):
 @app.task
 def send_fcm_message(message, message_type, report_id, notification_id, fcm_reg_id):
     data = {
-        'id': notification_id or '',
+        'id': str(notification_id) or '',
         'message': message,
         'type': message_type,
-        'reportId': report_id or ''
+        'reportId': str(report_id) or ''
     }
     message = messaging.Message(
         data=data,
