@@ -33,12 +33,11 @@ def send_fcm_message(message, message_type, report_id, notification_id, fcm_reg_
             data=data,
             token=fcm_reg_id,
         )
+        messaging.send(message)
     except UnregisteredError:
         logging.info('UnregisteredError: %s' % fcm_reg_id)
         from notifications.tasks import deregister_fcm_from_user_device
         deregister_fcm_from_user_device.delay(fcm_reg_id)
-
-    messaging.send(message)
 
 
 def create_room(domain_id, room_id, user_id, user_name, room_name, welcome_msg, meta=None):
