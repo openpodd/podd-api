@@ -112,6 +112,7 @@ def _send_delayed_follow_up(logger, domain):
                 logger.error('> %s Process task fail' % domain)
                 logger.error(e)
 
+
 @app.task
 def test_send_notification(type, users, subject='[test]', message='test send notification.'):
 
@@ -140,3 +141,13 @@ def test_send_notification(type, users, subject='[test]', message='test send not
                 settings.EMAIL_ADDRESS_NO_REPLY,
                 to_emails,
             )
+
+
+@app.task
+def deregister_fcm_from_user_device(fcm_reg_id):
+    from accounts.models import UserDevice
+
+    if fcm_reg_id:
+        for device in UserDevice.objects.filter(fcm_reg_id=fcm_reg_id):
+            device.fcm_reg_id = None
+            device.save()

@@ -6,7 +6,7 @@ from django.template import Template, Context
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
-from accounts.models import Configuration, UserCode, Authority
+from accounts.models import Configuration, Authority
 from common.functions import publish_sms_message, email_title_render_template, email_body_render_template, send_email_with_template
 from podd.celery import app
 

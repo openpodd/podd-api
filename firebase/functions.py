@@ -1,5 +1,8 @@
+import logging
 import re
 import time
+
+from firebase_admin.messaging import UnregisteredError
 from podd.celery import app
 
 from firebase_admin import db
@@ -25,13 +28,17 @@ def send_fcm_message(message, message_type, report_id, notification_id, fcm_reg_
         'type': message_type,
         'reportId': str(report_id) or ''
     }
-    message = messaging.Message(
-        data=data,
-        token=fcm_reg_id,
-    )
+    try:
+        message = messaging.Message(
+            data=data,
+            token=fcm_reg_id,
+        )
+    except UnregisteredError:
+        logging.info('UnregisteredError: %s' % fcm_reg_id)
+        from notifications.tasks import deregister_fcm_from_user_device
+        deregister_fcm_from_user_device.delay(fcm_reg_id)
 
-    response = messaging.send(message)
-    return response
+    messaging.send(message)
 
 
 def create_room(domain_id, room_id, user_id, user_name, room_name, welcome_msg, meta=None):
