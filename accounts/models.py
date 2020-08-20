@@ -474,8 +474,12 @@ class Authority(DomainMixin):
         from notifications.models import NotificationTemplate
 
         return self._base_notification_template_list.filter(
-            (Q(type=NotificationTemplate.TYPE_REPORTER_FEEDBACK) & Q(notice_template__authority=self) & Q(authority=self)) |
-            (~Q(type=NotificationTemplate.TYPE_REPORTER_FEEDBACK) & Q(notice_template__authority=self))
+            (Q(type=NotificationTemplate.TYPE_REPORTER_FEEDBACK) &
+             Q(notice_template__authority=self) &
+             Q(authority=self)) |
+            (~Q(type=NotificationTemplate.TYPE_REPORTER_FEEDBACK) &
+             Q(notice_template__authority=self) &
+             Q(notice_template__is_deleted=False))
         )
 
     def notification_template_disabled_list(self):

@@ -1017,7 +1017,9 @@ class Report(AbstractCachedModel, DomainMixin):
                 allow = True
                 # Check template enabled for authority
                 try:
-                    notification_authority = NotificationAuthority.objects.get(template__id=accepted.id, authority__id=authority.id)
+                    notification_authority = NotificationAuthority.objects.get(template__id=accepted.id,
+                                                                               authority__id=authority.id,
+                                                                               is_deleted=False)
                     if not notification_authority.to:
                         allow = False
                 except NotificationAuthority.DoesNotExist:
