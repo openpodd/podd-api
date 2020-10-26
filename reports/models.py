@@ -1076,6 +1076,13 @@ class Report(AbstractCachedModel, DomainMixin):
 
                                 receive_user = '@[email:%s]' % to
 
+                            elif re.match(r'^line:([^:]+):(\S+)', to):
+                                m = re.match(r'^line:([^:]+):(\S+)', to)
+                                notification_data['to'] = m.groups()[1]
+                                notification_data['original_to'] = to
+                                notification_data['anonymous_send'] = Notification.LINE_NOTIFICATION_ONLY
+                                receive_user = '@[line:%s]' % (m.groups()[0],)
+
                             elif to == '@[contacts]':
                                 to_list.extend(self.administration_area.get_contacts())
 

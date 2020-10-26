@@ -4,24 +4,18 @@ import json
 import re
 
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
 from django.template import Template, Context
-from py2neo import Graph, Record
-from py2neo.packages.httpstream import SocketError
 import requests
 import uuid
 import copy
 import traceback
-# import signal
 import unicodecsv as csv
 from uuid import uuid1
-import pika
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.core.mail import EmailMultiAlternatives
-from django.db.models import Q
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
@@ -30,10 +24,7 @@ from boto.s3.key import Key
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 from asteval import Interpreter
-from podd.celery import app
 
-from common.constants import (GROUP_WORKING_TYPE_ADMINSTRATION_AREA,
-    GROUP_WORKING_TYPE_REPORT_TYPE, PRIORITY_IGNORE, PRIORITY_OK, PRIORITY_CONTACT, PRIORITY_FOLLOW, PRIORITY_CASE)
 from common.pub_tasks import publish
 
 from accounts.models import Configuration
@@ -538,6 +529,26 @@ def publish_apns_message(apns_reg_id, message, notification_id=None, report_id=N
             'reportId': report_id,
             'badge': badge
         })
+
+
+def publish_line_message(message, to):
+    token = to
+    if to.startswith('line:'):
+        token = to.replace('line:', '')
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Bearer %s' % (token,)
+    }
+    params = {
+        'message': message,
+    }
+    if settings.NOTIFICATION_DISABLED:
+        print '------ LINE NOTIFY PARAMS ------'
+        print params
+        print '------ /LINE NOTIFY PARAMS -----'
+        return None
+    else:
+        return requests.post('https://notify-api.line.me/api/notify', params=params, headers=headers)
 
 
 def publish_sms_message(message, telephones):

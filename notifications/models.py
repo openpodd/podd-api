@@ -2,7 +2,7 @@
 
 import json
 
-from celery.contrib.methods import task, task_method
+from celery.contrib.methods import task_method
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
@@ -18,7 +18,7 @@ from common.constants import NewsTypeChoices, NEWS_TYPE_NEWS, NOTIFICATION_SUPPO
     NOTIFICATION_SUPPORT_TEMPLATE_PREFIX, NOTIFICATION_SUPPORT_TEMPLATE_SUFFIX
 from common.functions import publish_sms_message, publish_apns_message, \
     email_title_render_template, email_body_render_template, send_email_with_template, clean_phone_numbers, \
-    get_system_user, publish_fcm_message
+    get_system_user, publish_fcm_message, publish_line_message
 from common.models import AbstractCommonTrashModel, DomainMixin
 from common.pub_tasks import get_cache, set_cache
 from firebase.functions import create_token, post_message
@@ -309,6 +309,7 @@ class Notification(DomainMixin):
 
     SMS_ONLY = 1
     EMAIL_ONLY = 2
+    LINE_NOTIFICATION_ONLY = 3
 
     report = models.ForeignKey('reports.Report', null=True, blank=True)
     receive_user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='receive_user', null=True, blank=True)
@@ -534,6 +535,12 @@ class Notification(DomainMixin):
                         settings.EMAIL_ADDRESS_NO_REPLY,
                         [self.to],
                     )
+            elif self.anonymous_send == self.LINE_NOTIFICATION_ONLY:
+                message = self.render_message('sms')
+                response = publish_line_message(message, self.to)
+                if response:
+                    if response.status_code != 200:
+                        print response.content
             elif self.to == '@[chatroom]':
                 chat_room_id = self.report.id
                 system_user = get_system_user()
