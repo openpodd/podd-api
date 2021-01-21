@@ -13,7 +13,7 @@ from .models import News
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
-    fields = ('type', 'message', 'area', 'authority', 'created_by', 'published_at')
+    fields = ('type', 'message', 'authority', 'created_by', 'published_at')
     readonly_fields = ('created_by', 'published_at')
     list_display = ('__unicode__', 'is_published')
     actions = ['make_published']
