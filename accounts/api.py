@@ -459,16 +459,6 @@ class UserViewSet(viewsets.ModelViewSet):
         now = timezone.now()
         pass_time = now - datetime.timedelta(minutes=5)
 
-        if data.get('serialNumber'):
-            try:
-                user = User.objects.filter(serial_number=data['serialNumber'], date_joined__lt=pass_time).latest('id')
-                if user:
-                    return Response({'detail': 'serialNumber already exist.', 'serialNumber': ['Serial number is not found.']},
-                        status=status.HTTP_400_BAD_REQUEST)
-
-            except User.DoesNotExist:
-                pass
-
         if not data.get('username'):
            data['username'] = str(uuid.uuid4())[:10].replace('-', '')
 
@@ -929,44 +919,25 @@ def user_register_by_authority(request):
 
     if serializer.is_valid():
         now = timezone.now()
-        pass_time = now - datetime.timedelta(minutes=5)
-
         try:
-            user = User.objects.filter(serial_number=data['serialNumber'], date_joined__lt=pass_time).latest('id')
+            serializer.save()
+        except Exception as e:
+            print e
 
-            if user:
-                return Response(
-                    {'detail': 'serialNumber already exist.', 'serialNumber': ['Serial number is not found.']},
-                    status=status.HTTP_400_BAD_REQUEST)
+        user = serializer.object
 
-        except User.DoesNotExist:
+        user.username = generate_username(user.id)
+        user.display_password = password
+        user.status = user_status
+        user.trainer_status = trainer_status
+        user.trainer_authority_id = trainer_authority_id
+        if lineId:
+            user.lineId = lineId
+        user.save()
 
-            try:
-                user = User.objects.filter(serial_number=data['serialNumber'], date_joined__gte=pass_time).latest('id')
-            except User.DoesNotExist:
-                user = None
-
-        if not user:
-
-            try:
-                serializer.save()
-            except Exception as e:
-                print e
-
-            user = serializer.object
-
-            user.username = generate_username(user.id)
-            user.display_password = password
-            user.status = user_status
-            user.trainer_status = trainer_status
-            user.trainer_authority_id = trainer_authority_id
-            if lineId:
-                user.lineId = lineId
-            user.save()
-
-            LogItem.objects.log_action(key='USER_CREATE', created_by=user, object1=user, data={
-                'invitationCode': invitation_code,
-            })
+        LogItem.objects.log_action(key='USER_CREATE', created_by=user, object1=user, data={
+            'invitationCode': invitation_code,
+        })
 
         authority.users.add(user)
 

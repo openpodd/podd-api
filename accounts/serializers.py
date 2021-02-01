@@ -103,7 +103,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     firstName = serializers.WritableField('first_name')
     lastName = serializers.WritableField('last_name')
     serialNumber = serializers.WritableField('serial_number', required=False)
-    # authority = serializers.PrimaryKeyRelatedField()
 
     class Meta:
         model = User
