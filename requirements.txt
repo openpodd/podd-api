@@ -67,7 +67,7 @@ oauth2client==1.4.11
 opbeat==3.2
 pandas==0.24.2
 pika==0.9.14
-Pillow==2.6.1
+Pillow==8.1.1
 -e git+https://bitbucket.org/opendream/podd-form-generator@5bb9fae0c665a42c181d548819aac628bf838156#egg=podd_form_generator
 protobuf==3.10.0
 psycopg2==2.7.4
