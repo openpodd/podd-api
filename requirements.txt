@@ -18,7 +18,7 @@ Django==1.7.1
 django-cacheops==2.4.1
 django-cors-headers==0.13
 django-crum==0.6.1
-django-debug-toolbar==1.4
+django-debug-toolbar==1.11.1
 django-extensions==1.5.5
 django-filter==0.8
 django-haystack==2.3.1
