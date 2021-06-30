@@ -1380,3 +1380,15 @@ def join_party(request, join_code):
     party.users.add(user)
     serializer = PartySerializer(party)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated, ))
+def get_party(request, join_code):
+    try:
+        party = Party.objects.get(join_code=join_code)
+    except Party.DoesNotExist:
+        return Response({'error': 'Incorrect join code'}, status=403)
+    serializer = PartySerializer(party)
+    return Response(serializer.data, status=status.HTTP_200_OK)
