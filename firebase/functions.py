@@ -28,10 +28,13 @@ def send_fcm_message(message, message_type, report_id, notification_id, fcm_reg_
         'type': message_type,
         'reportId': str(report_id) or ''
     }
+    config =  messaging.AndroidConfig(priority="high",
+                                      fcm_options=messaging.AndroidFCMOptions(analytics_label=message_type))
     try:
         message = messaging.Message(
             data=data,
             token=fcm_reg_id,
+            android=config,
         )
         messaging.send(message)
     except UnregisteredError:
