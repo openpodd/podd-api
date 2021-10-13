@@ -36,7 +36,6 @@ router.register(r'plans', plans_api.PlanViewSet)
 router.register(r'planReports', plans_api.PlanReportViewSet)
 router.register(r'animalCauses', reports_api.AnimalLaboratoryCauseViewSet)
 router.register(r'reportLaboratoryItems', reports_api.ReportLaboratoryItemViewSet)
-
 urlpatterns = patterns('',
     url(r'^api-token-auth/', 'accounts.api.obtain_auth_token', name='obtain_auth_token'),
     url(r'^line-token-auth/', 'accounts.api.line_login_obtain_auth_token', name='line_login_obtain_auth_token'),
@@ -87,7 +86,7 @@ urlpatterns = patterns('',
     url(r'^list-configuration/', 'accounts.api.list_configuration', name='list_configuration'),
     url(r'^list-group-structure/', 'accounts.api.list_group_structure', name='list_group_structure'),
     url(r'^ping/', 'accounts.api.ping', name='ping'),
-    
+
     url(r'^mentions/seen/', 'mentions.api.seen_mention', name='mention-seen'),
     url(r'^mentions/', 'mentions.api.list_mention', name='mention-list'),
 
@@ -135,7 +134,7 @@ urlpatterns = patterns('',
 
     # url(r'^notifications/import/', 'notifications.api.import_notifications', name='notifications-import'),
     url(r'^notifications/seen/', 'notifications.api.seen_notification', name='notification-seen'),
-    
+
     url(r'^dashboard/villages/', 'reports.api.dashboard_villages', name='dashboard_villages'),
 
     url(r'^funf/upload/', 'monitorings.api.upload_monitoring', name='monitoring-upload'),
@@ -152,5 +151,8 @@ urlpatterns = patterns('',
 
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^test-dodd/(?P<report_id>\d+)/', 'dodd.views.test_link_report', name='test_dodd'),
+    url(r'^covid/monitoring/', 'covid.views.list_monitoring', name='covid_list'),
+    url(r'^covid/summary/(?P<authority_id>\d+)', 'covid.views.daily_summary', name='covid_list'),
     url(r'^', include(router.urls)),
 )
+

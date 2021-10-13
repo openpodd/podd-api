@@ -82,6 +82,7 @@ INSTALLED_APPS = (
     'summary',
     'firebase',
     'dodd',
+    'covid',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -269,6 +270,18 @@ CELERYBEAT_SCHEDULE = {
     'fetch-dashboard-for-every-days': {
         'task': 'pages.tasks.fetch_dashboard_for_every_days',
         'schedule': crontab(hour=0, minute=0),
+    },
+    'covid-daily-summarize': {
+        'task': 'covid.tasks.daily_summarize',
+        'schedule': crontab(hour=0, minute=0), # UTC TIME
+    },
+    'covid-reporter-followup-notification': {
+        'task': 'covid.tasks.notify_reporter_when_no_followup_in_n_days',
+        'schedule': crontab(hour=0, minute=30), # UTC TIME
+    },
+    'covid-daily-summary-notification': {
+        'task': 'covid.tasks.daily_notify_authority',
+        'schedule': crontab(hour=3, minute=0), # UTC TIME
     }
 }
 
@@ -373,3 +386,12 @@ SNS_REPORT_ENABLE = False
 SNS_REPORT_MAPPING = {
 }
 
+COVID_REPORT_TYPE_CODE = "surveillance-covid-19"
+COVID_FOLLOWUP_TYPE_CODE = "surveillance-covid-19-followup"
+COVID_FOLLOWUP_TERMINATE_14_DAYS_PATTERN = u"สิ้นสุดการติดตาม"
+COVID_FOLLOWUP_TERMINATE_DEPARTURE_PATTERN = u"ออกนอกพื้นที่"
+COVID_FOLLOWUP_CONFIRMED_CASE_PATTERN = u"ผู้ป่วยยืนยัน"
+COVID_FOLLOWUP_DAYS = 14
+COVID_FOLLOWUP_NOTIFICATION_ALARM_DAYS = 2
+COVID_FOLLOWUP_NOTIFICATION_MESSAGE = "report has no follow up for 2 days, {{ report.rendered_report_compact }}"
+COVID_MONITORING_ENABLE = False
