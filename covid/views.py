@@ -7,6 +7,8 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from accounts.models import Authority
+from common.utils import thai_strftime
 from covid.models import MonitoringReport, DailySummary, DailySummaryByVillage
 from covid.serializers import MonitoringReportSerializer, DailySummaryByVillageSerializer, DailySummarySerializer
 
@@ -17,7 +19,7 @@ from datetime import datetime
 @authentication_classes((TokenAuthentication, SessionAuthentication))
 @permission_classes((IsAuthenticated,))
 def list_monitoring(request):
-    all = request.GET.get('all')
+    all_flag = request.GET.get('all')
     timezone = pytz.timezone("Asia/Bangkok")
     today = date.today()
     user = request.user
@@ -25,7 +27,7 @@ def list_monitoring(request):
         active=True,
         until__gte=today,
     ).prefetch_related("report")
-    if all:
+    if all_flag:
         reports = reports.filter(reporter_id=user.id)
     else:
         reports = reports.filter(authority__in=user.authority_users.all())
@@ -37,11 +39,30 @@ def list_monitoring(request):
 def daily_summary(request, authority_id):
     date_str = request.GET.get('date')
     parsed_date = datetime.strptime(date_str, "%Y-%m-%d")
+    datetime.strftime(parsed_date, "%d/%m/%Y")
 
-    daily_summary = DailySummary.objects.filter(authority_id=authority_id, date=parsed_date)
-    daily_summary_by_village = DailySummaryByVillage.objects.filter(authority_id=authority_id, date=parsed_date)
+    ds = DailySummary.objects.get(authority_id=authority_id, date=parsed_date)
+    dsbv = DailySummaryByVillage.objects.filter(authority_id=authority_id, date=parsed_date)
+    authority = Authority.objects.get(pk=authority_id)
+
+    total_low_risk = 0
+    total_medium_risk = 0
+    total_high_risk = 0
+    total_total = 0
+    for village in dsbv:
+        total_low_risk += village.low_risk
+        total_medium_risk += village.medium_risk
+        total_high_risk += village.high_risk
+        total_total += village.total
 
     return render(request, 'covid/daily_summary.html', {
-        "daily_summary": daily_summary,
-        "daily_summary_by_village": daily_summary_by_village
+        "daily_summary": ds,
+        "daily_summary_by_village": dsbv,
+        "date": parsed_date,
+        "th_date": thai_strftime(parsed_date),
+        "authority": authority,
+        "total_low_risk": total_low_risk,
+        "total_medium_risk": total_medium_risk,
+        "total_high_risk": total_high_risk,
+        "total_total": total_total
     })

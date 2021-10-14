@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 from django.conf import settings
 from django.db import connection
 from django.utils import timezone
@@ -30,10 +31,21 @@ authority_id,
 village_no,
 sum(case report_latest_state_code when 'LowRisk' then 1 else 0 end) as low_risk,
 sum(case report_latest_state_code when 'MediumRisk' then 1 else 0 end) as medium_risk,
-sum(case report_latest_state_code when 'HighRisk' then 1 else 0 end) as high_risk
+sum(case report_latest_state_code when 'HighRisk' then 1 else 0 end) as high_risk,
+sum(case report_latest_state_code when 'Confirmed' then 1 else 0 end) as confirmed
 FROM covid_monitoringreport cmr
 where cmr.started_at <= %s
 and cmr.until >= %s
+group by authority_id, village_no
+'''
+
+sum_confirmed_14_by_village = '''
+SELECT
+authority_id,
+village_no,
+sum(confirmed) as confirmed
+FROM covid_dailysummarybyvillage
+where date between %s and %s
 group by authority_id, village_no
 '''
 
@@ -56,8 +68,17 @@ risks = ['LowRisk',
 def daily_summarize():
     today = date.today()
     yesterday = today - timedelta(days=1)
+    back_14 = yesterday - timedelta(days=14)
 
     with connection.cursor() as cursor:
+        authority_confirmed = {}
+        cursor.execute(sum_confirmed_14_by_village, [back_14, yesterday])
+        for row in cursor.fetchall():
+            authority_id = row[0]
+            village_no = row[1]
+            confirmed = row[2]
+            authority_confirmed[(authority_id, village_no)] = confirmed
+
         cursor.execute(sum_by_risk, [yesterday, yesterday])
         for row in cursor.fetchall():
             authority_id = row[0]
@@ -65,6 +86,10 @@ def daily_summarize():
             low_risk = row[2]
             medium_risk = row[3]
             high_risk = row[4]
+            confirmed = row[5]
+            confirmed_found_in_14 = 0
+            if (authority_id, village_no) in authority_confirmed:
+                confirmed_found_in_14 = authority_confirmed[(authority_id, village_no)]
             DailySummaryByVillage.objects.update_or_create(
                 authority_id=authority_id,
                 date=yesterday,
@@ -72,7 +97,9 @@ def daily_summarize():
                 defaults={
                     "low_risk": low_risk,
                     "medium_risk": medium_risk,
-                    "high_risk": high_risk
+                    "high_risk": high_risk,
+                    "confirmed": confirmed,
+                    "confirmed_found_in_14": confirmed_found_in_14
                 }
             )
         cursor.execute(sum_by_authority, [yesterday, yesterday])
@@ -108,6 +135,6 @@ def daily_notify_authority():
         authority = authorityInfo.authority
         line_token = authorityInfo.line_notify_token
         if line_token is not None:
-            msg = 'สรุปการเฝ้าระวังโรคติดเชื้อโควิด-19 วันที่ %s link: https://api.cmonehealth.org/covid/summary/%s?date=%s' % (
+            msg = 'สรุปการเฝ้าระวังโรคติดเชื้อโควิด-19 วันที่ %s link: https://api.cmonehealth.org/covid/summary/%s/?date=%s' % (
                 yesterday_str, authority.id, yesterday_str)
             publish_line_message(msg, line_token)

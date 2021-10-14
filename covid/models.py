@@ -97,6 +97,10 @@ class DailySummary(models.Model):
     class Meta:
         unique_together = ("authority", "date")
 
+    @property
+    def qty_total(self):
+        return self.qty_ongoing_monitoring + self.qty_acc_finished
+
 
 class DailySummaryByVillage(models.Model):
     authority = models.ForeignKey(Authority, on_delete=models.PROTECT)
@@ -105,9 +109,27 @@ class DailySummaryByVillage(models.Model):
     low_risk = models.IntegerField(default=0)
     medium_risk = models.IntegerField(default=0)
     high_risk = models.IntegerField(default=0)
+    confirmed = models.IntegerField(default=0)
+    confirmed_found_in_14 = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ("authority", "date", "village_no")
+
+    @property
+    def total(self):
+        return self.low_risk + self.medium_risk + self.high_risk
+
+    @property
+    def risk_type(self):
+        if self.confirmed_found_in_14 or self.confirmed > 0:
+            return 'confirmed'
+        elif self.high_risk + self.medium_risk > 10:
+            return 'high'
+        elif self.high_risk + self.medium_risk > 0:
+            return 'medium'
+        elif self.low_risk > 0:
+            return 'low'
+        return 'none'
 
 
 class AuthorityInfo(models.Model):

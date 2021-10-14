@@ -1,11 +1,303 @@
 <!DOCTYPE html>
 <html class="no-js" lang="en">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <title>รายงานการเฝ้าระวังโรคติดเชื้อโควิด-19</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .table-root {
+            width: 100%;
+            display: table;
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+
+        .tablerow-root {
+            color: inherit;
+            display: table-row;
+            outline: 0;
+            vertical-align: middle;
+        }
+
+        .tablecell-root {
+            display: table-cell;
+            padding: 8px;
+            font-size: 0.875rem;
+            text-align: left;
+            font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+            font-weight: 400;
+            line-height: 1.43;
+            border-bottom: 1px solid rgba(224, 224, 224, 1);
+            letter-spacing: 0.01071em;
+            vertical-align: inherit;
+        }
+
+        .tablecell-data {
+            text-align: center;
+        }
+
+        table thead {
+            background-color: #0171bf;
+            border-color: black;
+            border-style: solid;
+            border-width: 2px;
+            color: white;
+        }
+
+        table thead th {
+            text-align: center;
+            border-width: 0px;
+        }
+
+        .header1-3 {
+            font-size: 22px !important;
+            font-weight: 600;
+        }
+
+        .table-1 thead th {
+            font-size: 18px;
+            text-align: center;
+            border-width: 0px;
+        }
+
+        .table-1 tbody {
+            border-color: black;
+            border-style: solid;
+            border-width: 2px;
+        }
+
+        .table-1 tbody td {
+            color: #5986ae;
+            font-size: 18px;
+            font-weight: 500;
+            border-color: black;
+            border-bottom-style: dashed;
+        }
+
+
+        .level1 {
+            color: black !important;
+            background-color: #00af51;
+        }
+
+        .level2 {
+            color: black !important;
+            background-color: #91d050;
+        }
+
+        .level3 {
+            color: black !important;
+            background-color: #feff00;
+        }
+
+        .level4 {
+            color: black !important;
+            background-color: #fe0000;
+        }
+
+        .level5 {
+            color: black !important;
+            background-color: #7130a0;
+        }
+
+        .none {
+            color: black !important;
+            background-color: #00af51;
+        }
+
+        .low {
+            color: black !important;
+            background-color: #91d050;
+        }
+
+        .medium {
+            color: black !important;
+            background-color: #feff00;
+        }
+
+        .high {
+            color: black !important;
+            background-color: #fe0000;
+        }
+
+        .confirmed {
+            color: black !important;
+            background-color: #7130a0;
+        }
+
+        .number {
+            color: black !important;
+            text-decoration: underline;
+        }
+
+        .col2 {
+            border-left: 1px dashed black;
+            border-right: 2px solid black;
+        }
+
+        .separate {
+            border-left: 1px dashed black;
+            border-bottom: 2px solid black !important;
+        }
+
+        .table2 thead th {
+            border: 2px solid black;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .table2 tbody td {
+            color: #5986ae;
+            border: 2px solid black;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .table2 tfoot td {
+            color: white;
+            border: 2px solid black;
+            font-size: 18px;
+            font-weight: 500;
+            background-color: #1f4f78;
+        }
+
+        .level-header {
+            color: black !important;
+            background-color: #bed5ed;
+        }
+
+        .place-4 {
+            color: #b5d846;
+        }
+
+        .date-5 {
+            color: #b5d846;
+        }
+    </style>
 </head>
 <body>
-รายงานการเฝ้าระวังโรคติดเชื้อโควิด
+<table class="table-root table-1" aria-label="รายงานการเฝ้าระวังโรคติดเชื้อโควิด-19">
+    <thead class="">
+    <tr class="tablerow-root">
+        <th class="tablecell-root header1-3" scope="col" colspan="3">รายงานการเฝ้าระวังโรคติดเชื้อโควิด-19</th>
+    </tr>
+    <tr class="tablerow-root">
+        <th class="tablecell-root " scope="col" colspan="3">
+            ในพื้นที่ <span class="place-4">{{ authority.name }}</span></th>
+    </tr>
+    <tr class="tablerow-root">
+        <th class="tablecell-root " scope="col" colspan="3">
+            ประจำ<span class="date-5"> วันที่ {{ th_date }}</span></th>
+    </tr>
+    </thead>
+    <tbody class="MuiTableBody-root">
+    <tr class="tablerow-root">
+        <td class="tablecell-root" role="cell" scope="row">ผู้ป่วยรายใหม่:</td>
+        <td class="tablecell-root col2" role="cell" scope="row"><span class="number">{{ daily_summary.qty_new_case }}</span></td>
+        <td class="tablecell-root level1" role="cell" scope="row">สีเขียวเข้ม คือ
+            หมู่บ้านที่ไม่มีความเสี่ยง
+        </td>
+    </tr>
+    <tr class="tablerow-root">
+        <td class="tablecell-root" role="cell" scope="row">ผู้ป่วยยืนยันกำลังรักษา:</td>
+        <td class="tablecell-root col2" role="cell" scope="row"><span class="number"></span></td>
+        <td class="tablecell-root level2" role="cell" scope="row">สีเขียวอ่อน คือ
+            หมู่บ้านที่มีความเสี่ยงต่ำ
+        </td>
+    </tr>
+    <tr class="tablerow-root">
+        <td class="tablecell-root" role="cell" scope="row">ผู้ป่วยยืนยันรักษาหาย:</td>
+        <td class="tablecell-root col2" role="cell" scope="row"><span class="number"></span></td>
+        <td class="tablecell-root level3" role="cell" scope="row">สีเหลือง คือ
+            หมู่บ้านที่มีผู้มีความเสี่ยงกลางและความเสี่ยงสูง 1-10 คน
+        </td>
+    </tr>
+    <tr class="tablerow-root">
+        <td class="tablecell-root separate" role="cell" scope="row">
+            ผู้ป่วยยืนยันสะสมทั้งหมด:
+        </td>
+        <td class="tablecell-root separate col2" role="cell" scope="row"><span class="number"></span>
+        </td>
+        <td class="tablecell-root level4" role="cell" scope="row">สีแดง คือ
+            หมู่บ้านที่มีผู้มีความเสี่ยงกลางและความเสี่ยงสูงเกิน 10 คนขึ้นไป
+        </td>
+    </tr>
+    <tr class="tablerow-root">
+        <td class="tablecell-root" role="cell" scope="row">ผู้ที่มีความเสี่ยงรายใหม่:</td>
+        <td class="tablecell-root col2" role="cell" scope="row"><span class="number">{{ daily_summary.qty_new_monitoring }}</span></td>
+        <td class="tablecell-root level5" role="cell" scope="row">สีม่วง คือ
+            หมู่บ้านที่พบผู้ป่วยยืนยันใน 14 วัน
+        </td>
+    </tr>
+    <tr class="tablerow-root">
+        <td class="tablecell-root" role="cell" scope="row">ผู้ที่มีความเสี่ยงกำลังกักตัว:</td>
+        <td class="tablecell-root col2" role="cell" scope="row"><span class="number">{{  daily_summary.qty_ongoing_monitoring }}</span></td>
+        <td class="tablecell-root" role="cell" scope="row"></td>
+    </tr>
+    <tr class="tablerow-root">
+        <td class="tablecell-root" role="cell" scope="row">ผู้มีความเสี่ยงกักตัวครบครบ 14 วัน สะสม:
+        </td>
+        <td class="tablecell-root col2" role="cell" scope="row"><span class="number">{{  daily_summary.qty_acc_finished }}</span></td>
+        <td class="tablecell-root" role="cell" scope="row"></td>
+    </tr>
+    <tr class="tablerow-root">
+        <td class="tablecell-root" role="cell" scope="row">ผู้มีความเสี่ยงสะสมทั้งหมด:</td>
+        <td class="tablecell-root col2" role="cell" scope="row"><span class="number">{{ daily_summary.qty_total }}</span></td>
+        <td class="tablecell-root" role="cell" scope="row"></td>
+    </tr>
+    </tbody>
+</table>
+
+<table class="table-root table2" aria-label="รายงานการเฝ้าระวังโรคติดเชื้อโควิด-19" style="margin-top: 10px;">
+    <thead class="">
+    <tr class="tablerow-root">
+        <th class="tablecell-root" scope="col" rowspan="2">
+            หมู่บ้าน
+        </th>
+        <th class="tablecell-root" scope="col" colspan="4">
+            จำนวนผู้ที่มีความเสี่ยงระดับต่างๆ
+        </th>
+        <th class="tablecell-root" scope="col" rowspan="2">
+            สถานะ
+        </th>
+    </tr>
+    <tr class="tablerow-root">
+        <th class="tablecell-root level-header" scope="col">
+            ต่ำ
+        </th>
+        <th class="tablecell-root level-header" scope="col">
+            กลาง
+        </th>
+        <th class="tablecell-root level-header" scope="col">
+            สูง
+        </th>
+        <th class="tablecell-root level-header" scope="col">
+            รวม
+        </th>
+    </tr>
+    </thead>
+    <tbody class="">
+    {% for item in daily_summary_by_village %}
+    <tr class="tablerow-root">
+        <td class="tablecell-root tablecell-data" role="cell" scope="row"><span>{{ item.village_no }}</span></td>
+        <td class="tablecell-root tablecell-data" role="cell" scope="row"><span>{{ item.low_risk }}</span></td>
+        <td class="tablecell-root tablecell-data" role="cell" scope="row"><span>{{ item.medium_risk }}</span></td>
+        <td class="tablecell-root tablecell-data" role="cell" scope="row"><span>{{ item.high_risk }}</span></td>
+        <td class="tablecell-root tablecell-data" role="cell" scope="row"><span>{{ item.total }}</span></td>
+        <td class="tablecell-root {{ item.risk_type }}" role="cell" scope="row"><span></span></td>
+    </tr>
+    {%  endfor %}
+    </tbody>
+    <tfoot class="">
+    <tr class="tablerow-root">
+        <td class="tablecell-root tablecell-data" role="cell" scope="row"><span>Total</span></td>
+        <td class="tablecell-root tablecell-data" role="cell" scope="row"><span>{{ total_low_risk }}</span></td>
+        <td class="tablecell-root tablecell-data" role="cell" scope="row"><span>{{ total_medium_risk }}</span></td>
+        <td class="tablecell-root tablecell-data" role="cell" scope="row"><span>{{ total_high_risk }}</span></td>
+        <td class="tablecell-root tablecell-data" role="cell" scope="row"><span>{{ total_total }}</span></td>
+        <td class="tablecell-root" role="cell" scope="row"><span></span></td>
+    </tr>
+    </tfoot>
+</table>
 </body>
 </html>
