@@ -887,7 +887,6 @@ def get_group_by_invitation_code(request):
 @api_view(['POST'])
 def user_register_by_authority(request):
 
-
     data = request.DATA.copy()
     data['username'] = str(uuid.uuid4())[:10].replace('-', '')
     data['status'] = data.get('status') or USER_STATUS_ADDITION_VOLUNTEER
@@ -1202,6 +1201,20 @@ def facebook_connect(request, domain_id):
         return Response({'facebook_access_token': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
 
 '''
+
+
+@api_view(['POST'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated, ))
+def update_line_id(request):
+    data = request.DATA.copy()
+    line_id = data.get('lineId', None)
+    user_id = data.get('userId', None)
+    if line_id and user_id:
+        User.objects.filter(pk=user_id).update(line_id=line_id)
+    return Response({
+        "success": True
+    })
 
 
 @api_view(['POST'])

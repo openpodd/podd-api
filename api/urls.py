@@ -39,6 +39,7 @@ router.register(r'reportLaboratoryItems', reports_api.ReportLaboratoryItemViewSe
 urlpatterns = patterns('',
     url(r'^api-token-auth/', 'accounts.api.obtain_auth_token', name='obtain_auth_token'),
     url(r'^line-token-auth/', 'accounts.api.line_login_obtain_auth_token', name='line_login_obtain_auth_token'),
+    url(r'^update-line-id/', 'accounts.api.update_line_id', name='update_line_id'),
     url(r'^firebase/token', 'firebase.api.obtain_firebase_token', name='obtain_firebase_token'),
     url(r'^firebase/podd/auth', 'firebase.api.podd_auth', name='firebase_podd_auth'),
     url(r'^configuration/', 'accounts.api.configuration', name='configuration'),
