@@ -15,7 +15,9 @@ class MonitoringReportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MonitoringReport
-        fields = ('id', 'name', 'started_at', 'until', 'report_id', 'authority_id', 'status', 'report')
+        fields = (
+            'id', 'name', 'started_at', 'until', 'report_id', 'authority_id', 'status', 'report', 'followup_count',
+            'latest_followup_date')
 
 
 class DailySummarySerializer(serializers.ModelSerializer):

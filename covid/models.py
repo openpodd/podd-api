@@ -25,6 +25,8 @@ class MonitoringReport(models.Model):
     terminate_cause = models.TextField(max_length=255, blank=True, null=True)
     name = models.TextField(max_length=255, default="")
     report_latest_state_code = models.TextField(max_length=50, blank=True, null=True)
+    latest_followup_date = models.DateField(blank=True, null=True)
+    followup_count = models.IntegerField(default=0)
 
     def __unicode__(self):
         return "%s %s" % (self.id, self.name,)
@@ -57,15 +59,17 @@ class MonitoringReport(models.Model):
         assert parent_id is not None, "followup report must have parent id"
         monitoring = MonitoringReport.objects.get(report_id=parent_id)
         followup_status = form_data['activity_close']
-        if followup_status is None:
-            return
-        if followup_status.find(settings.COVID_FOLLOWUP_TERMINATE_14_DAYS_PATTERN) != -1 or followup_status.find(
-                settings.COVID_FOLLOWUP_TERMINATE_DEPARTURE_PATTERN) != -1 or followup_status.find(
-                settings.COVID_FOLLOWUP_CONFIRMED_CASE_PATTERN) != -1:
-            monitoring.until = datetime.datetime.now()
-            monitoring.terminate_cause = followup_status
-            monitoring.active = False
-            monitoring.save()
+        if followup_status is not None:
+            if followup_status.find(
+                    settings.COVID_FOLLOWUP_TERMINATE_14_DAYS_PATTERN) != -1 or followup_status.find(
+                    settings.COVID_FOLLOWUP_TERMINATE_DEPARTURE_PATTERN) != -1 or followup_status.find(
+                    settings.COVID_FOLLOWUP_CONFIRMED_CASE_PATTERN) != -1:
+                monitoring.until = datetime.datetime.now()
+                monitoring.terminate_cause = followup_status
+                monitoring.active = False
+        monitoring.followup_count = monitoring.followup_count + 1
+        monitoring.latest_followup_date = instance.incident_date
+        monitoring.save()
 
 
 @receiver(post_save, sender=Report)
@@ -76,9 +80,8 @@ def covid_monitoring_handler(sender, instance, **kwargs):
         try:
             if instance.type.code == settings.COVID_REPORT_TYPE_CODE:
                 MonitoringReport.sync_from_report(instance)
-            else:
-                if instance.type.code == settings.COVID_FOLLOWUP_TYPE_CODE:
-                    MonitoringReport.sync_from_followup(instance)
+            elif instance.type.code == settings.COVID_FOLLOWUP_TYPE_CODE:
+                MonitoringReport.sync_from_followup(instance)
         except:
             print(sys.exc_info()[0])
 
