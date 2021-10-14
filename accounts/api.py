@@ -898,7 +898,7 @@ def user_register_by_authority(request):
 
     invitation_code = data.get('group') or data.get('authority') or data.get('code')
 
-    lineId = data.get('lineId') or None
+    line_id = data.get('lineId') or None
 
     if not invitation_code:
         return Response({"detail": "code is required.", 'group': ['Code is required.']},
@@ -931,8 +931,8 @@ def user_register_by_authority(request):
         user.status = user_status
         user.trainer_status = trainer_status
         user.trainer_authority_id = trainer_authority_id
-        if lineId:
-            user.lineId = lineId
+        if line_id:
+            user.line_id = line_id
         user.save()
 
         LogItem.objects.log_action(key='USER_CREATE', created_by=user, object1=user, data={
