@@ -1,14 +1,15 @@
 # -*- encoding: utf-8 -*-
 from django.conf import settings
 from django.db import connection
-from django.utils import timezone
 from datetime import timedelta, date, datetime
 
 from common.functions import publish_line_message
 from covid.models import MonitoringReport, DailySummaryByVillage, DailySummary, AuthorityInfo
 from notifications.models import Notification, NotificationTemplate
+from podd.celery import app
 
 
+@app.task
 def notify_reporter_when_no_followup_in_n_days():
     today = date.today()
     cut_off_day = today - timedelta(days=settings.COVID_FOLLOWUP_NOTIFICATION_ALARM_DAYS)
@@ -65,6 +66,7 @@ risks = ['LowRisk',
          'HighRisk']
 
 
+@app.task
 def daily_summarize():
     today = date.today()
     yesterday = today - timedelta(days=1)
@@ -90,7 +92,7 @@ def daily_summarize():
             confirmed_found_in_14 = 0
             if (authority_id, village_no) in authority_confirmed:
                 confirmed_found_in_14 = authority_confirmed[(authority_id, village_no)]
-            DailySummaryByVillage.objects.update_or_create(
+            (obj, flag) = DailySummaryByVillage.objects.update_or_create(
                 authority_id=authority_id,
                 date=yesterday,
                 village_no=village_no,
@@ -127,6 +129,7 @@ def daily_summarize():
             )
 
 
+@app.task
 def daily_notify_authority():
     today = date.today()
     yesterday = today - timedelta(days=1)
