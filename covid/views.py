@@ -28,9 +28,9 @@ def list_monitoring(request):
         until__gte=today,
     ).prefetch_related("report")
     if all_flag:
-        reports = reports.filter(reporter_id=user.id)
-    else:
         reports = reports.filter(authority__in=user.authority_users.all())
+    else:
+        reports = reports.filter(reporter_id=user.id)
 
     serializer = MonitoringReportSerializer(reports, many=True)
     return Response(serializer.data)
