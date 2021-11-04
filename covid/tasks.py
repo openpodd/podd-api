@@ -33,7 +33,7 @@ village_no,
 sum(case report_latest_state_code when 'LowRisk' then 1 else 0 end) as low_risk,
 sum(case report_latest_state_code when 'MediumRisk' then 1 else 0 end) as medium_risk,
 sum(case report_latest_state_code when 'HighRisk' then 1 else 0 end) as high_risk,
-sum(case report_latest_state_code when 'Confirmed' then 1 else 0 end) as confirmed
+sum(case report_latest_state_code when 'ConfirmedCase' then 1 else 0 end) as confirmed
 FROM covid_monitoringreport cmr
 where cmr.started_at <= %s
 and cmr.until >= %s

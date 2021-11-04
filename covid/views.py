@@ -38,12 +38,11 @@ def list_monitoring(request):
 
 def daily_summary(request, authority_id):
     date_str = request.GET.get('date')
-    parsed_date = datetime.strptime(date_str, "%Y-%m-%d")
-    datetime.strftime(parsed_date, "%d/%m/%Y")
+    parsed_date = datetime.strptime(date_str, "%Y-%m-%d").date()
 
     ds = DailySummary.objects.get(authority_id=authority_id, date=parsed_date)
-    dsbv = DailySummaryByVillage.objects.filter(authority_id=authority_id, date=parsed_date)
-    authority = Authority.objects.get(pk=authority_id)
+    dsbv = DailySummaryByVillage.objects.filter(authority_id=authority_id, date=parsed_date).order_by('village_no')
+    authority = Authority.default_manager.get(pk=authority_id)
 
     total_low_risk = 0
     total_medium_risk = 0

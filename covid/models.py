@@ -36,22 +36,27 @@ class MonitoringReport(models.Model):
         if not MonitoringReport.objects.filter(report_id=instance.id).exists():
             form_data = json.loads(instance.form_data)
             report_latest_state_code = instance.state.code
-            if 'type_report_covid' in form_data and form_data['type_report_covid'] == 'ผู้ป่วยติดเชื้อ(ยืนยัน)':
+            flag_active = True
+            terminate_cause = None
+            if 'type_report_covid' in form_data and form_data['type_report_covid'] == u'ผู้ป่วยติดเชื้อ(ยืนยัน)':
                 report_latest_state_code = "ConfirmedCase"
+                flag_active = False
+                terminate_cause = form_data[settings.COVID_FOLLOWUP_TERMINATE_FIELD_NAME]
             MonitoringReport.objects.create(
                 authority=instance.administration_area.authority,
                 reporter=instance.created_by,
                 village_no=form_data['village_no'] or 0,
                 report=instance,
                 started_at=instance.incident_date,
-                name=form_data['name'] or '',
+                name=form_data['name'] if 'name' in form_data else '',
                 until=instance.incident_date + timedelta(days=settings.COVID_FOLLOWUP_DAYS or 14),
                 report_latest_state_code=report_latest_state_code,
-                active=True,
+                active=flag_active,
+                terminate_cause=terminate_cause,
             )
         else:
             monitoring = MonitoringReport.objects.get(report_id=instance.id)
-            if monitoring.report_latest_state_code != instance.state.code:
+            if monitoring.report_latest_state_code != instance.state.code and monitoring.active:
                 monitoring.report_latest_state_code = instance.state.code
                 monitoring.save()
 
@@ -68,7 +73,7 @@ class MonitoringReport(models.Model):
                     settings.COVID_FOLLOWUP_TERMINATE_DEPARTURE_PATTERN) != -1 or followup_status.find(
                     settings.COVID_FOLLOWUP_CONFIRMED_CASE_PATTERN) != -1:
                 monitoring.until = datetime.datetime.now()
-                if followup_status == settings.COVID_FOLLOWUP_CONFIRMED_CASE_PATTERN:
+                if followup_status.find(settings.COVID_FOLLOWUP_CONFIRMED_CASE_PATTERN) != -1:
                     monitoring.report_latest_state_code = "ConfirmedCase"
                 monitoring.terminate_cause = followup_status
                 monitoring.active = False
