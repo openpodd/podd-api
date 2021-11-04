@@ -35,6 +35,9 @@ class MonitoringReport(models.Model):
     def sync_from_report(cls, instance):
         if not MonitoringReport.objects.filter(report_id=instance.id).exists():
             form_data = json.loads(instance.form_data)
+            report_latest_state_code = instance.state.code
+            if 'type_report_covid' in form_data and form_data['type_report_covid'] == 'ผู้ป่วยติดเชื้อ(ยืนยัน)':
+                report_latest_state_code = "ConfirmedCase"
             MonitoringReport.objects.create(
                 authority=instance.administration_area.authority,
                 reporter=instance.created_by,
@@ -43,7 +46,7 @@ class MonitoringReport(models.Model):
                 started_at=instance.incident_date,
                 name=form_data['name'] or '',
                 until=instance.incident_date + timedelta(days=settings.COVID_FOLLOWUP_DAYS or 14),
-                report_latest_state_code=instance.state.code,
+                report_latest_state_code=report_latest_state_code,
                 active=True,
             )
         else:
@@ -58,13 +61,15 @@ class MonitoringReport(models.Model):
         parent_id = instance.parent_id
         assert parent_id is not None, "followup report must have parent id"
         monitoring = MonitoringReport.objects.get(report_id=parent_id)
-        followup_status = form_data['activity_close']
+        followup_status = form_data[settings.COVID_FOLLOWUP_TERMINATE_FIELD_NAME]
         if followup_status is not None:
             if followup_status.find(
                     settings.COVID_FOLLOWUP_TERMINATE_14_DAYS_PATTERN) != -1 or followup_status.find(
                     settings.COVID_FOLLOWUP_TERMINATE_DEPARTURE_PATTERN) != -1 or followup_status.find(
                     settings.COVID_FOLLOWUP_CONFIRMED_CASE_PATTERN) != -1:
                 monitoring.until = datetime.datetime.now()
+                if followup_status == settings.COVID_FOLLOWUP_CONFIRMED_CASE_PATTERN:
+                    monitoring.report_latest_state_code = "ConfirmedCase"
                 monitoring.terminate_cause = followup_status
                 monitoring.active = False
         monitoring.followup_count = monitoring.followup_count + 1
