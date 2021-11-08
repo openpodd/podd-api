@@ -1,29 +1,66 @@
 # -*- encoding: utf-8 -*-
+import json
+import urllib2
+
 from django.conf import settings
 from django.db import connection
 from datetime import timedelta, date, datetime
 
+from django.db.models import Count
+
+from accounts.models import User
 from common.functions import publish_line_message
 from covid.models import MonitoringReport, DailySummaryByVillage, DailySummary, AuthorityInfo
-from notifications.models import Notification, NotificationTemplate
 from podd.celery import app
+
+
+def push_line_message(line_id):
+    url = settings.LINE_MESSAGING_API_ENDPOINT
+    message = settings.COVID_FOLLOWUP_NOTIFICATION_MESSAGE
+    label = settings.LINE_FOLLOWUP_LABEL
+    payload = {
+        'to': line_id,
+        'messages': [
+            {
+                "type": "template",
+                "altText": label,
+                "template": {
+                    "type": "buttons",
+                    "text": message,
+                    "actions": [
+                        {
+                            "type": "uri",
+                            "label": label,
+                            "uri": settings.LINE_LIFF_COVID_MONITORING_URL
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer %s' % (settings.LINE_ACCESS_TOKEN,)
+    }
+    req = urllib2.Request(url, data=json.dumps(payload), headers=headers)
+    response = urllib2.urlopen(req)
+    if response.code != 200:
+        print("error sending line message code: %s, msg: %s" % (response.code, response.msg))
 
 
 @app.task
 def notify_reporter_when_no_followup_in_n_days():
     today = date.today()
     cut_off_day = today - timedelta(days=settings.COVID_FOLLOWUP_NOTIFICATION_ALARM_DAYS)
-    monitors = MonitoringReport.objects.filter(active=True, until__gte=today,
-                                               last_updated__lte=cut_off_day)
+    monitors = MonitoringReport.objects.filter(active=True, until__gte=today, last_updated__lte=cut_off_day).values(
+        'reporter_id').annotate(total=Count('reporter_id'))
     for monitor in monitors:
-        Notification.objects.create(
-            report=monitor.report,
-            receive_user=monitor.reporter,
-            message=settings.COVID_FOLLOWUP_NOTIFICATION_MESSAGE,
-            type=NotificationTemplate.TYPE_NOTIFY_FOLLOW_UP,
-            to=monitor.reporter,
-            anonymous_send=Notification.LINE_NOTIFICATION_ONLY,
-        )
+        reporter_id = monitor['reporter_id']
+        number_of_unfollowup = monitor['total']
+        u = User.default_manager.get(pk=reporter_id)
+        if u.line_id:
+            # push message to line notification
+            push_line_message(u.line_id)
 
 
 sum_by_risk = '''

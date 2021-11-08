@@ -394,6 +394,11 @@ COVID_FOLLOWUP_CONFIRMED_CASE_PATTERN = u"ผู้ป่วยยืนยั�
 COVID_FOLLOWUP_TERMINATE_FIELD_NAME = "activity_close"
 COVID_FOLLOWUP_DAYS = 14
 COVID_FOLLOWUP_NOTIFICATION_ALARM_DAYS = 2
-COVID_FOLLOWUP_NOTIFICATION_MESSAGE = "report has no follow up for 2 days, {{ report.rendered_report_compact }}"
+COVID_FOLLOWUP_NOTIFICATION_MESSAGE = u"พบรายงานผู้มีความเสี่ยง Covid-19 ขาดการติดตามเกิน 2 วัน"
 COVID_FOLLOWUP_TAG = u"ขาดการติดตามเกิน %s วัน"
 COVID_MONITORING_ENABLE = False
+
+LINE_MESSAGING_API_ENDPOINT = 'https://api.line.me/v2/bot/message/push'
+LINE_ACCESS_TOKEN = 'OVERRIDE_ME'
+LINE_LIFF_COVID_MONITORING_URL = 'https://liff.line.me/1653967705-q4Rrb8x6'
+LINE_FOLLOWUP_LABEL = u'ดูรายชื่อคนที่ต้องติดตาม'
