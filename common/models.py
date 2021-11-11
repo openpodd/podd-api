@@ -349,6 +349,8 @@ class Domain(AbstractCommonTrashModel):
 
     default_language = models.CharField(max_length=20, default=settings.LANGUAGE_CODE)
     timezone = models.FloatField(default=7.0)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
     is_active = models.BooleanField(default=False)
 

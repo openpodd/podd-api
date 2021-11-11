@@ -18,14 +18,23 @@ class UserSerializer(serializers.ModelSerializer):
     isAnonymous = serializers.BooleanField('is_anonymous')
     isPublic = serializers.BooleanField('is_public')
     administrationArea = serializers.PrimaryKeyRelatedField('administration_area', required=False, read_only=True)
+    domainLatitude = serializers.SerializerMethodField(method_name="get_domain_latitude")
+    domainLongitude = serializers.SerializerMethodField(method_name="get_domain_longitude")
 
     class Meta:
         model = User
         fields = (
             'id', 'name', 'username', 'firstName', 'lastName', 'status', 'contact', 'avatarUrl',
             'thumbnailAvatarUrl', 'authorityAdmins', 'isStaff', 'isSuperuser', 'isAnonymous', 'isPublic',
-            'domain', 'administrationArea',
+            'domain', 'administrationArea', 'domainLatitude', 'domainLongitude'
         )
+
+    def get_domain_latitude(self, obj):
+        print('latitude', obj.domain, obj.domain.latitude)
+        return obj.domain.latitude if obj.domain else 0
+
+    def get_domain_longitude(self, obj):
+        return obj.domain.longitude if obj.domain else 0
 
 
 class UserCommonSerializer(serializers.ModelSerializer):
