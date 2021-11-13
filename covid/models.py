@@ -38,10 +38,12 @@ class MonitoringReport(models.Model):
             report_latest_state_code = instance.state.code
             flag_active = True
             terminate_cause = None
-            if 'type_report_covid' in form_data and form_data['type_report_covid'] == u'ผู้ป่วยติดเชื้อ(ยืนยัน)':
-                report_latest_state_code = "ConfirmedCase"
-                flag_active = False
-                terminate_cause = form_data[settings.COVID_FOLLOWUP_TERMINATE_FIELD_NAME]
+            if settings.COVID_FOLLOWUP_TERMINATE_FIELD_NAME in form_data:
+                followup_status = form_data[settings.COVID_FOLLOWUP_TERMINATE_FIELD_NAME]
+                if followup_status.find(settings.COVID_FOLLOWUP_CONFIRMED_CASE_PATTERN) != -1:
+                    report_latest_state_code = "ConfirmedCase"
+                    flag_active = False
+                    terminate_cause = form_data[settings.COVID_FOLLOWUP_TERMINATE_FIELD_NAME]
             MonitoringReport.objects.create(
                 authority=instance.administration_area.authority,
                 reporter=instance.created_by,
