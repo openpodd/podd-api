@@ -40,28 +40,48 @@ def daily_summary(request, authority_id):
     date_str = request.GET.get('date')
     parsed_date = datetime.strptime(date_str, "%Y-%m-%d").date()
 
-    ds = DailySummary.objects.get(authority_id=authority_id, date=parsed_date)
-    dsbv = DailySummaryByVillage.objects.filter(authority_id=authority_id, date=parsed_date).order_by('village_no')
-    authority = Authority.default_manager.get(pk=authority_id)
+    class EmptyDailySummary:
+        def __init__(self):
+            self.qty_new_case = 0
+            self.qty_new_monitoring = 0
+            self.qty_ongoing_monitoring = 0
+            self.qty_acc_finished = 0
+            self.qty_total = 0
+    try:
+        ds = DailySummary.objects.get(authority_id=authority_id, date=parsed_date)
+        dsbv = DailySummaryByVillage.objects.filter(authority_id=authority_id, date=parsed_date).order_by('village_no')
+        authority = Authority.default_manager.get(pk=authority_id)
 
-    total_low_risk = 0
-    total_medium_risk = 0
-    total_high_risk = 0
-    total_total = 0
-    for village in dsbv:
-        total_low_risk += village.low_risk
-        total_medium_risk += village.medium_risk
-        total_high_risk += village.high_risk
-        total_total += village.total
+        total_low_risk = 0
+        total_medium_risk = 0
+        total_high_risk = 0
+        total_total = 0
+        for village in dsbv:
+            total_low_risk += village.low_risk
+            total_medium_risk += village.medium_risk
+            total_high_risk += village.high_risk
+            total_total += village.total
 
-    return render(request, 'covid/daily_summary.html', {
-        "daily_summary": ds,
-        "daily_summary_by_village": dsbv,
-        "date": parsed_date,
-        "th_date": thai_strftime(parsed_date),
-        "authority": authority,
-        "total_low_risk": total_low_risk,
-        "total_medium_risk": total_medium_risk,
-        "total_high_risk": total_high_risk,
-        "total_total": total_total
-    })
+        return render(request, 'covid/daily_summary.html', {
+            "daily_summary": ds,
+            "daily_summary_by_village": dsbv,
+            "date": parsed_date,
+            "th_date": thai_strftime(parsed_date),
+            "authority": authority,
+            "total_low_risk": total_low_risk,
+            "total_medium_risk": total_medium_risk,
+            "total_high_risk": total_high_risk,
+            "total_total": total_total
+        })
+    except DailySummary.DoesNotExist:
+        return render(request, 'covid/daily_summary.html', {
+            "daily_summary": EmptyDailySummary(),
+            "daily_summary_by_village": [],
+            "date": parsed_date,
+            "th_date": thai_strftime(parsed_date),
+            "authority": Authority.default_manager.get(pk=authority_id),
+            "total_low_risk": 0,
+            "total_medium_risk": 0,
+            "total_high_risk": 0,
+            "total_total": 0
+        })

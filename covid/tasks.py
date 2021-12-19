@@ -174,7 +174,8 @@ def daily_notify_authority():
     for authorityInfo in AuthorityInfo.objects.all():
         authority = authorityInfo.authority
         line_token = authorityInfo.line_notify_token
-        if line_token is not None:
+        cnt = DailySummary.objects.filter(date=yesterday).count()
+        if line_token is not None and cnt > 0:
             msg = 'สรุปการเฝ้าระวังโรคติดเชื้อโควิด-19 วันที่ %s link: https://api.cmonehealth.org/covid/summary/%s/?date=%s' % (
                 yesterday_str, authority.id, yesterday_str)
             publish_line_message(msg, line_token)
