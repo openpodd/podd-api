@@ -291,6 +291,8 @@ class Authority(DomainMixin):
     deep_subscribes = models.ManyToManyField('self', related_name='authority_deep_subscribes', symmetrical=False, null=True, blank=True)
 
     area = models.MultiPolygonField(srid=4326, null=True, blank=True)
+
+    default_area = models.ForeignKey('reports.AdministrationArea', related_name="default_for_authority", null=True, blank=True)
     # denormalize on save
     #administration_areas = models.ManyToManyField('reports.AdministrationArea', related_name='authority_administration_areas', null=True, blank=True)
     #report_types = models.ManyToManyField('reports.ReportType', related_name='authority_report_types', null=True, blank=True)
