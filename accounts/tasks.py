@@ -1,7 +1,13 @@
 # -*- encoding: utf-8 -*-
-from django.core.mail import EmailMultiAlternatives, send_mail
+import json
+import os
+import codecs
+import hashlib
+
+from django.conf import settings as django_settings
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator as token_generator
+from django.db import connection
 from django.template import Template, Context
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -144,3 +150,52 @@ def send_alert_change_password_complete(user):
         email_body = email_body_render_template(email_body_template_rendered, user, authority)
 
         send_email_with_template(email_tile, email_body, [email])
+
+
+@app.task
+def generate_area_files():
+    """
+    create static area file and hash checksum in /static/area
+    :return:
+    """
+
+    def dict_fetch_all(cursor):
+        "Return all rows from a cursor as a dict"
+        columns = [col[0] for col in cursor.description]
+        return [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
+    cursor = connection.cursor()
+    cursor.execute("""
+        select l.id   as id,
+               l.name as name,
+               a.id   as di_id,
+               a.name as di_name,
+               p.name as pv_name,
+               p.id   as pv_id,
+               ra.id  as area_id
+        from accounts_authority p,
+             accounts_authority a,
+             accounts_authority_inherits pa,
+             accounts_authority l,
+             accounts_authority_inherits al,
+             reports_administrationarea ra
+        where p.name like 'จังหวัด%'
+          and a.id = pa.from_authority_id
+          and p.id = pa.to_authority_id
+          and l.id = al.from_authority_id
+          and a.id = al.to_authority_id
+          and l.id = ra.authority_id
+          and ra.id = l.default_area_id  
+        order by a.id  
+    """)
+    data = dict_fetch_all(cursor)
+    json_object = json.dumps(data, indent=2, ensure_ascii=False)
+    target_file = os.path.join(django_settings.STATICFILES_DIRS[0], 'area', 'area.json')
+    hash_file = os.path.join(django_settings.STATICFILES_DIRS[0], 'area', 'area.md5')
+    with codecs.open(target_file, mode="wb", encoding="UTF8") as outfile:
+        outfile.write(json_object)
+    with open(hash_file, mode="w") as out_hash_file:
+        out_hash_file.write(hashlib.md5(json_object.encode("UTF8")).hexdigest())
