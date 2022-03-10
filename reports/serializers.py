@@ -2,6 +2,7 @@
 import json
 from collections import OrderedDict
 
+from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.forms import widgets
 
@@ -668,9 +669,9 @@ class ReportSerializer(serializers.ModelSerializer, AttachCanEditSerializer):
             else:
                 attrs[source] = user.administration_area
 
-
-        if value and not has_permission_on_administration_area(user=user, administration_area=value):
-            raise serializers.ValidationError('You do not have permission to create this area.')
+        if not settings.DISABLE_CHECK_REPORT_ADMIN_AREA_PERMISSION:
+            if value and not has_permission_on_administration_area(user=user, administration_area=value):
+                raise serializers.ValidationError('You do not have permission to create report in this area.')
         return attrs
 
     def validate_reportLocation(self, attrs, source):

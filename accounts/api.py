@@ -886,7 +886,6 @@ def get_group_by_invitation_code(request):
 
 @api_view(['POST'])
 def user_register_by_authority(request):
-
     data = request.DATA.copy()
     data['username'] = str(uuid.uuid4())[:10].replace('-', '')
     data['status'] = data.get('status') or USER_STATUS_ADDITION_VOLUNTEER
@@ -896,22 +895,31 @@ def user_register_by_authority(request):
     data['password'] = password
 
     invitation_code = data.get('group') or data.get('authority') or data.get('code')
+    authority_id = data.get('authorityId')
 
     line_id = data.get('lineId') or None
 
     if not invitation_code:
-        return Response({"detail": "code is required.", 'group': ['Code is required.']},
-                        status=status.HTTP_400_BAD_REQUEST)
+        if not authority_id:
+            return Response({"detail": "code or authority_id is required.", 'group': ['Code or authority_id is required.']},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-    try:
-        invite = AuthorityInvite.objects.filter(disabled=False, expired_at__gte=timezone.now(), code=invitation_code).latest('created_at')
-        authority = invite.authority
-        user_status = invite.status or USER_STATUS_ADDITION_VOLUNTEER
-        trainer_status = invite.trainer_status or user_status
-        trainer_authority_id = (invite.trainer_authority and invite.trainer_authority.id) or None
+    trainer_status = None
+    trainer_authority_id = None
+    user_status = USER_STATUS_ADDITION_VOLUNTEER
 
-    except (ValueError, AuthorityInvite.DoesNotExist):
-        return Response({'detail': 'authority is not found.', 'group': ['Authority is not found.']}, status=status.HTTP_400_BAD_REQUEST)
+    if invitation_code:
+        try:
+            invite = AuthorityInvite.objects.filter(disabled=False, expired_at__gte=timezone.now(), code=invitation_code).latest('created_at')
+            authority = invite.authority
+            user_status = invite.status or USER_STATUS_ADDITION_VOLUNTEER
+            trainer_status = invite.trainer_status or user_status
+            trainer_authority_id = (invite.trainer_authority and invite.trainer_authority.id) or None
+
+        except (ValueError, AuthorityInvite.DoesNotExist):
+            return Response({'detail': 'authority is not found.', 'group': ['Authority is not found.']}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        authority = Authority.objects.get(pk=authority_id)
 
     data['domain'] = authority.domain.id
     serializer = UserRegistrationSerializer(data=data)
@@ -960,7 +968,6 @@ def user_register_by_authority(request):
 
 @api_view(['POST'])
 def user_register_by_group(request):
-
     return user_register_by_authority(request)
 
 

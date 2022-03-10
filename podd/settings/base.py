@@ -402,3 +402,5 @@ LINE_MESSAGING_API_ENDPOINT = 'https://api.line.me/v2/bot/message/push'
 LINE_ACCESS_TOKEN = 'OVERRIDE_ME'
 LINE_LIFF_COVID_MONITORING_URL = 'https://liff.line.me/1653967705-q4Rrb8x6'
 LINE_FOLLOWUP_LABEL = u'ดูรายชื่อคนที่ต้องติดตาม'
+
+DISABLE_CHECK_REPORT_ADMIN_AREA_PERMISSION = False
