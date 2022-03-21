@@ -193,8 +193,8 @@ def generate_area_files():
     """)
     data = dict_fetch_all(cursor)
     json_object = json.dumps(data, indent=2, ensure_ascii=False)
-    target_file = os.path.join(django_settings.STATICFILES_DIRS[0], 'area', 'area.json')
-    hash_file = os.path.join(django_settings.STATICFILES_DIRS[0], 'area', 'area.md5')
+    target_file = os.path.join(django_settings.STATIC_ROOT, 'area', 'area.json')
+    hash_file = os.path.join(django_settings.STATIC_ROOT, 'area', 'area.md5')
     with codecs.open(target_file, mode="wb", encoding="UTF8") as outfile:
         outfile.write(json_object)
     with open(hash_file, mode="w") as out_hash_file:
