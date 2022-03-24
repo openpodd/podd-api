@@ -3,6 +3,7 @@ import json
 import os
 import codecs
 import hashlib
+from datetime import timedelta, date
 
 from django.conf import settings as django_settings
 from django.conf import settings
@@ -158,7 +159,6 @@ def generate_area_files():
     create static area file and hash checksum in /static/area
     :return:
     """
-
     def dict_fetch_all(cursor):
         "Return all rows from a cursor as a dict"
         columns = [col[0] for col in cursor.description]
@@ -167,35 +167,71 @@ def generate_area_files():
             for row in cursor.fetchall()
         ]
 
-    cursor = connection.cursor()
-    cursor.execute("""
-        select l.id   as id,
-               l.name as name,
-               a.id   as di_id,
-               a.name as di_name,
-               p.name as pv_name,
-               p.id   as pv_id,
-               ra.id  as area_id
-        from accounts_authority p,
-             accounts_authority a,
-             accounts_authority_inherits pa,
-             accounts_authority l,
-             accounts_authority_inherits al,
-             reports_administrationarea ra
-        where p.name like 'จังหวัด%'
-          and a.id = pa.from_authority_id
-          and p.id = pa.to_authority_id
-          and l.id = al.from_authority_id
-          and a.id = al.to_authority_id
-          and l.id = ra.authority_id
-          and ra.id = l.default_area_id  
-        order by a.id  
-    """)
-    data = dict_fetch_all(cursor)
-    json_object = json.dumps(data, indent=2, ensure_ascii=False)
-    target_file = os.path.join(django_settings.STATIC_ROOT, 'area', 'area.json')
-    hash_file = os.path.join(django_settings.STATIC_ROOT, 'area', 'area.md5')
-    with codecs.open(target_file, mode="wb", encoding="UTF8") as outfile:
-        outfile.write(json_object)
-    with open(hash_file, mode="w") as out_hash_file:
-        out_hash_file.write(hashlib.md5(json_object.encode("UTF8")).hexdigest())
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            select l.id   as id,
+                   l.name as name,
+                   a.id   as di_id,
+                   a.name as di_name,
+                   p.name as pv_name,
+                   p.id   as pv_id,
+                   ra.id  as area_id
+            from accounts_authority p,
+                 accounts_authority a,
+                 accounts_authority_inherits pa,
+                 accounts_authority l,
+                 accounts_authority_inherits al,
+                 reports_administrationarea ra
+            where p.name like 'จังหวัด%'
+              and a.id = pa.from_authority_id
+              and p.id = pa.to_authority_id
+              and l.id = al.from_authority_id
+              and a.id = al.to_authority_id
+              and l.id = ra.authority_id
+              and ra.id = l.default_area_id  
+            order by a.id  
+        """)
+        data = dict_fetch_all(cursor)
+        json_object = json.dumps(data, indent=2, ensure_ascii=False)
+        target_file = os.path.join(django_settings.STATIC_ROOT, 'area', 'area.json')
+        hash_file = os.path.join(django_settings.STATIC_ROOT, 'area', 'area.md5')
+        with codecs.open(target_file, mode="wb", encoding="UTF8") as outfile:
+            outfile.write(json_object)
+        with open(hash_file, mode="w") as out_hash_file:
+            out_hash_file.write(hashlib.md5(json_object.encode("UTF8")).hexdigest())
+
+@app.task
+def update_active_authority():
+    # 1
+    # fetch all active authorith
+    active_authority_ids = Authority.objects.filter(active=True).values_list('id', flat=True)
+
+    # 2
+    # fetch authoirty that has at least one login in past 6 months.
+    tx_active_authority_ids = []
+    with connection.cursor() as cursor:
+        today = date.today()
+        cut_off_date = today - timedelta(days=settings.CHECK_ACTIVE_AUTHORITY_NUMBER_OF_DAYS_TO_INACTIVE)
+        cursor.execute("""
+        select distinct i.object_id1 as authority_id 
+        from logs_logitem i, logs_logaction a
+        where a.id = i.action_id
+        and a.name = 'DASHBOARD_VIEW'
+        and i.created_at >= %s;
+        """, [cut_off_date.strftime("%Y-%m-%d")])
+        for row in cursor.fetchall():
+            authority_id = row[0]
+            tx_active_authority_ids.append(authority_id)
+
+    # remove active flag if authority in #1 but not in #2
+    to_remove_active_authority_ids = \
+        [authority_id for authority_id in active_authority_ids if authority_id not in tx_active_authority_ids]
+
+    # add active flag if authority in #2 but not in #1
+    to_add_active_authority_ids = \
+        [authority_id for authority_id in tx_active_authority_ids if authority_id not in active_authority_ids]
+
+    with connection.cursor() as cursor:
+        Authority.objects.filter(pk__in=to_remove_active_authority_ids).update(active=False)
+        Authority.objects.filter(pk__in=to_add_active_authority_ids).update(active=True)
+

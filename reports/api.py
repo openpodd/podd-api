@@ -417,9 +417,13 @@ class ReportViewSet(viewsets.ModelViewSet):
             self.object = serializer.save(force_insert=True)
             self.post_save(self.object, created=True)
 
+            is_authority_active = self.object.administration_area.authority.active or False
+            if settings.CHECK_ACTIVE_AUTHORITY_SEND_NOTIFICATION_TO_REPORTER and not is_authority_active:
+                self.object.create_reporter_notification_authority_is_not_active()
+
             headers = self.get_success_headers(serializer.data)
 
-            return Response({"id": self.object.id}, status=status.HTTP_201_CREATED, headers=headers)
+            return Response({"id": self.object.id, "is_authority_active": is_authority_active}, status=status.HTTP_201_CREATED, headers=headers)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

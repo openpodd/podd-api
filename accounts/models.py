@@ -302,6 +302,8 @@ class Authority(DomainMixin):
 
     group = models.IntegerField(max_length=10, default=0)
 
+    active = models.NullBooleanField(blank=True)
+
     FIELDS_STORES = {'report_types': 'report_type_authority'}
     FIELDS_STORES_SWAP = {'administration_areas': 'area_authority'}
 

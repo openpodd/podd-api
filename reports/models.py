@@ -1133,6 +1133,18 @@ class Report(AbstractCachedModel, DomainMixin):
                 for inherit in authority.inherits.exclude(id__in=stamps):
                     self._create_notification(notification_template_accepted_list, [inherit], sents, inherits_send=True, stamps=stamps, direct_to_list=direct_to_list)
 
+    def create_reporter_notification_authority_is_not_active(self):
+        from notifications.models import Notification
+        if not self.administration_area.authority.active:
+            notification_data = {
+                'report': self,
+                'receive_user': self.created_by,
+                'to': self.created_by.username,
+                'type': NEWS_TYPE_NEWS,
+                'message': 'หน่วยงานที่รับผิดชอบพื้นที่ของท่านยังไม่เปิดใช้งาน ทางศูนย์ผ่อดีดีจะทำการรวบรวมข้อมูลเรื่องรับแจ้งของท่านส่งต่อให้จังหวัดต่อไป',
+            }
+            Notification.objects.create(**notification_data)
+
     def create_reporter_notification(self, types=None):
 
         from notifications.models import NotificationAuthority, Notification, NotificationTemplate

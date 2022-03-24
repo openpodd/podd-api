@@ -282,6 +282,14 @@ CELERYBEAT_SCHEDULE = {
     'covid-daily-summary-notification': {
         'task': 'covid.tasks.daily_notify_authority',
         'schedule': crontab(hour=3, minute=0), # UTC TIME
+    },
+    'generate_area': {
+        'task': 'accounts.tasks.generate_area_files',
+        'schedule': crontab(hour=0, minute=30, day_of_week='sunday'), # UTC TIME
+    },
+    'check_active_authority': {
+        'task': 'accounts.tasks.update_active_authority',
+        'schedule': crontab(hour=0, minute=0, day_of_week='sunday'), # UTC TIME
     }
 }
 
@@ -404,3 +412,6 @@ LINE_LIFF_COVID_MONITORING_URL = 'https://liff.line.me/1653967705-q4Rrb8x6'
 LINE_FOLLOWUP_LABEL = u'ดูรายชื่อคนที่ต้องติดตาม'
 
 DISABLE_CHECK_REPORT_ADMIN_AREA_PERMISSION = False
+
+CHECK_ACTIVE_AUTHORITY_NUMBER_OF_DAYS_TO_INACTIVE = 500
+CHECK_ACTIVE_AUTHORITY_SEND_NOTIFICATION_TO_REPORTER = False
