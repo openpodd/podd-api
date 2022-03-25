@@ -69,7 +69,7 @@ class AuthorityAdmin(admin.ModelAdmin):
 
     search_fields = ('name', 'code',)
     readonly_fields = ('report_types',)
-    exclude = ('tags', 'area', 'users', 'inherits', 'deep_subscribes', 'admins')
+    exclude = ('tags', 'area', 'users', 'inherits', 'deep_subscribes', 'admins', 'created_by', 'default_area')
 
 
 class AuthorityInviteAdmin(admin.ModelAdmin):
