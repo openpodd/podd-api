@@ -353,6 +353,7 @@ class Domain(AbstractCommonTrashModel):
     longitude = models.FloatField(null=True, blank=True)
 
     is_active = models.BooleanField(default=False)
+    is_test = models.BooleanField(default=False)
 
     # logo ?
 
