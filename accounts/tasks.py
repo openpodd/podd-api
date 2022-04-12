@@ -182,7 +182,8 @@ def generate_area_files():
                  accounts_authority_inherits pa,
                  accounts_authority l,
                  accounts_authority_inherits al,
-                 reports_administrationarea ra
+                 reports_administrationarea ra,
+                 common_domain cd
             where p.name like 'จังหวัด%'
               and a.id = pa.from_authority_id
               and p.id = pa.to_authority_id
@@ -190,6 +191,8 @@ def generate_area_files():
               and a.id = al.to_authority_id
               and l.id = ra.authority_id
               and ra.id = l.default_area_id  
+              and a.domain_id = cd.id
+              and cd.is_test = false
             order by a.id  
         """)
         data = dict_fetch_all(cursor)
