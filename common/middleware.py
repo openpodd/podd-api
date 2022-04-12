@@ -1,7 +1,39 @@
 from re import sub
 from rest_framework.authtoken.models import Token
-from accounts.models import User
+from accounts.models import User, Authority
 from common.models import Domain
+from django.dispatch import receiver
+from crum import get_current_request
+from crum.signals import current_user_getter
+
+
+@receiver(current_user_getter)
+def force_domain_user(sender, **kwargs):
+    request = get_current_request()
+    if request:
+        header_token = request.META.get('HTTP_AUTHORIZATION', None)
+        cross_domain = request.META.get('HTTP_CROSS_DOMAIN', None)
+        if request.path == '/reports/' and \
+                request.method == 'POST' and \
+                header_token is not None and \
+                cross_domain is not None:
+            try:
+                token = sub('Token ', '', header_token)
+                token_obj = Token.objects.get(key=token)
+                user = token_obj.user
+
+                domain = Domain.objects.get(pk=cross_domain)
+                if domain.id != user.domain_id:
+                    public_user = User.default_manager.get(username='public-%s' % (domain.id,))
+                    return public_user, 0
+                return user, 0
+            except Token.DoesNotExist:
+                return None, 0
+        else:
+            return False, 0
+    else:
+        return False, 0
+
 
 def switch_domain(request):
 

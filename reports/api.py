@@ -7,7 +7,7 @@ import json
 import os
 import uuid
 from cacheops import invalidate_obj
-from crum import set_current_user
+from crum import set_current_user, get_current_user
 
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry, Point
@@ -356,14 +356,20 @@ class ReportViewSet(viewsets.ModelViewSet):
                 return None
 
     def pre_save(self, obj):
+        obj.form_data = obj.form_data or {}
         if not obj.id:
-            obj.created_by = self.request.user
+            original_user = self.request.user
+            user = get_current_user()
+            obj.created_by = user
             obj.original_form_data = obj.original_form_data or {}
+            if original_user.id != user.id:
+                obj.form_data['original_username'] = original_user.username
+                obj.form_data['original_domain_id'] = original_user.domain.id
+                obj.form_data['original_phone'] = original_user.telephone or ''
             obj.original_form_data = json.dumps(obj.original_form_data)
         else:
             obj.updated_by = self.request.user
 
-        obj.form_data = obj.form_data or {}
         obj.form_data = json.dumps(obj.form_data)
         obj.date = obj.date.astimezone(UTC())
         follow_flag = self.request.DATA.get('followFlag', 0)
