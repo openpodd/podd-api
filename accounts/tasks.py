@@ -175,7 +175,8 @@ def generate_area_files():
                    a.name as di_name,
                    p.name as pv_name,
                    p.id   as pv_id,
-                   ra.id  as area_id
+                   ra.id  as area_id,
+                   a.domain_id as domain_id
             from accounts_authority p,
                  accounts_authority a,
                  accounts_authority_inherits pa,
