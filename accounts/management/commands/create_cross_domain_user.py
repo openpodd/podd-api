@@ -17,8 +17,9 @@ class Command(BaseCommand):
             username = 'public-%s' % (domain.id,)
             try:
                 user = User.default_manager.get(username=username)
+                print((u"user %s for domain %s is already exists" % (username, domain.name)).encode('utf-8'))
             except User.DoesNotExist:
-                print("create user %s for domain %s" % (username, domain.name))
+                print((u"create user %s for domain %s" % (username, domain.name)).encode('utf-8'))
                 User.default_manager.create(
                     username=username,
                     domain=domain,
