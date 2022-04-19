@@ -41,10 +41,10 @@ class Command(BaseCommand):
                         authority=authority,
                         domain_id=domain_id
                     )
-                    print("Create Area from %s" % (row['name'],))
+                    print("Create Area from %s" % (row['id'],))
                 else:
-                    print("Area for %s is already exists." % (row['name'],))
+                    print("Area for %s is already exists." % (row['id'],))
 
             except Authority.DoesNotExist:
-                print("Authority %s not found." % (row['name'],))
+                print("Authority %s not found." % (row['id'],))
 

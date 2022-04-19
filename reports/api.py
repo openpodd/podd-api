@@ -384,7 +384,6 @@ class ReportViewSet(viewsets.ModelViewSet):
             LogItem.objects.log_action(key='REPORT_CREATE', created_by=obj.created_by, object1=obj)
 
     def create(self, request):
-
         parent = None
         if not request.DATA.get("parent") and request.DATA.get('parentGuid'):
             try:
@@ -396,11 +395,20 @@ class ReportViewSet(viewsets.ModelViewSet):
             request.DATA['parent'] = parent.id
 
         data = request.DATA
+        cross_domain = request.META.get('HTTP_CROSS_DOMAIN', None)
         if not data.get('reportTypeId'):
             # Do nothing if request already specify report type id.
             report_type = self._get_report_type_from_report_type_code(request)
             if report_type:
                 data['reportTypeId'] = report_type.id
+        else:
+            if cross_domain:
+                # convert report type id from original domain to target domain
+                target_domain_id = int(cross_domain)
+                original_report_type = ReportType.default_manager.get(pk=data['reportTypeId'])
+                target_report_type = ReportType.default_manager.get(domain_id=target_domain_id, code=original_report_type.code)
+                data['reportTypeId'] = target_report_type.id
+
 
         serializer = ReportSerializer(data=data, context={'request': request})
 

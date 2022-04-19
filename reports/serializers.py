@@ -643,13 +643,6 @@ class ReportSerializer(serializers.ModelSerializer, AttachCanEditSerializer):
         return obj.comments.filter(created_by__is_public=True, state__isnull=True).count()
 
 
-    def validate_reportTypeId(self, attrs, source):
-        value = attrs[source]
-        user = self.context.get('request').user
-        if value.id != 0 and not has_permission_on_report_type(user=user, report_type=value):
-            raise serializers.ValidationError('You do not have permission to create this report type.')
-        return attrs
-
     def validate_administrationAreaId(self, attrs, source):
         value = attrs[source]
         user = self.context.get('request').user
