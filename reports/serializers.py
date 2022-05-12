@@ -969,6 +969,7 @@ class ReportLaboratoryItemSerializer(serializers.ModelSerializer):
 
 class ReportAccomplishmentSerializer(serializers.ModelSerializer):
     reportId = serializers.PrimaryKeyRelatedField('report', widget=widgets.TextInput)
+    publicShowcase = serializers.WritableField('public_showcase')
     createdBy = serializers.PrimaryKeyRelatedField('created_by', read_only=True)
     createdAt = serializers.WritableField('created_at', read_only=True)
     updatedBy = serializers.PrimaryKeyRelatedField('updated_by', read_only=True)
@@ -976,7 +977,8 @@ class ReportAccomplishmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ReportAccomplishment
-        fields = ('id', 'reportId', 'title', 'description', 'createdBy', 'createdAt', 'updatedBy', 'updatedAt')
+        fields = ('id', 'reportId', 'title', 'description', 'createdBy', 'createdAt', 'updatedBy', 'updatedAt',
+                  'publicShowcase',)
         read_only_fields = ('created_at', 'created_by', 'updated_at', 'updated_by')
 
     def transform_createdBy(self, obj, value):
