@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from reports.models import Report
-from reports.paginations import PaginatedReportListESLiteSerializer
+from reports.paginations import PaginatedReportSerializer
 
 
 @api_view(['GET'])
@@ -20,7 +20,7 @@ def list_civic_report(request, status):
     queryset = Report.objects.filter(administration_area__authority=authority,
                                      type__code=settings.CIVIC_REPORT_TYPE_CODE,
                                      state__code=status)
-    pagination_serializer_class = PaginatedReportListESLiteSerializer
+    pagination_serializer_class = PaginatedReportSerializer
     paginator = Paginator(queryset, page_size)
     reports = paginator.page(page)
     serializer = pagination_serializer_class(reports)
