@@ -83,6 +83,7 @@ INSTALLED_APPS = (
     'firebase',
     'dodd',
     'covid',
+    'civic',
 )
 
 MIDDLEWARE_CLASSES = (
