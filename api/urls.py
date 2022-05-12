@@ -156,6 +156,7 @@ urlpatterns = patterns('',
     url(r'^test-dodd/(?P<report_id>\d+)/', 'dodd.views.test_link_report', name='test_dodd'),
     url(r'^covid/monitoring/', 'covid.views.list_monitoring', name='covid_list'),
     url(r'^covid/summary/(?P<authority_id>\d+)', 'covid.views.daily_summary', name='covid_list'),
+    url(r'^civic/reports/(?P<status>.+)/', 'civic.views.list_civic_report', name='civic_report_list'),
     url(r'^', include(router.urls)),
 )
 
