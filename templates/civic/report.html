@@ -1,0 +1,298 @@
+{% load staticfiles %}
+<html>
+<head>
+    <style>
+        @font-face {
+            font-family: THSarabun;
+            src: url({% static 'fonts/THSarabun.ttf' %})
+        }
+
+        body {
+            width: 230mm;
+            height: 100%;
+            margin: 0 auto;
+            padding: 0;
+            font-size: 15pt;
+            background: rgb(204, 204, 204);
+            font-family: "THSarabun";
+
+        }
+
+        * {
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+        }
+
+        .main-page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 10mm auto;
+            background: white;
+            box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+        }
+
+        .sub-page {
+            padding: 1cm;
+            height: 297mm;
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        @media print {
+
+            html,
+            body {
+                width: 210mm;
+                height: 297mm;
+            }
+
+            .main-page {
+                margin: 0;
+                border: initial;
+                border-radius: initial;
+                width: initial;
+                min-height: initial;
+                box-shadow: initial;
+                background: initial;
+                page-break-after: always;
+            }
+        }
+
+        .step {
+            padding: 10px;
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            background-color: cream;
+        }
+
+        .v-stepper {
+            position: relative;
+            /*   visibility: visible; */
+        }
+
+
+        /* regular step */
+        .step .circle {
+            background-color: white;
+            border: 3px solid gray;
+            border-radius: 100%;
+            width: 20px;
+            /* +6 for border */
+            height: 20px;
+            display: inline-block;
+        }
+
+        .step .line {
+            top: 20px;
+            left: 9px;
+            /*   height: 120px; */
+            height: 100%;
+
+            position: absolute;
+            border-left: 3px solid gray;
+        }
+
+        .step.completed .circle {
+            visibility: visible;
+            background-color: rgb(6, 150, 215);
+            border-color: rgb(6, 150, 215);
+        }
+
+        .step.completed .line {
+            border-left: 3px solid rgb(6, 150, 215);
+        }
+
+        .step.active .circle {
+            visibility: visible;
+            border-color: rgb(6, 150, 215);
+        }
+
+        .step.empty .circle {
+            visibility: hidden;
+        }
+
+        .step.empty .line {
+            /*     visibility: hidden; */
+            /*   height: 150%; */
+            top: 0;
+            height: 150%;
+        }
+
+        .step:last-child .line {
+            border-left: 3px solid white;
+            z-index: -1;
+            /* behind the circle to completely hide */
+        }
+
+        .content {
+            margin-left: 20px;
+            display: inline-block;
+        }
+
+        th {
+            text-align: left;
+        }
+
+        td,
+        th {
+            line-height: 16px;
+            vertical-align: top;
+            padding: 8px;
+        }
+
+        h4 {
+            margin-block-start: 10px;
+            margin-block-end: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-page">
+    <div class="sub-page">
+        <h4>
+            รายงานเหตุเลขที่ {{ report_id }} ประเภท {{ report_type_name }}
+        </h4>
+        <h4>
+            รูปประกอบ
+        </h4>
+        <table width="100%">
+            <tr>
+                <th width="10%">
+                    {% if image1_url %}<img height="200" width="150" src="{{ image1_url }}"/>
+                    {% else %}
+                        <div style="width:150px;display:inline-block"></div>
+                    {% endif %}
+                </th>
+                <th width="10%">
+                    {% if image2_url %}<img height="200" width="150" src="{{ image2_url }}"/>
+                    {% else %}
+                        <div style="width:150px;display:inline-block"></div>
+                    {% endif %}
+                </th>
+                <th>
+                    <img
+                            src="https://maps.googleapis.com/maps/api/staticmap?center={{ latitude }},{{ longitude }}&zoom=13&size=350x200&markers=color:red%7Clabel:S%7C{{ latitude }},{{ longitude }}&key={{ map_api_key }}"/>
+                </th>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td align="center">Latitude {{ latitude }} Longitude {{ longitude }}</td>
+            </tr>
+        </table>
+        <h4>ข้อมูลรายงาน</h4>
+        <table>
+            <tr>
+                <th>วันที่รายงาน</th>
+                <td>{{ report_date }}</td>
+            </tr>
+            <tr>
+                <th>วันที่เกิดเหตุ</th>
+                <td>{{ incident_date }}</td>
+            </tr>
+            <tr>
+                <th>ประเภทรายงาน</th>
+                <td>{{ report_type_name }}</td>
+            </tr>
+            <tr>
+                <th>รายละเอียด</th>
+                <td>{{ description }}</td>
+            </tr>
+            <tr>
+                <th>พื้นที่เกิดเหตุ</th>
+                <td>{{ area_name }}</td>
+            </tr>
+        </table>
+        <h4>ลำดับเหตูการณ์และรายละเอียด</h4>
+        <table width="100%" style="border: 1px solid;">
+            <tr>
+                <th>ลำดับเหตุการณ์</th>
+                <th>ข้อมูลรายละเอียดอื่นๆ</th>
+            </tr>
+            <tr>
+                <td width="50%">
+                    <div class="container">
+                        <div class="step completed">
+                            <div class="v-stepper">
+                                <div class="circle"></div>
+                                <div class="line"></div>
+                            </div>
+
+                            <div class="content">
+                                มีรายงานแจ้งเหตุเมื่อ {{ report_date }}
+                            </div>
+                        </div>
+
+                        <div class="step completed">
+                            <div class="v-stepper">
+                                <div class="circle"></div>
+                                <div class="line"></div>
+                            </div>
+
+                            <div class="content">
+                                ตรวจสอบข้อมูลและกำลังดำเนินการผ่านหน่วยงาน {{ verify_date }}
+                            </div>
+                        </div>
+
+                        <div class="step completed">
+                            <div class="v-stepper">
+                                <div class="circle"></div>
+                            </div>
+
+                            <div class="content">
+                                ดำเนินการเสร็จสิ้น {{ finished_date }}
+                            </div>
+                        </div>
+
+                        <div class="step active">
+                            <div class="v-stepper">
+                                <div class="circle"></div>
+                            </div>
+
+                            <div class="content">
+                                ใช้เวลาประมาณ {{ total_time }}
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    {% for comment in comments %}
+                        <div class="step completed">
+                            <div class="v-stepper">
+                                <div class="circle"></div>
+                                <div class="line"></div>
+                            </div>
+
+                            <div class="content">
+                                {{ comment.body }} {{ comment.date }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </td>
+            </tr>
+        </table>
+        <h4>
+            ข้อมูลสรุป บันทึกความสำเร็จ
+        </h4>
+        <!-- <input id="your_name_id" type="text" name="your_name" value="{{ current_name }}"> -->
+        <table border="0">
+            <tr>
+                <th> หัวข้อ</th>
+                <td>{{ accomplish_title }}
+                </td>
+            </tr>
+            <tr>
+                <th> รายละเอียด</th>
+                <td>{{ accomplish_description }}
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+</body>
+</html>

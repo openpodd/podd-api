@@ -10,6 +10,7 @@ urlpatterns = patterns(
     'civic.views',
     url(r'letter/(?P<report_id>[\w-]+)/', 'letter', name='civic_letter'),
     url(r'^reports/(?P<status>.+)/', 'list_civic_report', name='civic_report_list'),
-    url(r'^accomplishments/', 'success_story', name="success_story"),
+    url(r'^accomplishments/', 'accomplishments', name="civic_accomplishments"),
+    url(r'^report/(?P<report_id>[\w-]+)/', 'display_civic_report', name='civic_report_display'),
     url(r'^', include(router.urls)),
 )
