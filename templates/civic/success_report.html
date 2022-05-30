@@ -1,0 +1,15 @@
+<h1>ผลความสำเร็จการใช้ระบบผ่อดีดี</h1>
+<table width="100%">
+  {% for item in data %}
+  <tr onclick="javascript:window.location.href = 'public_incident_form?id={{item.id}}';">
+    <td width="15%"><img src="{{item.image_url}}" width="100" /></td>
+    <td>
+      <h3>{{item.title}}</h3>
+      <p>{{item.description}}</p>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+<p>
+  <a href="public_incident_form">ความสำเร็จอื่นๆ</a>
+</p>

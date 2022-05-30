@@ -155,5 +155,6 @@ urlpatterns = patterns('',
     url(r'^covid/monitoring/', 'covid.views.list_monitoring', name='covid_list'),
     url(r'^covid/summary/(?P<authority_id>\d+)', 'covid.views.daily_summary', name='covid_list'),
     url(r'^', include(router.urls)),
+    url(r'^civic/', include('civic.urls')),
 )
 

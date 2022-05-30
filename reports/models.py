@@ -2023,6 +2023,11 @@ class ReportAccomplishment(DomainMixin):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
+    def get_first_image_thumbnail_url(self):
+        if not self.report or self.report.images.count() == 0:
+            return None
+        return self.report.images.first().thumbnail_url
+
 
 class RecordSpec(DomainMixin):
 

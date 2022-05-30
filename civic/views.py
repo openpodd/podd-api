@@ -12,7 +12,7 @@ import json
 
 from civic.models import LetterFieldConfiguration
 from civic.utils import thai_strftime
-from reports.models import Report
+from reports.models import Report, ReportAccomplishment
 from reports.paginations import PaginatedReportSerializer
 
 
@@ -64,3 +64,21 @@ def letter(request, report_id):
         'department_contact2': letter_config.footer_contact_line3,
     }
     return render(request, 'civic/letter.html', context)
+
+
+def success_story(request):
+    query = ReportAccomplishment.objects.filter(report__type__code=settings.CIVIC_REPORT_TYPE_CODE, public_showcase=True)
+    authority_id = request.GET.get('authority_id', None)
+    if authority_id:
+        query = query.filter(report__administration_area__authority_id=authority_id)
+    query = query.order_by("-report__date")[:10]
+
+    data = [{
+        "image_url": row.get_first_image_thumbnail_url(),
+        "title": row.title,
+        "description": row.description
+    } for row in query]
+
+    return render(request, 'civic/success_report.html', {
+        'data': data
+    })
