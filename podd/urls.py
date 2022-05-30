@@ -2,11 +2,8 @@ from django.conf import settings
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 
-urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'api.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
-
+urlpatterns = patterns(
+    '',
     url(r'^accounts/', include('accounts.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^reports/', include('reports.urls')),
@@ -14,8 +11,7 @@ urlpatterns = patterns('',
     url(r'', include('api.urls')),
     url(r'^summary/', include('summary.urls')),
     url(r'^public/$', 'reports.views.report_share', name='public'),
-
-                       )
+)
 
 
 if settings.DEBUG:

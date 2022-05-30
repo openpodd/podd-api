@@ -34,6 +34,7 @@ class ReportTypeCategoryAdmin(admin.ModelAdmin):
 
 
 class ReportTypeAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
     form = ReportTypeForm
 
 

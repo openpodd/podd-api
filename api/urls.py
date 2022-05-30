@@ -5,7 +5,6 @@ from django.conf.urls import patterns, include, url
 from rest_framework import routers
 
 import summary
-from civic import api as civic_api
 from flags import api as flags_api
 from notifications import api as notifications_api
 from reports import api as reports_api
@@ -37,7 +36,6 @@ router.register(r'plans', plans_api.PlanViewSet)
 router.register(r'planReports', plans_api.PlanReportViewSet)
 router.register(r'animalCauses', reports_api.AnimalLaboratoryCauseViewSet)
 router.register(r'reportLaboratoryItems', reports_api.ReportLaboratoryItemViewSet)
-router.register(r'civic/config/letter', civic_api.LetterFieldConfigurationViewSet)
 urlpatterns = patterns('',
     url(r'^api-token-auth/', 'accounts.api.obtain_auth_token', name='obtain_auth_token'),
     url(r'^line-token-auth/', 'accounts.api.line_login_obtain_auth_token', name='line_login_obtain_auth_token'),
@@ -156,7 +154,6 @@ urlpatterns = patterns('',
     url(r'^test-dodd/(?P<report_id>\d+)/', 'dodd.views.test_link_report', name='test_dodd'),
     url(r'^covid/monitoring/', 'covid.views.list_monitoring', name='covid_list'),
     url(r'^covid/summary/(?P<authority_id>\d+)', 'covid.views.daily_summary', name='covid_list'),
-    url(r'^civic/reports/(?P<status>.+)/', 'civic.views.list_civic_report', name='civic_report_list'),
     url(r'^', include(router.urls)),
 )
 

@@ -1,10 +1,17 @@
+# -*- encoding: utf-8 -*-
+from datetime import datetime
+
 from django.conf import settings
 from django.core.paginator import Paginator
+from django.shortcuts import render
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+import json
 
+from civic.models import LetterFieldConfiguration
+from civic.utils import thai_strftime
 from reports.models import Report
 from reports.paginations import PaginatedReportSerializer
 
@@ -25,3 +32,35 @@ def list_civic_report(request, status):
     reports = paginator.page(page)
     serializer = pagination_serializer_class(reports)
     return Response(serializer.data)
+
+
+def letter(request, report_id):
+    report = Report.objects.get(pk=report_id)
+    reporter = report.created_by
+    authority = report.administration_area.authority
+    form = json.loads(report.form_data)
+    letter_config_query = LetterFieldConfiguration.objects.filter(code='civic', authority=report.administration_area.authority)
+    if letter_config_query.exists():
+        letter_config = letter_config_query.first()
+
+    date_fmt = "%-d %B %Y"
+    context = {
+        'show_html': request.GET.get('show_html', ''),
+        'letter_date': thai_strftime(datetime.today(), thaidigit=True),
+        'organization_address1': letter_config.header_address1,
+        'organization_address2': letter_config.header_address2,
+        'organization_name': authority.name,
+        'report_topic': form["incident"],
+        'report_to': reporter.name,
+        'question': form["incident"],
+        'report_id': report.id,
+        'report_date': thai_strftime(report.date, thaidigit=True),
+        'report_description':  form["detail"] if "detail" in form else "",
+        'signature_name': letter_config.sign_name,
+        'signature_position1': letter_config.sign_position1,
+        'signature_position2': letter_config.sign_position2,
+        'department_name': letter_config.footer_contact_line1,
+        'department_contact1': letter_config.footer_contact_line2,
+        'department_contact2': letter_config.footer_contact_line3,
+    }
+    return render(request, 'civic/letter.html', context)

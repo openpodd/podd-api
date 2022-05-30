@@ -1,0 +1,185 @@
+{% load staticfiles %}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <title>Title</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="UTF-8" />
+    <style type="text/css">
+      @font-face {
+        font-family: THSarabun;
+        src: url({% static 'fonts/THSarabun.ttf' %})
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 2cm;
+
+        @frame logo_frame {
+          -pdf-frame-content: logo_content;
+          width: 80pt;
+          height: 3.5cm;
+          left: 250pt;
+          top: 1cm;
+        }
+
+        @frame left_frame {
+          -pdf-frame-content: left_content;
+          width: 140pt;
+          height: 100pt;
+          left: 2cm;
+          top: 72pt;
+        }
+
+        @frame right_frame {
+          -pdf-frame-content: right_content;
+          height: 100pt;
+          left: 13cm;
+          top: 72pt;
+        }
+
+        @frame content_frame {
+          /* Content Frame */
+          left: 2cm;
+          width: 500pt;
+          top: 6cm;
+          height: 462pt;
+        }
+
+        @frame footer_frame {
+          -pdf-frame-content: footer_content;
+          left: 50pt;
+          width: 512pt;
+          top: 692pt;
+          height: 110pt;
+        }
+      }
+
+      body {
+        font-size: 22px;
+        font-family: "THSarabun";
+      }
+
+      .date {
+        text-align: center;
+      }
+
+      .footer {
+        text-align: center;
+      }
+
+      .logo {
+        position: absolute;
+        left: 9cm;
+        top: 1.4cm;
+      }
+
+      .right_content {
+        position: absolute;
+        left: 13cm;
+        top: 72pt;
+      }
+
+      .footer_content {
+        position: absolute;
+        top: 692pt;
+      }
+
+      .main-page {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 10mm auto;
+        background: white;
+        box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
+      }
+
+      .main-page .sub-page {
+        padding: 1cm;
+        height: 297mm;
+        position: relative;
+      }
+
+      * {
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+      }
+      body {
+        width: 230mm;
+        height: 100%;
+        margin: 0 auto;
+        padding: 0;
+        background: rgb(204, 204, 204);
+      }
+      .date {
+        margin-top: 120px;
+      }
+      @page { margin: 0; }
+      @media print {
+        html, body {
+          width: 210mm;
+          height: 297mm;
+        }
+        .main-page {
+          margin: 0;
+          border: initial;
+          border-radius: initial;
+          width: initial;
+          min-height: initial;
+          box-shadow: initial;
+          background: initial;
+          page-break-after: always;
+        }
+      }
+
+    </style>
+  </head>
+
+<body>
+    <div class="main-page">
+      <div class="sub-page">
+        <div class="logo" id="logo_content">
+          <img src="{% static 'images/letter_logo.jpeg' %}" />
+        </div>
+        <div id="left_content">
+          <span>ที่ </span>
+        </div>
+        <div class="right_content" id="right_content">
+          <div>{{organization_address1}}</div>
+          <div>{{organization_address2}}</div>
+        </div>
+        <p class="date">วันที่ {{letter_date}}</p>
+        <p>
+          เรื่อง แจ้งผลการแก้ไขปัญหา{{report_topic}} <br />
+          เรียน {{report_to}}
+        </p>
+        <p style="text-indent: 80px">
+          ตามหนังสือ {{questionTitle}} เลขที่ {{report_id}} ลงวันที่
+          {{report_date}} ที่ท่านได้แจ้งเรื่องราวร้องทุกข์ เรื่อง
+          {{report_topic}} {{report_description}}
+          เนื่องจากปัจจุบันชาวบ้านได้รับความเดือดร้อน จึงขอให้
+          {{organization_name}} ช่วยดำเนินการแก้ไข
+        </p>
+        <p style="text-indent: 80px">
+          บัดนี้ {{organization_name}} ได้ดำเนินการแก้ไขให้เสร็จเรียบร้อย
+        </p>
+        <p class="footer">ขอแสดงความนับถือ</p>
+        <p class="footer" style="margin-top: 3cm">
+          {{signature_name}}<br />
+          {{signature_position1}}<br />
+          {{signature_position2}}
+        </p>
+        <!-- Content for Static Frame 'footer_frame'
+        <div id="footer_content">(c) - page <pdf:pagenumber>
+            of <pdf:pagecount>
+        </div>
+         -->
+        <div class="footer_content" id="footer_content">
+          <div>{{department_name}}</div>
+          <div>{{department_contact1}}</div>
+          <div>{{department_contact2}}</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
