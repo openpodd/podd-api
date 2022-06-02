@@ -214,12 +214,15 @@ class Command(BaseCommand):
                                      to_report_type=report_type, dry_run=dry_run)
 
             if should_save_report_type:
-                default_state = ReportState.objects.get(report_type=report_type, code='report')
-                if not report_type.default_state or default_state.id != report_type.default_state.id:
-                    print ">> Then will set default state to %s" % default_state.name
-                    if not dry_run:
-                        report_type.default_state = default_state
-                        report_type.save()
+                try:
+                    default_state = ReportState.objects.get(report_type=report_type, code='report')
+                    if not report_type.default_state or default_state.id != report_type.default_state.id:
+                        print ">> Then will set default state to %s" % default_state.name
+                        if not dry_run:
+                            report_type.default_state = default_state
+                            report_type.save()
+                except ReportState.DoesNotExist:
+                    pass
 
             print "---------------------"
 
