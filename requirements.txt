@@ -62,7 +62,7 @@ Markdown==2.5.1
 mock==1.0.1
 mockredispy==2.9.0.11
 msgpack==0.6.2
-numpy==1.16.5
+numpy==1.22.0
 oauth2client==1.4.11
 opbeat==3.2
 pandas==0.24.2
