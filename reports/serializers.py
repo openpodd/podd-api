@@ -591,7 +591,7 @@ class ReportSerializer(serializers.ModelSerializer, AttachCanEditSerializer):
     class Meta:
         model = Report
         fields = (
-            'id', 'reportId', 'guid', 'reportTypeId', 'reportTypeName', 'reportTypeCategoryCode',
+            'id', 'reportId', 'guid', 'reportTypeId', 'reportTypeName', 'reportTypeCode', 'reportTypeCategoryCode',
             'isStateChanged', 'stateCode', 'stateName', 'stateId', 'date', 'createdAt', 'isAnonymous', 'createdByObject',
             'incidentDate', 'createdBy', 'createdById', 'createdByName', 'administrationAreaId', 'formData', 'originalFormData', 'negative', 'testFlag',
             'createdByTelephone', 'createdByProjectMobileNumber', 'createdByThumbnailUrl',

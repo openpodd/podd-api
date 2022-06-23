@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 import json
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -24,13 +24,31 @@ from reports.paginations import PaginatedReportSerializer
 @authentication_classes((TokenAuthentication, SessionAuthentication))
 @permission_classes((IsAuthenticated,))
 def list_civic_report(request, status):
+    try:
+        tz = int(request.QUERY_PARAMS.get('tz'))
+    except:
+        tz = 0
     page_size = request.QUERY_PARAMS.get('page_size') or 20
     page = request.QUERY_PARAMS.get('page') or 1
+    include_test_flag = request.QUERY_PARAMS.get('includeTestFlag') or None
     user = request.user
+    date_from = request.QUERY_PARAMS.get('dateFrom') or None
+    date_to = request.QUERY_PARAMS.get('dateTo') or None
     authority = user.get_my_authority()
     queryset = Report.objects.filter(administration_area__authority=authority,
                                      type__code=settings.CIVIC_REPORT_TYPE_CODE,
                                      state__code=status)
+    if date_from:
+        date_from = datetime.strptime(date_from, '%Y-%m-%d') + timedelta(hours=-tz)
+        queryset = queryset.filter(date__gte=date_from)
+
+    if date_to:
+        date_to = datetime.strptime(date_to, '%Y-%m-%d') + timedelta(hours=-tz)
+        queryset = queryset.filter(date__lte=date_to)
+
+    if not include_test_flag:
+        queryset = queryset.filter(negative=True)
+
     pagination_serializer_class = PaginatedReportSerializer
     paginator = Paginator(queryset, page_size)
     reports = paginator.page(page)
