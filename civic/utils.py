@@ -22,6 +22,8 @@ __all__ = [
 
 import string
 
+import pytz
+
 thai_abbr_weekdays = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"]
 thai_full_weekdays = [
     "วันจันทร์",
@@ -314,3 +316,11 @@ def reign_year_to_ad(reign_year, reign):
     elif int(reign) == 7:
         ad = int(reign_year) + 1924
     return ad
+
+
+tz = pytz.timezone('Asia/Bangkok')
+
+
+def utc_to_local(utc_dt):
+    local_dt = utc_dt.replace(tzinfo=pytz.utc).astimezone(tz)
+    return tz.normalize(local_dt) # .normalize might be unnecessary

@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import json
+
 from datetime import datetime
 
 from django.conf import settings
@@ -12,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from civic.models import LetterFieldConfiguration
-from civic.utils import thai_strftime
+from civic.utils import thai_strftime, utc_to_local
 from common.constants import STATUS_PUBLISH
 from logs.models import LogAction, LogItem
 from reports.models import Report, ReportAccomplishment, ReportState
@@ -158,11 +159,11 @@ def display_civic_report(request, report_id):
         "latitude": latitude,
         "longitude": longitude,
         "area_name": report.administration_area.name,
-        "report_date": thai_strftime(datetime=report.date, fmt="%A %-d %B %Y เวลา %H:%M", thaidigit=False),
-        "incident_date": thai_strftime(datetime=report.incident_date, fmt="%A %-d %B %Y เวลา %H:%M", thaidigit=False),
-        "finished_date": thai_strftime(datetime=finished_date, fmt="%A %-d %B %Y เวลา %H:%M",
+        "report_date": thai_strftime(datetime=utc_to_local(report.date), fmt="%A %-d %B %Y เวลา %H:%M", thaidigit=False),
+        "incident_date": thai_strftime(datetime=report.incident_date, fmt="%A %-d %B %Y", thaidigit=False),
+        "finished_date": thai_strftime(datetime=utc_to_local(finished_date), fmt="%A %-d %B %Y เวลา %H:%M",
                                        thaidigit=False) if finished_date else None,
-        "verify_date": thai_strftime(datetime=verify_date, fmt="%A %-d %B %Y เวลา %H:%M",
+        "verify_date": thai_strftime(datetime=utc_to_local(verify_date), fmt="%A %-d %B %Y เวลา %H:%M",
                                      thaidigit=False) if verify_date else None,
         "comments": comments,
         "accomplish_title": accomplishment.title if accomplishment else None,
