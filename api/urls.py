@@ -12,6 +12,7 @@ from accounts import api as accounts_api
 from plans import api as plans_api
 from areas import api as areas_api
 from summary import api as summary_api
+from civic import api as civic_api
 
 router = routers.DefaultRouter()
 
@@ -36,6 +37,7 @@ router.register(r'plans', plans_api.PlanViewSet)
 router.register(r'planReports', plans_api.PlanReportViewSet)
 router.register(r'animalCauses', reports_api.AnimalLaboratoryCauseViewSet)
 router.register(r'reportLaboratoryItems', reports_api.ReportLaboratoryItemViewSet)
+router.register(r'civicletterconfig', civic_api.LetterFieldConfigurationViewSet)
 urlpatterns = patterns('',
     url(r'^api-token-auth/', 'accounts.api.obtain_auth_token', name='obtain_auth_token'),
     url(r'^line-token-auth/', 'accounts.api.line_login_obtain_auth_token', name='line_login_obtain_auth_token'),
@@ -154,7 +156,10 @@ urlpatterns = patterns('',
     url(r'^test-dodd/(?P<report_id>\d+)/', 'dodd.views.test_link_report', name='test_dodd'),
     url(r'^covid/monitoring/', 'covid.views.list_monitoring', name='covid_list'),
     url(r'^covid/summary/(?P<authority_id>\d+)', 'covid.views.daily_summary', name='covid_list'),
+    url(r'^civic/letter/(?P<report_id>[\w-]+)/', 'civic.views.letter', name='civic_letter'),
+    url(r'^civic/reports/(?P<status>.+)/', 'civic.views.list_civic_report', name='civic_report_list'),
+    url(r'^civic/accomplishments/', 'civic.views.accomplishments', name="civic_accomplishments"),
+    url(r'^civic/report/(?P<report_id>[\w-]+)/', 'civic.views.display_civic_report', name='civic_report_display'),
     url(r'^', include(router.urls)),
-    url(r'^civic/', include('civic.urls')),
 )
 
