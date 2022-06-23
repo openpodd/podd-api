@@ -159,7 +159,8 @@ urlpatterns = patterns('',
     url(r'^civic/letter/(?P<report_id>[\w-]+)/', 'civic.views.letter', name='civic_letter'),
     url(r'^civic/reports/(?P<status>.+)/', 'civic.views.list_civic_report', name='civic_report_list'),
     url(r'^civic/accomplishments/', 'civic.views.accomplishments', name="civic_accomplishments"),
-    url(r'^civic/report/(?P<report_id>[\w-]+)/', 'civic.views.display_civic_report', name='civic_report_display'),
+    url(r'^civic/report/(?P<report_id>[\w-]+)/', 'civic.views.display_civic_new_report', name='civic_report_display'),
+    url(r'^civic/success_report/(?P<report_id>[\w-]+)/', 'civic.views.display_civic_success_report', name='civic_success_report_display'),
     url(r'^', include(router.urls)),
 )
 

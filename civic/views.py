@@ -108,11 +108,7 @@ def accomplishments(request):
     })
 
 
-def display_civic_report(request, report_id):
-    report = Report.objects.get(pk=report_id)
-    if report.type.code != settings.CIVIC_REPORT_TYPE_CODE:
-        return HttpResponseNotFound("report not found")
-
+def get_first_two_image(report):
     imgs = report.images.all()[:2]
     img1 = None
     img2 = None
@@ -120,13 +116,54 @@ def display_civic_report(request, report_id):
         img1 = imgs[0].image_url
         if len(imgs) > 1:
             img2 = imgs[1].image_url
+    return [img1, img2]
 
+
+def get_report_location(report):
     if report.report_location:
         latitude = report.report_location.y
         longitude = report.report_location.x
     else:
         latitude = report.administration_location.y
         longitude = report.administration_location.x
+
+    return [latitude, longitude]
+
+
+def display_civic_new_report(request, report_id):
+    report = Report.objects.get(pk=report_id)
+    authority = report.administration_area.authority
+    if report.type.code != settings.CIVIC_REPORT_TYPE_CODE:
+        return HttpResponseNotFound("report not found")
+
+    [img1, img2] = get_first_two_image(report)
+    [latitude, longitude] = get_report_location(report)
+
+    return render(request, 'civic/report.html', {
+        "map_api_key": settings.GOOGLE_STATIC_MAP_API_KEY,
+        "report_id": report.id,
+        "report_date": thai_strftime(datetime=utc_to_local(report.date), fmt="%A %-d %B %Y เวลา %H:%M", thaidigit=False),
+        "incident_date": thai_strftime(datetime=report.incident_date, fmt="%A %-d %B %Y", thaidigit=False),
+        "report_type_name": report.type.name,
+        "authority_name": authority.name,
+        "description": report.rendered_form_data,
+        "image1_url": img1,
+        "image2_url": img2,
+        "latitude": latitude,
+        "longitude": longitude,
+        "area_name": report.administration_area.name,
+        "report_by": report.created_by.name,
+        "phone": report.created_by.telephone,
+    })
+
+
+def display_civic_success_report(request, report_id):
+    report = Report.objects.get(pk=report_id)
+    if report.type.code != settings.CIVIC_REPORT_TYPE_CODE:
+        return HttpResponseNotFound("report not found")
+
+    [img1, img2] = get_first_two_image(report)
+    [latitude, longitude] = get_report_location(report)
 
     log_action = LogAction.objects.get(name='REPORT_STATE_CHANGE')
     history_queryset = LogItem.objects.filter(action=log_action, object_id1=report.id).order_by('-created_at')
@@ -167,7 +204,7 @@ def display_civic_report(request, report_id):
     else:
         total_time += '%d นาที' % (minutes)
 
-    return render(request, 'civic/report.html', {
+    return render(request, 'civic/success.html', {
         "map_api_key": settings.GOOGLE_STATIC_MAP_API_KEY,
         "report_id": report.id,
         "report_type_name": report.type.name,

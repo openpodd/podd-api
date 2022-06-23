@@ -61,6 +61,20 @@
             }
         }
 
+        .step {
+            padding: 10px;
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            background-color: cream;
+        }
+
+        .v-stepper {
+            position: relative;
+            /*   visibility: visible; */
+        }
+
+
         /* regular step */
         .step .circle {
             background-color: white;
@@ -134,32 +148,6 @@
             margin-block-start: 10px;
             margin-block-end: 10px;
         }
-
-        .row {
-            display: flex;
-            flex-direction: row;
-        }
-
-        .box {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-
-        .box-header {
-            display: flex;
-            flex-direction: row;
-        }
-
-        .box-body {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .box-footer {
-            display: flex;
-            flex-direction: row;
-        }
     </style>
 </head>
 <body>
@@ -219,86 +207,91 @@
                 <th>พื้นที่เกิดเหตุ</th>
                 <td>{{ area_name }}</td>
             </tr>
-
+        </table>
+        <h4>ลำดับเหตูการณ์และรายละเอียด</h4>
+        <table width="100%" style="border: 1px solid;">
             <tr>
-                <th>โดย</th>
-                <td>{{ report_by }}</td>
+                <th>ลำดับเหตุการณ์</th>
+                <th>ข้อมูลรายละเอียดอื่นๆ</th>
             </tr>
-
             <tr>
-                <th>เบอร์โทร</th>
-                <td>{{ phone }}</td>
+                <td width="50%">
+                    <div class="container">
+                        <div class="step completed">
+                            <div class="v-stepper">
+                                <div class="circle"></div>
+                                <div class="line"></div>
+                            </div>
+
+                            <div class="content">
+                                มีรายงานแจ้งเหตุเมื่อ {{ report_date }}
+                            </div>
+                        </div>
+
+                        <div class="step completed">
+                            <div class="v-stepper">
+                                <div class="circle"></div>
+                                <div class="line"></div>
+                            </div>
+
+                            <div class="content">
+                                ตรวจสอบข้อมูลและกำลังดำเนินการผ่านหน่วยงาน {{ verify_date }}
+                            </div>
+                        </div>
+
+                        <div class="step completed">
+                            <div class="v-stepper">
+                                <div class="circle"></div>
+                            </div>
+
+                            <div class="content">
+                                ดำเนินการเสร็จสิ้น {{ finished_date }}
+                            </div>
+                        </div>
+
+                        <div class="step active">
+                            <div class="v-stepper">
+                                <div class="circle"></div>
+                            </div>
+
+                            <div class="content">
+                                ใช้เวลาประมาณ {{ total_time }}
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    {% for comment in comments %}
+                        <div class="step completed">
+                            <div class="v-stepper">
+                                <div class="circle"></div>
+                                <div class="line"></div>
+                            </div>
+
+                            <div class="content">
+                                {{ comment.body }} {{ comment.date }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </td>
             </tr>
         </table>
-        <hr/>
-        <div style="position: relative;">
-            <div class="box" style="position: absolute; left: 1cm; top: 1cm;">
-                <div class="header">
-                    <div>เรียน นายก{{ authority_name }}</div>
-                </div>
-                <div class="body">
-                    <div>........................................</div>
-                    <div>........................................</div>
-                    <div>........................................</div>
-                </div>
-                <div class="footer">
-                    <div>ลงชื่อ ............................ เจ้าหน้าที่</div>
-                </div>
-            </div>
-
-            <div class="box" style="position: absolute; left: 1cm; top: 7cm;">
-                <div class="header">
-                    <div>ลงชื่อ ..................................</div>
-                </div>
-                <div class="body">
-                    <div>&nbsp;&nbsp;(...........................................)</div>
-                    <div>ตำแหน่ง........................................</div>
-                </div>
-                <div class="footer">
-                    <div>วันที่ ..../...../.......</div>
-                </div>
-            </div>
-
-            <div class="box" style="position: absolute; left: 12cm; top: 1cm;">
-                <div class="header">
-                    <div>ลงชื่อ ..................................</div>
-                </div>
-                <div class="body">
-                    <div>&nbsp;&nbsp;(...........................................)</div>
-                    <div>ตำแหน่ง........................................</div>
-                </div>
-                <div class="footer">
-                    <div>วันที่ ..../...../.......</div>
-                </div>
-            </div>
-
-
-            <div class="box" style="position: absolute; left: 12cm; top: 7cm;">
-                <div class="header">
-                    <div>ลงชื่อ ..................................</div>
-                </div>
-                <div class="body">
-                    <div>&nbsp;&nbsp;(...........................................)</div>
-                    <div>ตำแหน่ง........................................</div>
-                </div>
-                <div class="footer">
-                    <div>วันที่ ..../...../.......</div>
-                </div>
-            </div>
-
-
-            <div class="box" style="position: absolute; left: 12cm; top: 4.3cm;">
-                <div>คำสั่ง นายก{{ authority_name }}</div>
-                <div>ดำเนินการให้</div>
-                <div class="box-header">
-                    <div><input type="checkbox"/> อนุญาติ</div>
-                    &nbsp;
-                    <div><input type="checkbox"/> ไม่อนุญาติ</div>
-                </div>
-            </div>
-        </div>
-
-
+        <h4>
+            ข้อมูลสรุป บันทึกความสำเร็จ
+        </h4>
+        <!-- <input id="your_name_id" type="text" name="your_name" value="{{ current_name }}"> -->
+        <table border="0">
+            <tr>
+                <th> หัวข้อ</th>
+                <td>{{ accomplish_title }}
+                </td>
+            </tr>
+            <tr>
+                <th> รายละเอียด</th>
+                <td>{{ accomplish_description }}
+                </td>
+            </tr>
+        </table>
     </div>
 </div>
 </body>
