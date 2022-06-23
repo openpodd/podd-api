@@ -176,7 +176,7 @@ def _thai_strftime(datetime, fmt_char):
 
 
 def thai_strftime(
-        datetime, fmt = "%-d %B %y", thaidigit = False
+        datetime, fmt = "%-d %B %Y", thaidigit = False
 ):
     """
     Thai date and time string formatter
@@ -268,7 +268,7 @@ def thai_strftime(
 
                 elif fmt_char:
                     # the rest of directives, just pass to Python's standard strftime()
-                    str_ = datetime.strftime(fmt_char)
+                    str_ = datetime.strftime('%' + fmt_char)
 
                 i = i + 1  # consume char after "%"
             else:
