@@ -98,13 +98,15 @@ def accomplishments(request):
     query = query.order_by("-report__date")[:10]
 
     data = [{
+        "report_id": row.report_id,
         "image_url": row.get_first_image_thumbnail_url(),
         "title": row.title,
         "description": row.description
     } for row in query]
 
     return render(request, 'civic/showcase.html', {
-        'data': data
+        'data': data,
+        'authority_id': authority_id
     })
 
 
@@ -179,30 +181,31 @@ def display_civic_success_report(request, report_id):
 
     comments = [{
         "body": comment.message,
-        "date": thai_strftime(datetime=comment.created_at, fmt="%A %-d %B %Y เวลา %H:%M"),
+        "date": thai_strftime(datetime=utc_to_local(comment.created_at), fmt="%A %-d %B %Y เวลา %H:%M"),
     } for comment in report.comments.filter(status = STATUS_PUBLISH, state = None).order_by('created_at')]
 
     accomplishment = report.accomplishments.first()
 
-    years = finished_date.year - report.date.year
-    months = finished_date.month - report.date.month
-    minutes = finished_date.minute - report.date.minute
-    days = finished_date.day - report.date.day
-    hours = finished_date.hour - report.date.hour
-    minutes = finished_date.minute - report.date.minute
     total_time = ""
-    if (years):
-        total_time += '%d ปี %d เดือน %d วัน %d ชั่วโมง %d นาที' % (
-            years, months, days, hours, minutes)
-    elif (months):
-        total_time += '%d เดือน %d วัน %d ชั่วโมง %d นาที' % (
-            months, days, hours, minutes)
-    elif (days):
-        total_time += '%d วัน %d ชั่วโมง %d นาที' % (days, hours, minutes)
-    elif (hours):
-        total_time += '%d ชั่วโมง %d นาที' % (hours, minutes)
-    else:
-        total_time += '%d นาที' % (minutes)
+    if finished_date:
+        years = finished_date.year - report.date.year
+        months = finished_date.month - report.date.month
+        minutes = finished_date.minute - report.date.minute
+        days = finished_date.day - report.date.day
+        hours = finished_date.hour - report.date.hour
+        minutes = finished_date.minute - report.date.minute
+        if (years):
+            total_time += '%d ปี %d เดือน %d วัน %d ชั่วโมง %d นาที' % (
+                years, months, days, hours, minutes)
+        elif (months):
+            total_time += '%d เดือน %d วัน %d ชั่วโมง %d นาที' % (
+                months, days, hours, minutes)
+        elif (days):
+            total_time += '%d วัน %d ชั่วโมง %d นาที' % (days, hours, minutes)
+        elif (hours):
+            total_time += '%d ชั่วโมง %d นาที' % (hours, minutes)
+        else:
+            total_time += '%d นาที' % (minutes)
 
     return render(request, 'civic/success.html', {
         "map_api_key": settings.GOOGLE_STATIC_MAP_API_KEY,

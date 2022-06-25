@@ -208,7 +208,7 @@
                 <td>{{ area_name }}</td>
             </tr>
         </table>
-        <h4>ลำดับเหตูการณ์และรายละเอียด</h4>
+        <h4>ลำดับเหตุการณ์และรายละเอียด</h4>
         <table width="100%" style="border: 1px solid;">
             <tr>
                 <th>ลำดับเหตุการณ์</th>
@@ -228,6 +228,7 @@
                             </div>
                         </div>
 
+                        {%  if verify_date %}
                         <div class="step completed">
                             <div class="v-stepper">
                                 <div class="circle"></div>
@@ -238,7 +239,9 @@
                                 ตรวจสอบข้อมูลและกำลังดำเนินการผ่านหน่วยงาน {{ verify_date }}
                             </div>
                         </div>
+                        {% endif %}
 
+                        {%  if finished_date %}
                         <div class="step completed">
                             <div class="v-stepper">
                                 <div class="circle"></div>
@@ -258,6 +261,7 @@
                                 ใช้เวลาประมาณ {{ total_time }}
                             </div>
                         </div>
+                        {%  endif %}
                     </div>
                 </td>
                 <td>

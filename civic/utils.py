@@ -223,6 +223,8 @@ def thai_strftime(
 
     :return: Date and time spelled out in text, with month in Thai name and year in Thai Buddhist era. The year is simply converted from AD by adding 543 (will not accurate for years before 1941 AD, due to change in Thai New Year's Day).
     """
+    if not datetime:
+        return ""
     thaidate_parts = []
 
     i = 0
@@ -322,5 +324,7 @@ tz = pytz.timezone('Asia/Bangkok')
 
 
 def utc_to_local(utc_dt):
+    if not utc_dt:
+        return None
     local_dt = utc_dt.replace(tzinfo=pytz.utc).astimezone(tz)
     return tz.normalize(local_dt) # .normalize might be unnecessary
