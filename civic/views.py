@@ -141,12 +141,19 @@ def display_civic_new_report(request, report_id):
     [img1, img2] = get_first_two_image(report)
     [latitude, longitude] = get_report_location(report)
 
+    to_msg = ''
+    if unicode.startswith(authority.name, u'องค์การบริหารส่วนตำบล'):
+        to_msg = u'นายก' + authority.name
+    if unicode.startswith(authority.name, u'เทศบาล'):
+        to_msg = u'นายกเทศมนตรี' + unicode.replace(authority.name, u"เทศบาล", "")
+
     return render(request, 'civic/report.html', {
         "map_api_key": settings.GOOGLE_STATIC_MAP_API_KEY,
         "report_id": report.id,
         "report_date": thai_strftime(datetime=utc_to_local(report.date), fmt="%A %-d %B %Y เวลา %H:%M", thaidigit=False),
         "incident_date": thai_strftime(datetime=report.incident_date, fmt="%A %-d %B %Y", thaidigit=False),
         "report_type_name": report.type.name,
+        "to_msg": to_msg,
         "authority_name": authority.name,
         "description": report.rendered_form_data,
         "image1_url": img1,
