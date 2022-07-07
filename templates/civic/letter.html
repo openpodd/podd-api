@@ -12,121 +12,51 @@
             src: url({% static 'fonts/THSarabun.ttf' %})
         }
 
-        @page {
-            size: A4 portrait;
-            margin: 2cm;
-        }
-
         body {
             font-size: 20px;
             font-family: "THSarabun";
         }
 
-        .left_content {
-            position: absolute;
-            left: 3cm;
-            top: 4cm;
-        }
-
-        .right_content {
-            position: absolute;
-            left: 13.5cm;
-            top: 4cm;
-        }
-
-        .date {
-            position: absolute;
-            top: 5.5cm;
-            left: 10cm;
-        }
-
-        .to {
-            position: absolute;
-            left: 3cm;
-            top: 7cm;
-        }
-
-        .content {
-            text-indent: 80px;
-            position: absolute;
-            left: 3cm;
-            top: 9cm;
-            right: 2cm;
-        }
-
-        .footer {
-            text-align: center;
-        }
-
-        .sign {
-            text-align: center;
-        }
-
         .logo {
-            position: absolute;
-            left: 9cm;
-            top: 2cm;
+            margin: auto;
+
+            border: 0px solid black;
         }
 
         .logo img {
-            width: 2.5cm;
-            height: 2.5cm;
-        }
-
-        .footer_content {
-            position: absolute;
-            left: 3cm;
-            bottom: 5cm;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            height: 3.5cm;
+            object-fit: fill;
+            padding-left: 0.2cm;
         }
 
         .main-page {
-            width: 210mm;
-            min-height: 297mm;
-            margin: 10mm auto;
-            background: white;
-            box-shadow: 0 0 0.5cm rgba(0, 0, 0, 0.5);
-        }
+            padding-left: 2.5cm;
+            padding-top: 1.5cm;
+            padding-right: 2cm;
+            background: #ffffff;
+            min-height: 270mm;
 
-        .main-page .sub-page {
-            padding: 1cm;
-            height: 297mm;
-            position: relative;
-        }
-
-        * {
-            box-sizing: border-box;
-            -moz-box-sizing: border-box;
         }
 
         body {
-            width: 230mm;
-            height: 100%;
+            width: 210mm;
+            height: 297mm;
             margin: 0 auto;
             padding: 0;
-            background: rgb(204, 204, 204);
-        }
-
-        @page {
-            margin: 0;
+            background: #e0e0e0;
         }
 
         @media print {
             html, body {
-                width: 210mm;
-                height: 297mm;
+                height: 99%;
             }
 
-            .main-page {
-                margin: 0;
-                border: initial;
-                border-radius: initial;
-                width: initial;
-                min-height: initial;
-                box-shadow: initial;
-                background: initial;
-                page-break-after: always;
-            }
+
         }
+
 
     </style>
 </head>
@@ -135,22 +65,29 @@
 <div class="main-page">
     <div class="sub-page">
         <div class="logo" id="logo_content">
-            <img src="{% static 'images/letter_logo.jpeg' %}"/>
+            <img src="{% static 'images/letter_logo.png' %}"/>
         </div>
-        <div class="left_content" id="left_content">
-            <span>ที่ </span>
+
+        <div style="display: flex; flex-direction: row; align-items: baseline; justify-content: space-between; border: 0px solid blue; margin-top: -1cm;">
+            <p style="flex: 3; border: 0px solid red;">ที่</p>
+            <div style="flex: 2; border: 0px solid red;">
+                    <div>{{ organization_address1 }}</div>
+                    <div>{{ organization_address2 }}</div>
+
+            </div>
         </div>
-        <div class="right_content" id="right_content">
-            <div>{{ organization_address1 }}</div>
-            <div>{{ organization_address2 }}</div>
+
+        <div style="display: flex; flex-direction: row; align-content: stretch; justify-content: space-between">
+            <p style="flex: 1; border: 0px solid red;"></p>
+            <p style="flex: 1; border: 0px solid red;">{{ letter_date }}</p>
         </div>
-        <p class="date">{{ letter_date }}</p>
-        <div class="to">
+
+        <div>
             <div>เรื่อง แจ้งผลการแก้ไขปัญหา{{ report_topic }} </div>
             <div style="margin-top: .5cm;">เรียน {{ report_to }}</div>
         </div>
-        <div class="content">
-            <p>
+        <div>
+            <p style="text-indent: 80px">
                 ตามหนังสือ {{ questionTitle }} เลขที่ {{ report_id }} ลงวันที่
                 {{ report_date }} ที่ท่านได้แจ้งเรื่องราวร้องทุกข์ เรื่อง
                 {{ report_topic }} {{ report_description }}
@@ -163,14 +100,20 @@
             <p style="text-indent: 80px">
                 จึงเรียนมาเพื่อทราบ
             </p>
-            <p class="footer">ขอแสดงความนับถือ</p>
-            <div class="sign">
-                <div style="margin-top: 1.5cm;">{{ signature_name }}</div>
-                <div>{{ signature_position1 }}</div>
-                <div>{{ signature_position2 }}</div>
-            </div>
         </div>
-        <div class="footer_content" id="footer_content">
+        <div style="display: flex; flex-direction: row; align-content: stretch; justify-content: space-between; margin-top: 1cm;">
+            <p style="flex: 1;"></p>
+            <div style="flex: 1; border: 0px solid red;">
+                <div>ขอแสดงความนับถือ</div>
+                <div style="margin-top: 1.7cm; text-align: center; margin-left: -5.4cm;">
+                    <div >{{ signature_name }}</div>
+                    <div>{{ signature_position1 }}</div>
+                    <div>{{ signature_position2 }}</div>
+                </div>
+            </div>
+
+        </div>
+        <div style="margin-top: 1.8cm;">
             <div>{{ department_name }}</div>
             <div>{{ department_contact1 }}</div>
             <div>{{ department_contact2 }}</div>

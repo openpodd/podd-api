@@ -66,10 +66,19 @@ def letter(request, report_id):
     if letter_config_query.exists():
         letter_config = letter_config_query.first()
 
+    log_action = LogAction.objects.get(name='REPORT_STATE_CHANGE')
+    history_queryset = LogItem.objects.filter(action=log_action, object_id1=report.id).order_by('-created_at')
+
+    finished_date = None
+    for log_item in history_queryset:
+        state = ReportState.objects.get(id=log_item.object_id2)
+        if state.code == 'finish':
+            finished_date = log_item.created_at
+
     date_fmt = "%-d %B %Y"
     context = {
         'show_html': request.GET.get('show_html', ''),
-        'letter_date': thai_strftime(datetime.today(), thaidigit=True),
+        'letter_date': thai_strftime(finished_date, thaidigit=True) if finished_date else "not finished yet",
         'organization_address1': letter_config.header_address1,
         'organization_address2': letter_config.header_address2,
         'organization_name': authority.name,
@@ -189,25 +198,20 @@ def display_civic_success_report(request, report_id):
     comments = [{
         "body": comment.message,
         "date": thai_strftime(datetime=utc_to_local(comment.created_at), fmt="%A %-d %B %Y เวลา %H:%M"),
-    } for comment in report.comments.filter(status = STATUS_PUBLISH, state = None).order_by('created_at')]
+    } for comment in report.comments.filter(status = STATUS_PUBLISH, state = None).order_by('created_at') if not unicode.startswith(comment.message, u"@[system]")]
 
     accomplishment = report.accomplishments.first()
+    data = report.data
+    topic = data.topic
 
     total_time = ""
     if finished_date:
-        years = finished_date.year - report.date.year
-        months = finished_date.month - report.date.month
-        minutes = finished_date.minute - report.date.minute
-        days = finished_date.day - report.date.day
-        hours = finished_date.hour - report.date.hour
-        minutes = finished_date.minute - report.date.minute
-        if (years):
-            total_time += '%d ปี %d เดือน %d วัน %d ชั่วโมง %d นาที' % (
-                years, months, days, hours, minutes)
-        elif (months):
-            total_time += '%d เดือน %d วัน %d ชั่วโมง %d นาที' % (
-                months, days, hours, minutes)
-        elif (days):
+        delta = finished_date - report.date
+        days = delta.days
+        hours, remainder = divmod(delta.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        if (days):
             total_time += '%d วัน %d ชั่วโมง %d นาที' % (days, hours, minutes)
         elif (hours):
             total_time += '%d ชั่วโมง %d นาที' % (hours, minutes)
@@ -218,7 +222,7 @@ def display_civic_success_report(request, report_id):
         "map_api_key": settings.GOOGLE_STATIC_MAP_API_KEY,
         "report_id": report.id,
         "report_type_name": report.type.name,
-        "description": report.rendered_form_data,
+        "description": topic,
         "image1_url": img1,
         "image2_url": img2,
         "latitude": latitude,
