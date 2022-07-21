@@ -4,13 +4,13 @@ from rest_framework.permissions import IsAuthenticated
 
 from civic.models import LetterFieldConfiguration
 from civic.serializers import LetterFieldConfigurationSerializer
-from common.constants import USER_STATUS_COORDINATOR
+from common.constants import USER_STATUS_COORDINATOR, USER_STATUS_PUBLIC_HEALTH
 
 
 class UserPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         user = request.user
-        return user and user.status == USER_STATUS_COORDINATOR
+        return user and ( user.status == USER_STATUS_COORDINATOR or user.status == USER_STATUS_PUBLIC_HEALTH)
 
 
 class LetterFieldConfigurationViewSet(viewsets.ModelViewSet):
