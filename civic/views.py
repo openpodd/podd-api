@@ -7,6 +7,8 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from django.http import HttpResponseNotFound
 from django.shortcuts import render
+from django.views.decorators.clickjacking import xframe_options_exempt
+
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -98,6 +100,7 @@ def letter(request, report_id):
     return render(request, 'civic/letter.html', context)
 
 
+@xframe_options_exempt
 def accomplishments(request):
     query = ReportAccomplishment.objects.filter(report__type__code=settings.CIVIC_REPORT_TYPE_CODE,
                                                 public_showcase=True)
