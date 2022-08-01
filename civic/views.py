@@ -78,9 +78,13 @@ def letter(request, report_id):
             finished_date = log_item.created_at
 
     date_fmt = "%-d %B %Y"
+    letter_date = thai_strftime(finished_date, thaidigit=True) if finished_date else "not finished yet"
+    xs = letter_date.split(" ")
+    xs[0] = "  "
+    letter_date = str.join(" ", xs)
     context = {
         'show_html': request.GET.get('show_html', ''),
-        'letter_date': thai_strftime(finished_date, thaidigit=True) if finished_date else "not finished yet",
+        'letter_date': letter_date,
         'organization_address1': letter_config.header_address1,
         'organization_address2': letter_config.header_address2,
         'organization_name': authority.name,
