@@ -406,6 +406,10 @@ def summary_by_report_detail(request):
                         status=status.HTTP_400_BAD_REQUEST)
 
     else:
+        duration = date_end - date_start
+        if duration.days > 31:
+            return Response({"dateEnd": "Date range must less than 31 days"},
+                            status=status.HTTP_400_BAD_REQUEST)
         results = []
 
         # GET Report type

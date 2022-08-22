@@ -110,8 +110,8 @@ class Command(BaseCommand):
 
             print "--"
 
-    def _copy_report_type_categories(self, from_domain, to_domain, dry_run=True):
-        original_report_type_categories = ReportTypeCategory.objects.filter(domain=from_domain)
+    def _copy_report_type_categories(self, from_domain, to_domain, dry_run=True, report_type_ids=[]):
+        original_report_type_categories = ReportTypeCategory.objects.filter(domain=from_domain, report_type_category__id__in=report_type_ids)
 
         for original_report_type_category in original_report_type_categories:
             try:
@@ -151,7 +151,7 @@ class Command(BaseCommand):
         if dry_run:
             print ">> DRY RUN <<\n"
 
-        self._copy_report_type_categories(from_domain, to_domain, dry_run)
+        self._copy_report_type_categories(from_domain, to_domain, dry_run, report_type_ids)
 
         original_report_types = ReportType.objects.filter(domain=from_domain)
         if from_authority:
@@ -238,7 +238,7 @@ class Command(BaseCommand):
         to_authority = options['to_authority']
         if to_authority:
             to_authority = Authority.objects.get(domain=to_domain, id=to_authority)
-
+:q!
         dry_run = not options['force']
 
         self._copy_report_types(from_domain, to_domain, from_authority, to_authority, report_type_ids, dry_run)

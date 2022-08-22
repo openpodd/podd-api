@@ -9,11 +9,11 @@
     <style type="text/css">
         @font-face {
             font-family: THSarabun;
-            src: url({% static 'fonts/THSarabun.ttf' %})
+            src: url({% static 'fonts/THSarabunIT9.ttf' %})
         }
 
         body {
-            font-size: 16pt;
+            font-size: 18pt;
             font-family: "THSarabun";
         }
 
@@ -85,17 +85,19 @@
         <div>
             <div>เรื่อง แจ้งผลการแก้ไขปัญหา{{ report_topic }} </div>
             <div style="margin-top: .5cm;">เรียน {{ report_to }}</div>
+            <div style="margin-top: .5cm;">อ้างถึง หนังสือ {{ questionTitle }} เลขที่ {{ report_id }} ลงวันที่
+                {{ report_date }}</div>
         </div>
         <div>
             <p style="text-indent: 80px">
-                ตามหนังสือ {{ questionTitle }} เลขที่ {{ report_id }} ลงวันที่
+                ตามหนังสือที่อ้างถึง เลขที่ {{ report_id }} ลงวันที่
                 {{ report_date }} ที่ท่านได้แจ้งเรื่องราวร้องทุกข์ เรื่อง
                 {{ report_topic }} {{ report_description }}
                 เนื่องจากปัจจุบันชาวบ้านได้รับความเดือดร้อน จึงขอให้
-                {{ organization_name }} ช่วยดำเนินการแก้ไข
+                {{ organization_name }} ช่วยดำเนินการแก้ไขนั้น
             </p>
             <p style="text-indent: 80px">
-                บัดนี้ {{ organization_name }} ได้ดำเนินการแก้ไขให้เสร็จเรียบร้อยแล้ว
+                บัดนี้ {{ organization_name }} ได้ดำเนินการแก้ไขปัญหาดังกล่าวให้เสร็จเรียบร้อยแล้ว
             </p>
             <p style="text-indent: 80px">
                 จึงเรียนมาเพื่อทราบ

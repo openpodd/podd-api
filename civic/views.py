@@ -63,8 +63,9 @@ def letter(request, report_id):
     reporter = report.created_by
     authority = report.administration_area.authority
     form = json.loads(report.form_data)
-    letter_config_query = LetterFieldConfiguration.objects.filter(code='civic',
-                                                                  authority=report.administration_area.authority)
+    letter_config_query = LetterFieldConfiguration.default_manager.filter(code='civic',
+                                                                          authority=report.administration_area.authority,
+                                                                          domain_id=report.domain_id)
     if letter_config_query.exists():
         letter_config = letter_config_query.first()
 
@@ -73,7 +74,7 @@ def letter(request, report_id):
 
     finished_date = None
     for log_item in history_queryset:
-        state = ReportState.objects.get(id=log_item.object_id2)
+        state = ReportState.default_manager.get(id=log_item.object_id2, domain_id=report.domain_id)
         if state.code == 'finish':
             finished_date = log_item.created_at
 

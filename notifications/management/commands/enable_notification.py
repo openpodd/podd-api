@@ -9,7 +9,7 @@ from common.models import Domain
 
 class Command(BaseCommand):
 
-    help = 'create notification_authority'
+    help = 'create notification_authority <ref_no ref_no ...>'
     option_list = BaseCommand.option_list + (
         make_option(
             '--force',
@@ -40,13 +40,17 @@ class Command(BaseCommand):
         dry_run = not options['force']
         domain_id = options['domain_id']
         template_id = options['template_id']
+        ref_nos = list(args[0:])
 
         if template_id:
             template = NotificationTemplate.objects.get(pk=template_id)
             self.process(template, dry_run)
         else:
             domain = Domain.objects.get(pk=domain_id)
-            for template in NotificationTemplate.objects.filter(domain=domain):
+            templates = NotificationTemplate.objects.filter(domain=domain)
+            if ref_nos:
+                templates = templates.filter(ref_no__in=ref_nos)
+            for template in templates:
                 self.process(template, dry_run)
 
     @staticmethod
