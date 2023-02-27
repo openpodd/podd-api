@@ -164,6 +164,13 @@ def gcm_registration(request):
 
     return Response()
 
+@api_view(['GET'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated, ))
+def validate_token(request):
+    authority = request.user.get_authority()
+    return Response({'authorityId': authority['id']})
+
 
 # http://stackoverflow.com/questions/14567586/token-authentication-for-restful-api-should-the-token-be-periodically-changed
 class ObtainNewAuthToken(ObtainAuthToken):
