@@ -204,7 +204,7 @@ class Command(BaseCommand):
                     report_type.save(set_default_state=True)
                     print "  - Saved id: %s" % report_type.pk
                 print ""
-c
+
             # copy report states
             self._copy_report_states(from_domain, to_domain, from_report_type=original_report_type,
                                      to_report_type=report_type, dry_run=dry_run)
