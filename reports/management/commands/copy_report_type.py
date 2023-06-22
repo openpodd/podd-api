@@ -204,7 +204,7 @@ class Command(BaseCommand):
                     report_type.save(set_default_state=True)
                     print "  - Saved id: %s" % report_type.pk
                 print ""
-
+c
             # copy report states
             self._copy_report_states(from_domain, to_domain, from_report_type=original_report_type,
                                      to_report_type=report_type, dry_run=dry_run)
@@ -238,7 +238,7 @@ class Command(BaseCommand):
         to_authority = options['to_authority']
         if to_authority:
             to_authority = Authority.objects.get(domain=to_domain, id=to_authority)
-:q!
+
         dry_run = not options['force']
 
         self._copy_report_types(from_domain, to_domain, from_authority, to_authority, report_type_ids, dry_run)
