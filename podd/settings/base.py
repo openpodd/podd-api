@@ -84,6 +84,7 @@ INSTALLED_APPS = (
     'dodd',
     'covid',
     'civic',
+    'animal',
 )
 
 MIDDLEWARE_CLASSES = (

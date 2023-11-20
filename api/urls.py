@@ -161,7 +161,12 @@ urlpatterns = patterns('',
     url(r'^civic/reports/(?P<status>.+)/', 'civic.views.list_civic_report', name='civic_report_list'),
     url(r'^civic/accomplishments/', 'civic.views.accomplishments', name="civic_accomplishments"),
     url(r'^civic/report/(?P<report_id>[\w-]+)/', 'civic.views.display_civic_new_report', name='civic_report_display'),
-    url(r'^civic/success_report/(?P<report_id>[\w-]+)/', 'civic.views.display_civic_success_report', name='civic_success_report_display'),
+    url(r'^civic/success_report/(?P<report_id>.+)/', 'civic.views.display_civic_success_report', name='civic_success_report_display'),
+    url(r'^animals/export/', 'animal.views.export_animal_record', name='export_animal_record'), 
+    url(r'^animals/(?P<animal_id>.+)/death/', 'animal.views.mark_death_animal_record', name='mark_death_animal_record'),
+    url(r'^animals/(?P<animal_id>.+)/delete/', 'animal.views.delete_animal_record', name='delete_animal_record'),
+    url(r'^animals/(?P<animal_id>.+)/', 'animal.views.update_animal_record', name='update_animal_record'),
+    url(r'^animals/', 'animal.views.create_animal_record', name='create_animal_record'),
     url(r'^', include(router.urls)),
 )
 
