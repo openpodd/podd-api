@@ -10,7 +10,6 @@ class AnimalRecord(models.Model):
     addr_no = models.CharField(max_length=10)
     addr_moo = models.CharField(max_length=10)
     addr_subdistrict = models.CharField(max_length=100)
-    addr_district = models.CharField(max_length=100)
     addr_soi = models.CharField(max_length=100)
     addr_road = models.CharField(max_length=100)
     animal_type = models.CharField(max_length=40)
