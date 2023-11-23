@@ -122,6 +122,7 @@ def export_animal_record(request):
                      'วันที่ปรับสถานะเสียชีวิต',
                      'ผู้ที่ปรับสถานะเสียชีวิต',
                      'วันที่อัปเดตล่าสุด',
+                     'ผู้แก้ไขข้อมูลล่าสุด'
                      ])
 
     for record in records:
@@ -155,12 +156,13 @@ def export_animal_record(request):
                          birth_date,
                          record.latitude,
                          record.longitude,
-                         record.updated_by.encode("utf-8"),
+                         record.created_by.encode("utf-8"),
                          deleted,
                          status,
                          record.death_updated_date,
                          record.death_updated_by.encode("utf-8") if record.death_updated_by else "",
                          record.updated_at,
+                         record.updated_by.encode("utf-8")
                          ])
 
     return response
