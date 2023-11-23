@@ -88,6 +88,7 @@ def export_animal_record(request):
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="animal_records.csv"'
+    response.write(u'\ufeff'.encode('utf-8'))
 
     writer = csv.writer(response)
     writer.writerow(['id',
