@@ -126,7 +126,6 @@ def export_animal_record(request):
                      'ผู้แก้ไขข้อมูลล่าสุด'
                      ])
 
-    utc_tz = pytz.utc
     local_tz = pytz.timezone('Asia/Bangkok')
 
     for record in records:
@@ -134,8 +133,8 @@ def export_animal_record(request):
         birth_date = current_date - datetime.timedelta(days=record.age_year*365 + record.age_month*30)
         deleted = 'ไม่แสดง' if record.deleted_date else 'แสดง'
         status = 'มีชีวิต' if not record.death_updated_date else 'เสียชีวิต'
-        created_at_bangkok = utc_tz.localize(record.created_at).astimezone(local_tz)
-        updated_at_bangkok = utc_tz.localize(record.updated_at).astimezone(local_tz)
+        created_at_bangkok = record.created_at.astimezone(local_tz)
+        updated_at_bangkok = record.updated_at.astimezone(local_tz)
 
         writer.writerow([record.id, 
                          created_at_bangkok,
