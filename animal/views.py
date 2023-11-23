@@ -146,7 +146,7 @@ def export_animal_record(request):
                          record.animal_color.encode("utf-8"),
                          record.animal_gender.encode("utf-8"),
                          record.vaccine.encode("utf-8"),
-                         record.last_vaccine_date if record.vaccine == 'เคย' else "",
+                         record.last_vaccine_date if record.vaccine == u'เคย' else "",
                          record.vaccine_other.encode("utf-8") if record.vaccine_other else "",
                          record.spay.encode("utf-8"),
                          record.spay_other.encode("utf-8") if record.spay_other else "",
