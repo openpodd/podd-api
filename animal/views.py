@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import datetime
+import pytz
 from django.shortcuts import render
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -125,14 +126,19 @@ def export_animal_record(request):
                      'ผู้แก้ไขข้อมูลล่าสุด'
                      ])
 
+    utc_tz = pytz.utc
+    local_tz = pytz.timezone('Asia/Bangkok')
+
     for record in records:
         current_date = datetime.date.today()
         birth_date = current_date - datetime.timedelta(days=record.age_year*365 + record.age_month*30)
         deleted = 'ไม่แสดง' if record.deleted_date else 'แสดง'
         status = 'มีชีวิต' if not record.death_updated_date else 'เสียชีวิต'
+        created_at_bangkok = utc_tz.localize(record.created_at).astimezone(local_tz)
+        updated_at_bangkok = utc_tz.localize(record.updated_at).astimezone(local_tz)
 
         writer.writerow([record.id, 
-                         record.created_at,
+                         created_at_bangkok,
                          record.authority.name.encode("utf-8"),
                          record.name.encode("utf-8"), 
                          record.national_id.encode("utf-8"),
@@ -161,7 +167,7 @@ def export_animal_record(request):
                          status,
                          record.death_updated_date,
                          record.death_updated_by.encode("utf-8") if record.death_updated_by else "",
-                         record.updated_at,
+                         updated_at_bangkok,
                          record.updated_by.encode("utf-8")
                          ])
 
