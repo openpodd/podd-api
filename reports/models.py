@@ -471,7 +471,6 @@ class CaseDefinition(DomainMixin):
 
         # Auto regenerate schema from report, state when Esper restart
         if resp.status_code == 500:
-            print resp.text
             if "Failed to resolve event type: Event type or class named '%s' was not found" % self.get_schema_from_name() in resp.text:
                 self.report_type.create_cep()
                 for state in self.report_type.report_state_report_type.all():
