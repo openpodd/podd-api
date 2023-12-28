@@ -755,8 +755,9 @@ class Report(AbstractCachedModel, DomainMixin):
                 value = data[field_name]
                 if field_type == 'int':
                     data[field_name] = int(value)
-
             except KeyError:
+                del (data[field_name])
+            except ValueError:
                 del (data[field_name])
 
 
