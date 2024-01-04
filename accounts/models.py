@@ -813,6 +813,7 @@ class AuthorityInfo(models.Model):
     num_dogs = models.IntegerField(blank=True, null=True)
     num_cats = models.IntegerField(blank=True, null=True)
     year = models.IntegerField(blank=True, null=True)
+    villages = models.TextField(blank=True, null=True)
 
     def user_can_edit(self, user):
         if user.is_superuser:
