@@ -10,11 +10,8 @@ from django.shortcuts import redirect
 
 from django.utils.http import urlsafe_base64_decode
 
-from django.contrib.auth.models import Group
-
-from accounts.models import User, GroupAdministrationArea, UserCode
+from accounts.models import UserCode
 from common.constants import GROUP_WORKING_TYPE_ADMINSTRATION_AREA, GROUP_WORKING_TYPE_REPORT_TYPE
-from reports.models import AdministrationArea
 
 
 def account_password_reset(request, uidb64=None, token=None):

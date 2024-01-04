@@ -20,7 +20,7 @@ from django.utils import timezone
 
 from taggit.managers import TaggableManager
 
-from common.constants import GROUP_WORKING_TYPE_CHOICES, USER_STATUS_CHOICES, USER_STATUS_VOLUNTEER, \
+from common.constants import GROUP_WORKING_TYPE_CHOICES, USER_STATUS_CHOICES, USER_STATUS_COORDINATOR, USER_STATUS_VOLUNTEER, \
     USER_STATUS_ADDITION_VOLUNTEER
 from common.decorators import domain_celery_task
 from common.models import DomainMixin, DomainManager, Domain, MultiDomainMixin, AbstractCommonTrashModel
@@ -800,3 +800,25 @@ class Party(models.Model):
         if not self.id and not self.join_code:
             self.join_code = randint(100000, 999999)
         super(Party, self).save(*args, **kwargs)
+
+
+class AuthorityInfo(models.Model):    
+    authority = models.ForeignKey(Authority, related_name='authority_info_authority')
+    population = models.IntegerField(blank=True, null=True)
+    population_male = models.IntegerField(blank=True, null=True)
+    population_female = models.IntegerField(blank=True, null=True)
+    population_elder = models.IntegerField(blank=True, null=True)
+    num_households = models.IntegerField(blank=True, null=True)
+    num_villages = models.IntegerField(blank=True, null=True)
+    num_dogs = models.IntegerField(blank=True, null=True)
+    num_cats = models.IntegerField(blank=True, null=True)
+    year = models.IntegerField(blank=True, null=True)
+
+    def user_can_edit(self, user):
+        if user.is_superuser:
+            return True
+        # must be coordinator and has authorityuser in this authority
+        if user.status == USER_STATUS_COORDINATOR:
+            if user.authority_users.filter(authority=self.authority_id).count() > 0:            
+                return True
+        return False

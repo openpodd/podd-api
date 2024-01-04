@@ -38,6 +38,7 @@ router.register(r'planReports', plans_api.PlanReportViewSet)
 router.register(r'animalCauses', reports_api.AnimalLaboratoryCauseViewSet)
 router.register(r'reportLaboratoryItems', reports_api.ReportLaboratoryItemViewSet)
 router.register(r'civicletterconfig', civic_api.LetterFieldConfigurationViewSet)
+router.register(r'authorityinfos', accounts_api.AuthorityInfoViewSet)
 urlpatterns = patterns('',
     url(r'^api-token-auth/', 'accounts.api.obtain_auth_token', name='obtain_auth_token'),
     url(r'^line-token-auth/', 'accounts.api.line_login_obtain_auth_token', name='line_login_obtain_auth_token'),

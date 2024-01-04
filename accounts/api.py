@@ -35,9 +35,9 @@ from rest_framework.permissions import IsAuthenticated, BasePermission, AllowAny
 from rest_framework.response import Response
 
 from accounts import tasks
-from accounts.models import Configuration, UserDevice, User, Authority, UserCode, AuthorityInvite, Party
+from accounts.models import AuthorityInfo, Configuration, UserDevice, User, Authority, UserCode, AuthorityInvite, Party
 from accounts.pub_tasks import publish_user_profile
-from accounts.serializers import (UserDeviceSerializer, UserListESSerializer, UserSerializer,
+from accounts.serializers import (AuthorityInfoSerializer, UserDeviceSerializer, UserListESSerializer, UserSerializer,
                                   AuthoritySerializer, UserRegistrationSerializer, UserCommonSerializer,
                                   AuthorityListSerializer, AuthorityShortListSerializer,
                                   UserCommonDetailSerializer, AuthorityInviteSerializer, UserCommonAdminSerializer,
@@ -1419,3 +1419,56 @@ def get_party(request, join_code):
         return Response({'error': 'Incorrect join code'}, status=403)
     serializer = PartySerializer(party)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+class AuthorityInfoViewSet(viewsets.ModelViewSet):    
+    queryset = AuthorityInfo.objects.all()
+    serializer_class = AuthorityInfoSerializer
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+    permission_classes = (CanEditModel, )
+
+    def get_queryset(self):
+        # get current user
+        user = self.request.user
+
+        return super(AuthorityInfoViewSet, self).get_queryset().filter(
+            authority_id__in=user.authority_users.all().values_list('id', flat=True)
+        )
+    
+    # get by authority_id
+    # /api/authorityinfos/?authority=1
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        authority_id = request.QUERY_PARAMS.get('authority')
+        print(authority_id)
+        if authority_id:
+            queryset = queryset.filter(authority_id=authority_id)
+
+        serializer = AuthorityInfoSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+
+    def create(self, request, *args, **kwargs):
+        data = request.DATA.copy()
+        data['authority'] = request.user.get_my_authority().id
+        serializer = AuthorityInfoSerializer(data=data)
+        if serializer.is_valid():
+            # create new if not exist else update
+            try:
+                authority_info = AuthorityInfo.objects.get(authority_id=data['authority'])
+                serializer = AuthorityInfoSerializer(authority_info, data=data)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+
+            except AuthorityInfo.DoesNotExist:                
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # prohibit delete
+    def destroy(self, request, *args, **kwargs):
+        return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
