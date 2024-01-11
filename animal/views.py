@@ -89,11 +89,11 @@ def export_animal_record(request):
     for record in records:
         current_date = datetime.date.today()
         birth_date = current_date - datetime.timedelta(days=record.age_year*365 + record.age_month*30)
-        deleted = 'ไม่แสดง' if record.deleted_date else 'แสดง'
+        deleted = 'ไม่แสดง' if record.deleted_date or record.death_updated_date else 'แสดง'
         status = 'มีชีวิต' if not record.death_updated_date else 'เสียชีวิต'
         data.append([
             record.id,
-            record.created_at.strftime('%d/%m/%Y %H:%M:%S'),
+            record.created_at.strftime('%d/%m/%Y %H:%M:%S'),            
             record.authority.name,
             record.name,
             record.national_id,
@@ -144,11 +144,11 @@ def export_animal_record(request):
         u'ชื่อสัตว์',
         u'สี',
         u'เพศ',
-        u'วัคซีน',
-        u'วันที่ฉีดล่าสุด',
+        u'ประวัติการฉีดวัคซีน',
+        u'วัคซีนครั้งล่าสุด',
         u'ประวัติวัคซีนอื่นๆ',
-        u'การคุมกำเนิด',
-        u'การคุมกำเนิด อื่นๆ',
+        u'การทำหมัน',
+        u'การทำหมัน อื่นๆ',
         u'อายุ ปี',
         u'อายุ เดือน',
         u'วันเดือนปีเกิด',
