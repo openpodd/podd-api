@@ -8,7 +8,7 @@ class AnimalRecord(models.Model):
     national_id = models.CharField(max_length=13)
     phone = models.CharField(max_length=15)
     addr_no = models.CharField(max_length=10)
-    addr_moo = models.CharField(max_length=10, blank=True)
+    addr_moo = models.CharField(max_length=100, blank=True)
     addr_subdistrict = models.CharField(max_length=100)
     addr_soi = models.CharField(max_length=100, blank=True)
     addr_road = models.CharField(max_length=100, blank=True)
