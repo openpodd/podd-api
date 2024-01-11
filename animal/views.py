@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 import datetime
-import pytz
 from django.shortcuts import render
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -9,8 +8,8 @@ from rest_framework.response import Response
 from animal.models import AnimalRecord
 
 from animal.serializers import AnimalRecordCreateSerializer, AnimalRecordDeleteSerializer, AnimalRecordMarkDeathSerializer, AnimalRecordUpdateSerializer
-import csv
 from django.http import HttpResponse
+import xlwt
 
 
 @api_view(['POST'])
@@ -86,89 +85,100 @@ def export_animal_record(request):
 
     records = AnimalRecord.objects.filter(authority__in=user.authority_users.all()).prefetch_related("authority")
 
-
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="animal_records.csv"'
-    response.write(u'\ufeff'.encode('utf-8'))
-
-    writer = csv.writer(response)
-    writer.writerow(['id',
-                     'วันที่',
-                     'พื้นที่',
-                     'ชื่อเจ้าของ',    
-                     'เลขบัตรประชาชน',
-                     'เบอร์โทรศัพท์',
-                     'บ้านเลขที่',
-                     'หมู่ที่',
-                     'แขวง/ตำบล',
-                     'ซอย',
-                     'ถนน',
-                     'ประเภทสัตว์',
-                     'ชื่อสัตว์',
-                     'สี',
-                     'เพศ',
-                     'วัคซีน',
-                     'วันที่ฉีดล่าสุด',
-                     'ประวัติวัคซีนอื่นๆ',
-                     'การคุมกำเนิด',
-                     'การคุมกำเนิด อื่นๆ',
-                     'อายุ ปี',
-                     'อายุ เดือน',
-                     'วันเดือนปีเกิด',
-                     'latitude',
-                     'longitude',
-                     'ชื่อผู้รายงาน',
-                     'สถานะสัตว์(แสดง/ไม่แสดง)',
-                     'สถานะสัตว์(มีชีวิต/ไม่มีชีวิต)',
-                     'วันที่ปรับสถานะเสียชีวิต',
-                     'ผู้ที่ปรับสถานะเสียชีวิต',
-                     'วันที่อัปเดตล่าสุด',
-                     'ผู้แก้ไขข้อมูลล่าสุด'
-                     ])
-
-    local_tz = pytz.timezone('Asia/Bangkok')
-
+    data = []
     for record in records:
         current_date = datetime.date.today()
         birth_date = current_date - datetime.timedelta(days=record.age_year*365 + record.age_month*30)
         deleted = 'ไม่แสดง' if record.deleted_date else 'แสดง'
         status = 'มีชีวิต' if not record.death_updated_date else 'เสียชีวิต'
-        created_at_bangkok = record.created_at.astimezone(local_tz)
-        updated_at_bangkok = record.updated_at.astimezone(local_tz)
+        data.append([
+            record.id,
+            record.created_at.strftime('%d/%m/%Y %H:%M:%S'),
+            record.authority.name,
+            record.name,
+            record.national_id,
+            record.phone,
+            record.addr_no,
+            record.addr_moo,
+            record.addr_subdistrict,
+            record.addr_soi,
+            record.addr_road,
+            record.animal_type,
+            record.animal_name,
+            record.animal_color,
+            record.animal_gender,
+            record.vaccine,
+            record.last_vaccine_date if record.vaccine == u'เคย' else "",
+            record.vaccine_other if record.vaccine_other else "",
+            record.spay,
+            record.spay_other if record.spay_other else "",
+            record.age_year,
+            record.age_month,
+            birth_date,
+            record.latitude,
+            record.longitude,
+            record.created_by,
+            deleted,
+            status,
+            record.death_updated_date.strftime('%d/%m/%Y %H:%M:%S') if record.death_updated_date else "",
+            record.death_updated_by if record.death_updated_by else "",
+            record.updated_at.strftime('%d/%m/%Y %H:%M:%S'),
+            record.updated_by
+        ])
+        
+    workbook = xlwt.Workbook(encoding='utf-8')
+    sheet = workbook.add_sheet('Animal Records')
+    labels = [
+        u'ID',
+        u'วันที่',
+        u'อปท.',
+        u'ชื่อเจ้าของ',
+        u'เลขบัตรประชาชน',
+        u'เบอร์โทรศัพท์',
+        u'บ้านเลขที่',
+        u'หมู่ที่',
+        u'แขวง/ตำบล',
+        u'ซอย',
+        u'ถนน',
+        u'ประเภทสัตว์',
+        u'ชื่อสัตว์',
+        u'สี',
+        u'เพศ',
+        u'วัคซีน',
+        u'วันที่ฉีดล่าสุด',
+        u'ประวัติวัคซีนอื่นๆ',
+        u'การคุมกำเนิด',
+        u'การคุมกำเนิด อื่นๆ',
+        u'อายุ ปี',
+        u'อายุ เดือน',
+        u'วันเดือนปีเกิด',
+        u'latitude',
+        u'longitude',
+        u'ชื่อผู้รายงาน',
+        u'สถานะสัตว์(แสดง/ไม่แสดง)',
+        u'สถานะสัตว์(มีชีวิต/ไม่มีชีวิต)',
+        u'วันที่ปรับสถานะเสียชีวิต',
+        u'ผู้ที่ปรับสถานะเสียชีวิต',
+        u'วันที่อัปเดตล่าสุด',
+        u'ผู้แก้ไขข้อมูลล่าสุด'
+    ]
 
-        writer.writerow([record.id, 
-                         created_at_bangkok,
-                         record.authority.name.encode("utf-8"),
-                         record.name.encode("utf-8"), 
-                         record.national_id.encode("utf-8"),
-                         record.phone.encode("utf-8"),
-                         record.addr_no.encode("utf-8"),
-                         record.addr_moo.encode("utf-8"),
-                         record.addr_subdistrict.encode("utf-8"),
-                         record.addr_soi.encode("utf-8"),
-                         record.addr_road.encode("utf-8"),
-                         record.animal_type.encode("utf-8"),
-                         record.animal_name.encode("utf-8"),
-                         record.animal_color.encode("utf-8"),
-                         record.animal_gender.encode("utf-8"),
-                         record.vaccine.encode("utf-8"),
-                         record.last_vaccine_date if record.vaccine == u'เคย' else "",
-                         record.vaccine_other.encode("utf-8") if record.vaccine_other else "",
-                         record.spay.encode("utf-8"),
-                         record.spay_other.encode("utf-8") if record.spay_other else "",
-                         record.age_year,
-                         record.age_month,
-                         birth_date,
-                         record.latitude,
-                         record.longitude,
-                         record.created_by.encode("utf-8"),
-                         deleted,
-                         status,
-                         record.death_updated_date,
-                         record.death_updated_by.encode("utf-8") if record.death_updated_by else "",
-                         updated_at_bangkok,
-                         record.updated_by.encode("utf-8")
-                         ])
+    for col, label in enumerate(labels):
+        sheet.write(0, col, label)
+
+    # loop through all the data
+    row = 1
+    for item in data:
+        col = 0
+        for i in item:
+            sheet.write(row, col, i)
+            col += 1
+        row += 1
+
+
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="animal_records.xls"'
+    workbook.save(response)
 
     return response
     
