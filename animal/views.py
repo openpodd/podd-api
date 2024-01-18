@@ -108,7 +108,7 @@ def export_animal_record(request):
             record.animal_color,
             record.animal_gender,
             record.vaccine,
-            record.last_vaccine_date if record.vaccine == u'เคยฉีด' else "",
+            record.last_vaccine_date.strftime('%d/%m/%Y') if record.vaccine == u'เคยฉีด' else "",
             record.vaccine_other if record.vaccine_other else "",
             record.spay,
             record.spay_other if record.spay_other else "",
