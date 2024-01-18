@@ -608,7 +608,6 @@ class Authority(DomainMixin):
     def get_users_all(self):
         users = set(self.users.filter(domains=self.domain, is_active=True))
         for child in self.get_children_all(with_obj=True):
-            print child
             users = users | set(child.users.filter(domains=self.domain, is_active=True))
 
         return users

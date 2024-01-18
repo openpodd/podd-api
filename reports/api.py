@@ -42,7 +42,7 @@ from common.functions import (has_permission_on_report_type, has_permission_on_a
                               publish_into_rabbitmq, get_public_area, filter_permitted_report_types,
                               filter_permitted_administration_areas_and_descendants_by_authorities,
                               filter_permitted_record_specs)
-from common.models import get_current_domain_id
+from common.models import Domain, get_current_domain_id
 from common.podd_elasticsearch import get_elasticsearch_instance
 from feed.api import get_area_from_feed
 from flags.functions import create_flag_comment
@@ -1510,6 +1510,47 @@ def reports_summary_by_month(request):
             })
 
         return Response(results)
+
+@api_view(['POST'])
+def report_protect_submit(request, key, domain_id):
+    if key != settings.UPDATE_REPORT_STATE_KEY:
+        raise Http404()
+
+    from common.functions import get_system_user
+    system_user = get_system_user(domain_id)
+    system_user.domain = Domain.objects.get(id=domain_id)
+    system_user.save()
+    set_current_user(system_user)
+
+    try:
+        data = json.loads(request.body)
+    except ValueError:
+        return HttpResponse(status=400)  # Bad request
+
+    report_type_code = data["reportTypeCode"]
+    try:
+        report_type = ReportType.default_manager.get(domain_id=domain_id, code=report_type_code)
+    except ReportType.DoesNotExist:
+        return HttpResponse(status=400)
+    
+    now = timezone.now()
+    report = Report(
+        domain_id=domain_id,
+        created_by=system_user,
+        type=report_type,
+        administration_area_id=data["administrationAreaId"],
+        negative=True,
+        guid=data["guid"],
+        report_id=data["reportId"],
+        incident_date=now.date(),
+        date=now,
+        form_data=json.dumps(data["formData"]),
+        remark=data["remark"]
+    )
+    report.save()
+
+    return HttpResponse(status=201)  # Created
+
 
 
 @api_view(['POST', 'PUT'])
