@@ -16,6 +16,8 @@ class AnimalRecordUpdateSerializer(serializers.ModelSerializer):
     spay = serializers.WritableField("spay")
     spay_other = serializers.WritableField("spay_other")
     updated_by = serializers.WritableField("updated_by")
+    raising = serializers.WritableField("raising")
+    raising_place = serializers.WritableField("raising_place")
 
     class Meta:
         model = AnimalRecord

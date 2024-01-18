@@ -34,6 +34,8 @@ class AnimalRecord(models.Model):
     death_updated_date = models.DateField(null=True, blank=True)
     death_updated_by = models.CharField(max_length=150, null=True, blank=True)
     qr_code_url = models.CharField(max_length=300, null=True, blank=True)
+    raising = models.CharField(max_length=100, null=True, blank=True)
+    raising_place = models.CharField(max_length=100, null=True, blank=True)
 
 
 

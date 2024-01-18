@@ -89,8 +89,8 @@ def export_animal_record(request):
     for record in records:
         current_date = datetime.date.today()
         birth_date = current_date - datetime.timedelta(days=record.age_year*365 + record.age_month*30)
-        deleted = 'ไม่แสดง' if record.deleted_date else 'แสดง'
-        status = 'มีชีวิต' if not record.death_updated_date else 'เสียชีวิต'
+        deleted = u'ไม่แสดง' if record.deleted_date else u'แสดง'
+        status = u'มีชีวิต' if not record.death_updated_date else u'เสียชีวิต'
         data.append([
             record.id,
             record.created_at.strftime('%d/%m/%Y %H:%M:%S'),            
@@ -108,19 +108,21 @@ def export_animal_record(request):
             record.animal_color,
             record.animal_gender,
             record.vaccine,
-            record.last_vaccine_date if record.vaccine == u'เคย' else "",
+            record.last_vaccine_date if record.vaccine == u'เคยฉีด' else "",
             record.vaccine_other if record.vaccine_other else "",
             record.spay,
             record.spay_other if record.spay_other else "",
             record.age_year,
             record.age_month,
-            birth_date,
+            record.raising,
+            record.raising_place,
+            birth_date.strftime('%d/%m/%Y'),
             record.latitude,
             record.longitude,
             record.created_by,
             deleted,
             status,
-            record.death_updated_date.strftime('%d/%m/%Y %H:%M:%S') if record.death_updated_date else "",
+            record.death_updated_date.strftime('%d/%m/%Y') if record.death_updated_date else "",
             record.death_updated_by if record.death_updated_by else "",
             record.updated_at.strftime('%d/%m/%Y %H:%M:%S'),
             record.updated_by
@@ -151,6 +153,8 @@ def export_animal_record(request):
         u'การทำหมัน อื่นๆ',
         u'อายุ ปี',
         u'อายุ เดือน',
+        u'ลักษณะการเลี้ยง',
+        u'สถานที่เลี้ยง',
         u'วันเดือนปีเกิด',
         u'latitude',
         u'longitude',
