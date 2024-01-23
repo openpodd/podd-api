@@ -87,8 +87,19 @@ def export_animal_record(request):
 
     data = []
     for record in records:
+        age_year = record.age_year
+        age_month = record.age_month
         current_date = datetime.date.today()
-        birth_date = current_date - datetime.timedelta(days=record.age_year*365 + record.age_month*30)
+        birth_date_str = ""
+        if record.birth_date:
+            # calculate age year, month from birth_date
+            diff = current_date - record.birth_date
+            age_year = diff.days / 365
+            age_month = (diff.days % 365) / 30
+            if age_year == 0 and age_month == 0:
+                age_month = 1
+            birth_date_str = record.birth_date.strftime('%d/%m/%Y')
+
         deleted = u'ไม่แสดง' if record.deleted_date else u'แสดง'
         status = u'มีชีวิต' if not record.death_updated_date else u'เสียชีวิต'
         data.append([
@@ -112,11 +123,11 @@ def export_animal_record(request):
             record.vaccine_other if record.vaccine_other else "",
             record.spay,
             record.spay_other if record.spay_other else "",
-            record.age_year,
-            record.age_month,
+            age_year,
+            age_month,
             record.raising,
             record.raising_place,
-            birth_date.strftime('%d/%m/%Y'),
+            birth_date_str,
             record.latitude,
             record.longitude,
             record.created_by,

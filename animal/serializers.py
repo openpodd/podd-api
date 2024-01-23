@@ -13,6 +13,7 @@ class AnimalRecordUpdateSerializer(serializers.ModelSerializer):
     vaccine_other = serializers.WritableField("vaccine_other")
     age_month = serializers.WritableField("age_month")
     age_year = serializers.WritableField("age_year")
+    birth_date = serializers.WritableField("birth_date")
     spay = serializers.WritableField("spay")
     spay_other = serializers.WritableField("spay_other")
     updated_by = serializers.WritableField("updated_by")
@@ -21,7 +22,7 @@ class AnimalRecordUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AnimalRecord
-        fields = ["vaccine", "last_vaccine_date", "vaccine_other",  "age_month", "age_year", "spay", "spay_other", "updated_by"]
+        fields = ["vaccine", "last_vaccine_date", "vaccine_other",  "age_month", "age_year", "birth_date", "spay", "spay_other", "updated_by"]
 
 
 class AnimalRecordDeleteSerializer(serializers.ModelSerializer):

@@ -23,6 +23,7 @@ class AnimalRecord(models.Model):
     spay_other = models.CharField(max_length=100, null=True, blank=True)
     age_month = models.IntegerField()
     age_year = models.IntegerField()
+    birth_date = models.DateField(null=True, blank=True)
     latitude = models.FloatField()
     longitude = models.FloatField()
     created_by = models.CharField(max_length=150)
