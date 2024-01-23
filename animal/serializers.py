@@ -22,7 +22,7 @@ class AnimalRecordUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AnimalRecord
-        fields = ["vaccine", "last_vaccine_date", "vaccine_other",  "age_month", "age_year", "birth_date", "spay", "spay_other", "updated_by"]
+        fields = ["vaccine", "last_vaccine_date", "vaccine_other",  "age_month", "age_year", "birth_date", "spay", "spay_other", "updated_by", "raising", "raising_place"]
 
 
 class AnimalRecordDeleteSerializer(serializers.ModelSerializer):
