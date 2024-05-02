@@ -61,7 +61,7 @@ from reports.models import Report, ReportType, ReportComment, AdministrationArea
 from reports.paginations import PaginatedReportListESSerializer, PaginatedReportListESWFormDataSerializer, PaginatedReportListESLiteSerializer, \
     PaginatedAdministrationContactSerializer, PaginatedReportListFullSerializer
 from reports.pub_tasks import publish_report_flag
-from reports.serializers import (ReportSerializer, ReportListESSerializer, ReportTypeSerializer,
+from reports.serializers import (MyReportSerializer, ReportSerializer, ReportListESSerializer, ReportTypeSerializer,
                                  ReportTypeListSerializer, ReportImageSerializer, ReportCommentSerializer,
                                  DashboardSerializer,
                                  AdministrationAreaSerializer, ReportStateSerializer, CaseDefinitionSerializer,
@@ -1762,3 +1762,27 @@ def upd_report_location(request, guid):
     report.report_location = location
     report.save()
     return Response({}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated,))
+def my_reports(request):
+    reports = Report.objects.filter(created_by=request.user)
+    # filter only 9 report type.
+    reports = reports.filter(type__code__in=['1085ca98-c3ad-11e4-b', # สัตว์ป่วยตาย
+                                             '108546a4-c3ad-11e4-b', # สัตว์กัด
+                                             '10868f6e-c3ad-11e4-b', # อาหารปลอดภัย
+                                             '10873e00-c3ad-11e4-b', # คุ้มครองผู้บริโภค
+                                             '10865da0-c3ad-11e4-b', # สิ่งแวดล้อม
+                                             'natural-disaster', # ภัยธรรมชาติ
+                                             'publichazard', # สาธารณภัย
+                                             '1084f56e-c3ad-11e4-b', # โรคในคน
+                                             'civic', # แจ้งเหตุบริการสาธารณะ 
+    ])    
+    # limit to lastest 2 months
+    reports = reports.filter(date__gte=timezone.now() - relativedelta(months=2))
+    # order by date desc
+    reports = reports.order_by('-date')
+    serializer = MyReportSerializer(reports, many=True, context={'request': request})
+    return Response(serializer.data)

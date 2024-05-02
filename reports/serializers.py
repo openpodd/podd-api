@@ -1047,3 +1047,37 @@ class RecordSpecListSerializer(serializers.ModelSerializer):
         if value:
             return int(obj.updated_at.strftime('%s'))
         return value
+
+
+class MyReportSerializer(serializers.ModelSerializer):
+    """
+    display 
+    - authority name
+    - report type name
+    - topic (extract from form data)
+    - date    
+    """
+    reportId = serializers.Field('report_id')
+    date = serializers.Field('date')
+    authority = serializers.SerializerMethodField('get_authority')
+    report_type_name = serializers.Field('type.name')
+    topic = serializers.SerializerMethodField('get_topic')
+    image = serializers.Field('first_image_thumbnail_url')
+
+    class Meta:
+        model = Report
+        fields = ('reportId', 'date', 'authority', 'report_type_name', 'topic', 'image',)
+        
+    def get_authority(self, obj):
+        if obj and obj.administration_area:
+            return obj.administration_area.authority.name
+
+    def get_topic(self, obj):
+        if obj and obj.form_data:
+            form_data = json.loads(obj.form_data)
+            if form_data and form_data.has_key('topic'):
+                return form_data['topic']
+            return obj.rendered_form_data
+            
+        return None
+    
