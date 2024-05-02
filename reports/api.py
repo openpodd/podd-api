@@ -1781,7 +1781,7 @@ def my_reports(request):
                                              'civic', # แจ้งเหตุบริการสาธารณะ 
     ])    
     # limit to lastest 2 months
-    reports = reports.filter(date__gte=timezone.now() - relativedelta(months=200))
+    reports = reports.filter(date__gte=timezone.now() - relativedelta(months=2))
     # order by date desc
     reports = reports.order_by('-date')
     serializer = MyReportSerializer(reports, many=True, context={'request': request})
