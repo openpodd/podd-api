@@ -12,7 +12,7 @@ from django.template import Template, Context
 from accounts.serializers import UserSerializer, AttachCanEditSerializer
 from flags.models import Flag
 from common.functions import has_permission_on_report_type, has_permission_on_administration_area, filter_permitted_administration_areas_and_descendants
-from logs.models import LogItem
+from logs.models import LogAction, LogItem
 from plans.serializers import PlanSerializer
 from reports.models import Report, ReportType, ReportImage, ReportComment, AdministrationArea, ReportState, \
     CaseDefinition, ReportTypeCategory, ReportLike, ReportMeToo, ReportAbuse, AnimalLaboratoryCause, \
@@ -1057,20 +1057,21 @@ class MyReportSerializer(serializers.ModelSerializer):
     - topic (extract from form data)
     - date    
     """
-    reportId = serializers.Field('report_id')
+    id = serializers.Field('id')
     date = serializers.Field('date')
-    authority = serializers.SerializerMethodField('get_authority')
-    report_type_name = serializers.Field('type.name')
+    authorityName = serializers.SerializerMethodField('get_authority')
+    reportTypeName = serializers.Field('type.name')
     topic = serializers.SerializerMethodField('get_topic')
     image = serializers.Field('first_image_thumbnail_url')
 
     class Meta:
         model = Report
-        fields = ('reportId', 'date', 'authority', 'report_type_name', 'topic', 'image',)
+        fields = ('id', 'date', 'authorityName', 'reportTypeName', 'topic', 'image',)
         
     def get_authority(self, obj):
-        if obj and obj.administration_area:
+        if obj and obj.administration_area and obj.administration_area.authority:
             return obj.administration_area.authority.name
+        return None
 
     def get_topic(self, obj):
         if obj and obj.form_data:
@@ -1081,3 +1082,136 @@ class MyReportSerializer(serializers.ModelSerializer):
             
         return None
     
+
+class MyReportDetailSerializer(serializers.ModelSerializer):
+    id = serializers.Field('id')
+    date = serializers.Field('date')
+    authorityName = serializers.SerializerMethodField('get_authority')
+    reportTypeName = serializers.Field('type.name')
+    topic = serializers.SerializerMethodField('get_topic')
+    description = serializers.Field('rendered_form_data')
+    status = serializers.Field('state.name')
+    colorStatus = serializers.SerializerMethodField('get_color_status')
+    finishedDate = serializers.SerializerMethodField('get_finished_date')
+    finishedImage = serializers.SerializerMethodField('get_finished_image')
+
+    class Meta:
+        model = Report
+        fields = ('id', 'date', 'authorityName', 'reportTypeName', 'topic', 'description', 'status', 'colorStatus', 'finishedDate', 'finishedImage')
+        
+    def get_authority(self, obj):
+        if obj and obj.administration_area and obj.administration_area.authority:
+            return obj.administration_area.authority.name
+        return None
+    
+    def get_topic(self, obj):
+        if obj and obj.form_data:
+            form_data = json.loads(obj.form_data)
+            if form_data and form_data.has_key('topic'):
+                return form_data['topic']
+            return obj.rendered_form_data
+            
+        return None
+    
+    color_mapping = {
+        '1085ca98-c3ad-11e4-b': { # สัตว์ป่วยตาย
+            'รายงาน': "grey",
+            'ไม่ใช่เหตุผิดปกติ': 'green',
+            'เหตุผิดปกติ': 'red',
+            'ยังไม่สงสัยเหตุระบาด': 'green',
+            'สงสัยเหตุระบาด': 'yellow',
+            'ไม่ใช่เหตุระบาด': 'green',
+            'เหตุระบาด': 'red',
+            'ควบคุมเหตุเสร็จสิ้นแล้ว': 'green',
+            'สงสัยว่าเป็นโรคพิษสุนัขบ้า': 'yellow',
+            'สันนิษฐานว่าเป็นโรคพิษสุนัขบ้า': 'red',
+            'ยืนยันว่าเป็นโรคพิษสุนัขบ้า': 'red',
+            'ไม่ใช่โรคพิษสุนัขบ้า': 'green',
+        },
+        '108546a4-c3ad-11e4-b': { # สัตว์กัด
+            "รายงาน": "grey",
+            "เหตุผิดปกติ": "yellow",
+            "ยังไม่สงสัยเหตุระบาด": "green",
+            "สงสัยเหตุระบาด": "red",
+            "ไม่ใช่เหตุระบาด": "green",
+            "เหตุระบาด": "red",
+        },
+        '10868f6e-c3ad-11e4-b': { # อาหารปลอดภัย
+            'รายงาน': 'grey',
+            'เหตุผิดปกติ': 'red',
+            'กำลังดำเนินการผ่านหน่วยงาน': 'red',
+            'ดำเนินการเสร็จสิ้น': 'green',
+            'ไม่ใช่เหตุผิดปกติ': 'green',
+        },
+        '10873e00-c3ad-11e4-b': { # คุ้มครองผู้บริโภค
+            'รายงาน': 'grey',
+            'เหตุผิดปกติ': 'red',
+            'กำลังดำเนินการผ่านหน่วยงาน': 'red',
+            'ดำเนินการเสร็จสิ้น': 'green',
+            'ไม่ใช่เหตุผิดปกติ': 'green',
+        },
+        '10865da0-c3ad-11e4-b': { # สิ่งแวดล้อม
+            'รายงาน': 'grey',
+            'เหตุผิดปกติ': 'red',
+            'ควบคุมเหตุเสร็จสิ้นแล้ว': 'green',
+            'ยังไม่สงสัยเหตุระบาด': 'green',
+            'ไม่ใช่เหตุผิดปกติ': 'green',
+            'Complete Case': 'yellow',
+        },
+        'natural-disaster': { # ภัยธรรมชาติ
+            'รายงาน': 'grey',
+            'เหตุผิดปกติ': 'red',
+            'กำลังดำเนินการผ่านหน่วยงาน': 'red',
+            'ดำเนินการเสร็จสิ้น': 'green',
+            'ไม่ใช่เหตุผิดปกติ': 'green',
+        },
+        'publichazard': { # สาธารณภัย
+            'รายงาน': 'grey',
+            'เหตุผิดปกติ': 'red',
+            'กำลังดำเนินการผ่านหน่วยงาน': 'red',
+            'ดำเนินการเสร็จสิ้น': 'green',
+            'ไม่ใช่เหตุผิดปกติ': 'green',
+        },
+        '1084f56e-c3ad-11e4-b': { #โรคในคน
+            'รายงาน': 'grey',
+            'เหตุผิดปกติ': 'red',
+            'กำลังดำเนินการผ่านระบบ สธ.': 'red',
+            'ดำเนินการเสร็จสิ้น': 'green',
+            'ไม่ใช่เหตุผิดปกติ': 'green',
+            'สรุปไม่ได้': 'yellow',
+        },
+        'civic': {
+            'รายงาน': 'red',
+            'กำลังดำเนินการผ่านหน่วยงาน': 'yellow',
+            'ประสานหน่วยงานที่เกี่ยวข้อง': 'blue',
+            'ดำเนินการเสร็จสิ้น': 'green',
+            'ไม่ใช่เหตุผิดปกติ': 'green',
+        }
+    }
+    
+    def get_color_status(self, obj):
+        report_type_code = obj.type.code
+        if report_type_code in self.color_mapping:
+            status = obj.state.name
+            if status in self.color_mapping[report_type_code]:
+                return self.color_mapping[report_type_code].get(status, 'none')
+        return 'none'
+        
+
+    def get_finished_date(self, obj):
+        log_action = LogAction.objects.get(name='REPORT_STATE_CHANGE')
+        history_queryset = LogItem.objects.filter(action=log_action, object_id1=obj.id).order_by('-created_at')
+
+        finished_date = None
+        for log_item in history_queryset:
+            state = ReportState.default_manager.get(id=log_item.object_id2, domain_id=obj.domain_id)
+            if state.code == 'finish':
+                finished_date = log_item.created_at
+
+        return finished_date
+
+    def get_finished_image(self, obj):
+        for comment in obj.comments.order_by('-created_at'):
+            if comment.file_url and comment.message.contains('ผล'):
+                return comment.file_url
+        return None

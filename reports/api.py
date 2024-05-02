@@ -61,7 +61,7 @@ from reports.models import Report, ReportType, ReportComment, AdministrationArea
 from reports.paginations import PaginatedReportListESSerializer, PaginatedReportListESWFormDataSerializer, PaginatedReportListESLiteSerializer, \
     PaginatedAdministrationContactSerializer, PaginatedReportListFullSerializer
 from reports.pub_tasks import publish_report_flag
-from reports.serializers import (MyReportSerializer, ReportSerializer, ReportListESSerializer, ReportTypeSerializer,
+from reports.serializers import (MyReportDetailSerializer, MyReportSerializer, ReportSerializer, ReportListESSerializer, ReportTypeSerializer,
                                  ReportTypeListSerializer, ReportImageSerializer, ReportCommentSerializer,
                                  DashboardSerializer,
                                  AdministrationAreaSerializer, ReportStateSerializer, CaseDefinitionSerializer,
@@ -1781,8 +1781,22 @@ def my_reports(request):
                                              'civic', # แจ้งเหตุบริการสาธารณะ 
     ])    
     # limit to lastest 2 months
-    reports = reports.filter(date__gte=timezone.now() - relativedelta(months=2))
+    reports = reports.filter(date__gte=timezone.now() - relativedelta(months=200))
     # order by date desc
     reports = reports.order_by('-date')
     serializer = MyReportSerializer(reports, many=True, context={'request': request})
     return Response(serializer.data)
+
+@api_view(['GET'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated,))
+def my_report_detail(request, report_id):
+    report = get_object_or_404(Report, id=report_id)
+    if report.created_by != request.user:
+        return Response({"detail": "You do not have permission to view this report."},
+                        status=status.HTTP_403_FORBIDDEN)    
+    serializer = MyReportDetailSerializer(report)
+    return Response(serializer.data)
+
+
+
