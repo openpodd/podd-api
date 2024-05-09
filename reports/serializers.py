@@ -1267,6 +1267,6 @@ class MyReportDetailSerializer(serializers.ModelSerializer):
 
     def get_finished_image(self, obj):
         for comment in obj.comments.order_by('-created_at'):
-            if comment.file_url and comment.message.contains('ผล'):
+            if comment.file_url and comment.message.find(u'ผล') > -1:
                 return comment.file_url
         return None
