@@ -1085,7 +1085,10 @@ class MyReportSerializer(serializers.ModelSerializer):
     def get_first_image(self, obj):
         if not obj.images and obj.images.count() == 0:
             return None
-        return obj.images.first().thumbnail_url
+        image = obj.images.first()
+        if not image:
+            return None
+        return image.thumbnail_url
     
 
 class MyReportDetailSerializer(serializers.ModelSerializer):

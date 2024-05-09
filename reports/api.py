@@ -1782,6 +1782,8 @@ def my_reports(request):
     ])    
     # limit to lastest 2 months
     reports = reports.filter(date__gte=timezone.now() - relativedelta(months=2))
+    reports = reports.filter(test_flag=False, negative=True)
+
     # order by date desc
     reports = reports.order_by('-date')
     serializer = MyReportSerializer(reports, many=True, context={'request': request})
