@@ -1062,7 +1062,7 @@ class MyReportSerializer(serializers.ModelSerializer):
     authorityName = serializers.SerializerMethodField('get_authority')
     reportTypeName = serializers.Field('type.name')
     topic = serializers.SerializerMethodField('get_topic')
-    image = serializers.Field('first_image_thumbnail_url')
+    image = serializers.SerializerMethodField('get_first_image')
 
     class Meta:
         model = Report
@@ -1081,6 +1081,11 @@ class MyReportSerializer(serializers.ModelSerializer):
             return obj.rendered_form_data
             
         return None
+    
+    def get_first_image(self, obj):
+        if not obj.images and obj.images.count() == 0:
+            return None
+        return obj.images.first().thumbnail_url
     
 
 class MyReportDetailSerializer(serializers.ModelSerializer):
@@ -1116,68 +1121,115 @@ class MyReportDetailSerializer(serializers.ModelSerializer):
     color_mapping = {
         '1085ca98-c3ad-11e4-b': { # สัตว์ป่วยตาย
             'รายงาน': "grey",
+            'Report': "grey",
             'ไม่ใช่เหตุผิดปกติ': 'green',
+            'False Report': 'green',
             'เหตุผิดปกติ': 'red',
+            'Case': 'red',
             'ยังไม่สงสัยเหตุระบาด': 'green',
+            'Insignificant Report': 'green',
             'สงสัยเหตุระบาด': 'yellow',
+            'Suspect Outbreak': 'yellow',
             'ไม่ใช่เหตุระบาด': 'green',
+            'Unsuspected Outbreak': 'green',
             'เหตุระบาด': 'red',
+            'Outbreak': 'red',
             'ควบคุมเหตุเสร็จสิ้นแล้ว': 'green',
-            'สงสัยว่าเป็นโรคพิษสุนัขบ้า': 'yellow',
+            'Finish': 'green',
+            'สงสัยว่าเป็นโรคพิษสุนัขบ้า': 'yellow',            
             'สันนิษฐานว่าเป็นโรคพิษสุนัขบ้า': 'red',
             'ยืนยันว่าเป็นโรคพิษสุนัขบ้า': 'red',
             'ไม่ใช่โรคพิษสุนัขบ้า': 'green',
         },
         '108546a4-c3ad-11e4-b': { # สัตว์กัด
             "รายงาน": "grey",
+            "Report": "grey",
             "เหตุผิดปกติ": "yellow",
+            "Case": "yellow",
             "ยังไม่สงสัยเหตุระบาด": "green",
+            "No Outbreak Identify": "green",
             "สงสัยเหตุระบาด": "red",
+            "Suspect Outbreak": "red",
             "ไม่ใช่เหตุระบาด": "green",
+            "False Report": "green",
             "เหตุระบาด": "red",
+            "Outbreak": "red",
         },
         '10868f6e-c3ad-11e4-b': { # อาหารปลอดภัย
             'รายงาน': 'grey',
+            'Report': 'grey',
             'เหตุผิดปกติ': 'red',
+            'Case': 'red',
             'กำลังดำเนินการผ่านหน่วยงาน': 'red',
+            'Complete Case': 'yellow',
             'ดำเนินการเสร็จสิ้น': 'green',
+            'Finish': 'green',
             'ไม่ใช่เหตุผิดปกติ': 'green',
+            'False Report': 'green',
+            'Insignificant': 'green',
         },
         '10873e00-c3ad-11e4-b': { # คุ้มครองผู้บริโภค
             'รายงาน': 'grey',
+            'Report': 'grey',
             'เหตุผิดปกติ': 'red',
+            'Case': 'red',
             'กำลังดำเนินการผ่านหน่วยงาน': 'red',
+            'Complete Case': 'yellow',
             'ดำเนินการเสร็จสิ้น': 'green',
             'ไม่ใช่เหตุผิดปกติ': 'green',
+            'False Report': 'green',
+            'Finish': 'green',
         },
         '10865da0-c3ad-11e4-b': { # สิ่งแวดล้อม
             'รายงาน': 'grey',
+            'Report': 'grey',
             'เหตุผิดปกติ': 'red',
+            'Case': 'red',
             'ควบคุมเหตุเสร็จสิ้นแล้ว': 'green',
+            'ดำเนินการเสร็จสิ้น': 'green',
+            'Finish': 'green',
             'ยังไม่สงสัยเหตุระบาด': 'green',
             'ไม่ใช่เหตุผิดปกติ': 'green',
+            'False Report': 'green',
+            'Insignificant': 'green',
             'Complete Case': 'yellow',
+            'กำลังดำเนินการผ่านหน่วยงาน': 'yellow',
         },
         'natural-disaster': { # ภัยธรรมชาติ
             'รายงาน': 'grey',
+            'Report': 'grey',            
             'เหตุผิดปกติ': 'red',
-            'กำลังดำเนินการผ่านหน่วยงาน': 'red',
+            'Case': 'red',
+            'กำลังดำเนินการผ่านหน่วยงาน': 'red',            
             'ดำเนินการเสร็จสิ้น': 'green',
+            'Finish': 'green',
             'ไม่ใช่เหตุผิดปกติ': 'green',
+            'False Report': 'green',
         },
         'publichazard': { # สาธารณภัย
             'รายงาน': 'grey',
+            'Report': 'grey',
             'เหตุผิดปกติ': 'red',
+            'Case': 'red',
             'กำลังดำเนินการผ่านหน่วยงาน': 'red',
+            'Complete Case': 'yellow',
             'ดำเนินการเสร็จสิ้น': 'green',
+            'Finish': 'green',
             'ไม่ใช่เหตุผิดปกติ': 'green',
+            'False Report': 'green',
         },
         '1084f56e-c3ad-11e4-b': { #โรคในคน
             'รายงาน': 'grey',
+            'Report': 'grey',
             'เหตุผิดปกติ': 'red',
+            'Case': 'red',
             'กำลังดำเนินการผ่านระบบ สธ.': 'red',
             'ดำเนินการเสร็จสิ้น': 'green',
+            'ควบคุมเสร็จสิ้น': 'green',
+            'Finish': 'green',
             'ไม่ใช่เหตุผิดปกติ': 'green',
+            'Insignificant': 'green',
+            'False Report': 'green',
             'สรุปไม่ได้': 'yellow',
         },
         'civic': {
