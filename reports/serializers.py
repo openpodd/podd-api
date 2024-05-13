@@ -1134,6 +1134,7 @@ class MyReportDetailSerializer(serializers.ModelSerializer):
             u'สงสัยเหตุระบาด': 'yellow',
             'Suspect Outbreak': 'yellow',
             u'ไม่ใช่เหตุระบาด': 'green',
+            'No Outbreak Identified': 'green',
             'Unsuspected Outbreak': 'green',
             u'เหตุระบาด': 'red',
             'Outbreak': 'red',
