@@ -1227,6 +1227,7 @@ class MyReportDetailSerializer(serializers.ModelSerializer):
             u'เหตุผิดปกติ': 'red',
             'Case': 'red',
             u'กำลังดำเนินการผ่านระบบ สธ.': 'red',
+            u'กำลังดำเนินการผ่าน สธ.': 'red',
             u'ดำเนินการเสร็จสิ้น': 'green',
             u'ควบคุมเสร็จสิ้น': 'green',
             'Finish': 'green',
