@@ -1215,7 +1215,7 @@ class MyReportDetailSerializer(serializers.ModelSerializer):
             'Report': 'grey',
             u'เหตุผิดปกติ': 'red',
             'Case': 'red',
-            u'กำลังดำเนินการผ่านหน่วยงาน': 'red',
+            u'กำลังดำเนินการผ่านหน่วยงาน': 'yellow',
             'Complete Case': 'yellow',
             u'ดำเนินการเสร็จสิ้น': 'green',
             'Finish': 'green',
