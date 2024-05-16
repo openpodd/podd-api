@@ -1267,13 +1267,17 @@ class MyReportDetailSerializer(serializers.ModelSerializer):
         finished_date = None
         for log_item in history_queryset:
             state = ReportState.default_manager.get(id=log_item.object_id2, domain_id=obj.domain_id)
-            if state.code == 'finish':
+            if state.code == 'finish' or state.code == 'Non-rabid Case':
                 finished_date = log_item.created_at
+            
 
         return finished_date
 
     def get_finished_image(self, obj):
         for comment in obj.comments.order_by('-created_at'):
-            if comment.file_url and comment.message.find(u'ผล') > -1:
-                return comment.file_url
+            if comment.message.find(u'ผล') > -1:
+                if comment.file_url:
+                    return comment.file_url
+                else:
+                    return 'https://api.cmonehealth.org/static/images/placeholder.png'
         return None
