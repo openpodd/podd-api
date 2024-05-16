@@ -1202,6 +1202,7 @@ class MyReportDetailSerializer(serializers.ModelSerializer):
         'natural-disaster': { # ภัยธรรมชาติ
             u'รายงาน': 'grey',
             'Report': 'grey',            
+            u'รายงานความเสียหายเล็กน้อย': 'grey',
             u'เหตุผิดปกติ': 'red',
             'Case': 'red',
             u'กำลังดำเนินการผ่านหน่วยงาน': 'yellow',            
