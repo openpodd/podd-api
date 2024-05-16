@@ -1267,10 +1267,17 @@ class MyReportDetailSerializer(serializers.ModelSerializer):
         finished_date = None
         for log_item in history_queryset:
             state = ReportState.default_manager.get(id=log_item.object_id2, domain_id=obj.domain_id)
-            if state.code == 'finish' or state.code == 'Non-rabid Case':
-                finished_date = log_item.created_at
+            report_type_code = obj.type.code
+            if report_type_code == '1085ca98-c3ad-11e4-b': # สัตว์ป่วยตาย
+                if state.code == 'false-report' or state.code == 'no-outbreak-identified' or state.code == 'Non-rabid Case' or state.code == 'finish':
+                    finished_date = log_item.created_at
+            elif report_type_code == '108546a4-c3ad-11e4-b': # สัตว์กัด
+                if state.code == 'finish' or state.code == 'Non-rabid Case':
+                    finished_date = log_item.created_at
+            else: 
+                if state.code == 'finish':
+                    finished_date = log_item.created_at
             
-
         return finished_date
 
     def get_finished_image(self, obj):
