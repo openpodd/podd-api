@@ -1158,6 +1158,10 @@ class MyReportDetailSerializer(serializers.ModelSerializer):
             "False Report": "green",
             u"เหตุระบาด": "red",
             "Outbreak": "red",
+            u"ควบคุมเหตุเสร็จสิ้นแล้ว": "green",
+            u"ไม่ใช่โรคพิษสุนัขบ้า": "green",
+            u"ยืนยันว่าเป็นโรคพิษสุนัขบ้า": "red",
+            u"สันนิษฐานว่าเป็นโรคพิษสุนัขบ้า": "red",
         },
         '10868f6e-c3ad-11e4-b': { # อาหารปลอดภัย
             u'รายงาน': 'grey',
