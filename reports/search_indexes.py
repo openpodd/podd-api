@@ -5,6 +5,7 @@ from haystack.fields import LocationField
 from reports.models import Report
 
 from haystack import indexes
+import re
 
 
 class ReportIndex(indexes.SearchIndex, indexes.Indexable):
@@ -55,6 +56,13 @@ class ReportIndex(indexes.SearchIndex, indexes.Indexable):
         self.prepared_data = super(ReportIndex, self).prepare(object)
 
         for key, val in json.loads(object.form_data).items():
+            # quickfix: in the past, we stored village_no as integer
+            # but later we changed it to string.
+            # We don't want to reindex all the data, so we skip this field when indexed.
+            if key == 'village_no':
+                # check if it's not a number then continue
+                if not re.match(r'^\d+$', str(val)):
+                    continue
             self.prepared_data[key] = val
         return self.prepared_data
 
