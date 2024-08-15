@@ -61,7 +61,7 @@ class ReportIndex(indexes.SearchIndex, indexes.Indexable):
             # We don't want to reindex all the data, so we skip this field when indexed.
             if key == 'village_no':
                 # check if it's not a number then continue
-                if not re.match(r'^\d+$', str(val)):
+                if not re.match(r'^\d+$', val):
                     continue
             self.prepared_data[key] = val
         return self.prepared_data
