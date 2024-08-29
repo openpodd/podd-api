@@ -19,10 +19,12 @@ class AnimalRecordUpdateSerializer(serializers.ModelSerializer):
     updated_by = serializers.WritableField("updated_by")
     raising = serializers.WritableField("raising")
     raising_place = serializers.WritableField("raising_place")
+    death_updated_date = serializers.WritableField("death_updated_date")
+    death_updated_by = serializers.WritableField("death_updated_by")
 
     class Meta:
         model = AnimalRecord
-        fields = ["vaccine", "last_vaccine_date", "vaccine_other",  "age_month", "age_year", "birth_date", "spay", "spay_other", "updated_by", "raising", "raising_place"]
+        fields = ["vaccine", "last_vaccine_date", "vaccine_other",  "age_month", "age_year", "birth_date", "spay", "spay_other", "updated_by", "raising", "raising_place", "death_updated_date", "death_updated_by"]
 
 
 class AnimalRecordDeleteSerializer(serializers.ModelSerializer):
