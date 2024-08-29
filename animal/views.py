@@ -77,6 +77,22 @@ def mark_death_animal_record(request, animal_id):
     return Response({'success': False, 'message': serializer.errors}, status=400)
 
 
+@api_view(['POST'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated,))
+def mark_alive_animal_record(request, animal_id):
+    try:
+        animal_record = AnimalRecord.objects.get(pk=animal_id)
+    except AnimalRecord.DoesNotExist:
+        return Response({'success': False, 'message': 'Animal record not found'}, status=404)
+    
+    animal_record.death_updated_date = None
+    animal_record.death_updated_by = None
+    animal_record.save()
+
+    return Response({'success': True, 'message': 'Animal record marked as alive'})
+
+
 @api_view(['GET'])
 @authentication_classes((TokenAuthentication, SessionAuthentication))
 @permission_classes((IsAuthenticated,))
