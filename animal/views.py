@@ -96,6 +96,32 @@ def mark_alive_animal_record(request, animal_id):
 @api_view(['GET'])
 @authentication_classes((TokenAuthentication, SessionAuthentication))
 @permission_classes((IsAuthenticated,))
+def list_animal_record_for_map(request):
+    """
+    List all animal records in this user's authority
+
+    example: เจ้าของชื่อ ทัศนี ผาดฝูง เลขที่บัตรประชาชน 5500700023192 บ้านเลขที่ 32/1 หมู่ที่ ตำบล/แขวง ห้วยทราย เบอร์โทรศัพท์เจ้าของ - ประเภทสัตว์ สุนัข ชื่อสัตว์ เต๊า สี น้ำตาลดำ เพศ เมีย เคยฉีด รับวัคซีน ล่าสุดวันที่: 2024-04-13 อายุ:10 ปี 5 เดือน การทำหมัน: ทำหมันแล้ว
+    """
+    user = request.user
+    records = AnimalRecord.objects.filter(authority__in=user.authority_users.all()).prefetch_related("authority")
+    data = []
+    for record in records:
+        data.append({
+            "id": record.id,
+            "animal_type": record.animal_type,
+            "vaccine": record.vaccine,
+            "spay": record.spay,
+            "latitude": record.latitude,
+            "longitude": record.longitude,
+            "death_updated_date": record.death_updated_date,
+            "created_at": record.created_at.strftime('%d/%m/%Y %H:%M:%S'),
+            "updated_at": record.updated_at.strftime('%d/%m/%Y %H:%M:%S'),
+        })
+    return Response(data)
+
+@api_view(['GET'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated,))
 def export_animal_record(request):
     user = request.user
 
