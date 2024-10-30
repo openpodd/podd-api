@@ -22,7 +22,7 @@ from rest_framework.response import Response
 
 from accounts.models import Configuration, User, Authority
 from accounts.serializers import AuthorityListSerializer
-from common.constants import USER_STATUS_VOLUNTEER, USER_STATUS_ADDITION_VOLUNTEER
+from common.constants import USER_STATUS_CAREGIVER, USER_STATUS_VOLUNTEER, USER_STATUS_ADDITION_VOLUNTEER
 from common.functions import (filter_permitted_administration_areas_and_descendants,
                               get_administration_area_and_descendants, multi_level_dict_to_one_level_dict,
                               filter_permitted_report_types,
@@ -682,7 +682,8 @@ def _summary_dashboard_visualization(request, current_domain_id=None, authority_
 
     ROLE_USER = [
         USER_STATUS_VOLUNTEER,
-        USER_STATUS_ADDITION_VOLUNTEER
+        USER_STATUS_ADDITION_VOLUNTEER,
+        USER_STATUS_CAREGIVER,
     ]
 
     all_user_count = 0
