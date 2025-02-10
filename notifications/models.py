@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 from django.db import models
 from django.template import Template, Context
 from django.template.defaultfilters import striptags
+from django.utils import timezone
 
 from common.decorators import domain_celery_task
 from podd.celery import app, DomainTask
@@ -562,3 +563,32 @@ class Notification(DomainMixin):
     def save(self, *args, **kwargs):
         super(Notification, self).save(*args, **kwargs)
         self.publish_message.delay()
+
+
+class LineMessageGroup(models.Model):
+    invite_number = models.CharField(max_length=10, unique=True)
+    remark = models.TextField(null=True, blank=True)
+    is_cancelled = models.BooleanField(default=False)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    group_id = models.CharField(max_length=255, null=True, blank=True) # Line group id
+    group_linked_at = models.DateTimeField(null=True, blank=True)  # Line group linked at
+    authority_id = models.IntegerField() # authority id
+
+    def __unicode__(self):
+        return self.invite_number
+
+    def cancel(self):
+        self.is_cancelled = True
+        self.cancelled_at = timezone.now()
+        self.save()
+
+    def un_cancel(self):
+        self.is_cancelled = False
+        self.cancelled_at = None
+        self.save()
+
+    def link_group(self, group_id):
+        self.group_id = group_id
+        self.group_linked_at = timezone.now()
+        self.save()
