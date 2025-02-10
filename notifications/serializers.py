@@ -6,7 +6,7 @@ from django.forms import widgets
 from rest_framework import serializers
 from accounts.serializers import AttachCanEditSerializer, UserSerializer
 
-from notifications.models import Notification, NotificationTemplate, NotificationAuthority
+from notifications.models import Notification, NotificationTemplate, NotificationAuthority, LineMessageGroup
 from reports.models import ReportType
 from reports.serializers import ReportSerializer
 
@@ -78,9 +78,6 @@ class AuthorityNotificationTemplateFullSerializer(AuthorityNotificationTemplateS
         return ''
 
 
-
-
-
 class NotificationSerializer(serializers.ModelSerializer):
     receiveUser = serializers.PrimaryKeyRelatedField(source='receive_user', required=False, read_only=True)
     to = serializers.Field(source='to')
@@ -99,3 +96,11 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ('id', 'report', 'to', 'refNo', 'receiveUser', 'type', 'createdAt', 'createdBy', 'reportTypeName', 'reportFirstThumbnailUrl', 'renderWebMessage', 'message', 'seenAt')
+
+
+class LineMessageGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LineMessageGroup
+        fields = ('id', 'invite_number', 'remark', 'is_cancelled', 'cancelled_at', 'group_linked_at', 'authority_id')
+
+

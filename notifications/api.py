@@ -15,9 +15,10 @@ from common.api import ParentModelMixin
 
 from notifications import tasks
 from notifications.functions import import_notification_excel
-from notifications.models import Notification, NotificationTemplate, NotificationAuthority
+from notifications.models import Notification, NotificationTemplate, NotificationAuthority, LineMessageGroup
 from notifications.serializers import NotificationSerializer, NotificationTemplateSerializer, \
-    NotificationAuthoritySerializer, AuthorityNotificationTemplateSerializer, AuthorityNotificationTemplateFullSerializer
+    NotificationAuthoritySerializer, AuthorityNotificationTemplateSerializer, \
+    AuthorityNotificationTemplateFullSerializer, LineMessageGroupSerializer
 
 
 @api_view(['POST'])
@@ -232,3 +233,57 @@ def test_send_notifications(request):
         tasks.test_send_notification.delay(Notification.EMAIL_ONLY, users, subject=subject, message=message)
 
     return Response({})
+
+
+class LineMessageGroupViewSet(viewsets.ModelViewSet):
+    model = LineMessageGroup
+    serializer_class = LineMessageGroupSerializer
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated, )
+
+    def get_queryset(self):
+        user = self.request.user
+        authority_id = user.authority_users.first().id
+        return LineMessageGroup.objects.filter(authority_id=authority_id)
+
+    def create(self, request, *args, **kwargs):
+        # generate random number 7 digits for invite number
+        invite_number = LineMessageGroup.generate_invite_number()
+        data = {
+            'invite_number': invite_number,
+            'authority_id': request.user.authority_users.first().id,
+        }
+        print("Data:", data)
+        serializer = self.get_serializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print("Errors:", serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        print(request.DATA.get('is_cancelled'))
+        instance.remark = request.DATA.get('remark')
+        instance.is_cancelled = request.DATA.get('is_cancelled')
+        if instance.is_cancelled:
+            instance.cancelled_at = timezone.now()
+        else:
+            instance.cancelled_at = None
+        instance.save()
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        # not allow to delete
+        return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.authority_id != request.user.authority_users.first().id:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)

@@ -592,3 +592,12 @@ class LineMessageGroup(models.Model):
         self.group_id = group_id
         self.group_linked_at = timezone.now()
         self.save()
+
+    @classmethod
+    def generate_invite_number(cls):
+        from random import randint
+        no = '%07d' % randint(0, 9999999)
+        if cls.objects.filter(invite_number=no).count() > 0:
+            return cls.generate_invite_number()
+        else:
+            return no
