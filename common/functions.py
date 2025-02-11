@@ -537,7 +537,7 @@ def get_line_notify_cutoff_date():
     return cutoff_date
 
 
-def publish_line_message_via_push_api(message, to, authority_id=None):
+def publish_line_message_via_push_api(message, to, authority_id=None, report_id=None, report_type_name=None):
     from notifications.models import LineMessageGroup
 
     invite_number = to
@@ -545,7 +545,11 @@ def publish_line_message_via_push_api(message, to, authority_id=None):
         invite_number = to.replace('line:', '')
 
     endpoint = settings.LINE_MESSAGING_API_ENDPOINT
-    lmg = LineMessageGroup.objects.get(invite_number=invite_number)
+    try:
+        lmg = LineMessageGroup.objects.get(invite_number=invite_number, is_cancelled=False)
+    except LineMessageGroup.DoesNotExist:
+        return
+
     payload = {
         'to': lmg.group_id,
         'messages': [
@@ -568,15 +572,15 @@ def publish_line_message_via_push_api(message, to, authority_id=None):
         return requests.post(endpoint, params=payload, headers=headers)
 
 
-def publish_line_message(message, to, authority_id=None):
+def publish_line_message(message, to, authority_id=None, report_id=None, report_type_name=None):
     # check cutoff date in settings.py
     if datetime.now() > get_line_notify_cutoff_date():
-        return publish_line_message_via_push_api(message, to, authority_id)
+        return publish_line_message_via_push_api(message, to, authority_id, report_id, report_type_name)
     else:
         # check for allow authorities that use for testing
         if settings.LINE_NOTIFICATION_TEST_AUTHORITIES:
             if authority_id in settings.LINE_NOTIFICATION_TEST_AUTHORITIES:
-                return publish_line_message_via_push_api(message, to, authority_id)
+                return publish_line_message_via_push_api(message, to, authority_id, report_id, report_type_name)
 
     token = to
     if to.startswith('line:'):

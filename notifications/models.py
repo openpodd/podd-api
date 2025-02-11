@@ -538,7 +538,10 @@ class Notification(DomainMixin):
                     )
             elif self.anonymous_send == self.LINE_NOTIFICATION_ONLY:
                 message = self.render_message('sms')
-                response = publish_line_message(message, self.to)
+                if self.notification_authority and self.notification_authority.authority and self.report:
+                    response = publish_line_message(message, self.to, self.notification_authority.authority.id, self.report.id, self.report.type.name)
+                else:
+                    response = publish_line_message(message, self.to)
                 if response:
                     if response.status_code != 200:
                         print response.content
