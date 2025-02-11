@@ -2,6 +2,7 @@
 
 import json
 import re
+from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.template import Template, Context
@@ -531,7 +532,52 @@ def publish_apns_message(apns_reg_id, message, notification_id=None, report_id=N
         })
 
 
-def publish_line_message(message, to):
+def get_line_notify_cutoff_date():
+    cutoff_date = datetime.strptime(settings.LINE_NOTIFICATION_CUTOFF_DATE, '%Y-%m-%d %H:%M:%S')
+    return cutoff_date
+
+
+def publish_line_message_via_push_api(message, to, authority_id=None):
+    from notifications.models import LineMessageGroup
+
+    invite_number = to
+    if to.startswith('line:'):
+        invite_number = to.replace('line:', '')
+
+    endpoint = settings.LINE_MESSAGING_API_ENDPOINT
+    lmg = LineMessageGroup.objects.get(invite_number=invite_number)
+    payload = {
+        'to': lmg.group_id,
+        'messages': [
+            {
+                "type": "text",
+                "text": message
+            }
+        ]
+    }
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer %s' % (settings.LINE_NOTIFICATION_ACCESS_TOKEN,)
+    }
+    if settings.NOTIFICATION_DISABLED:
+        print '------ LINE PUSH API PARAMS ------'
+        print payload
+        print '------ /LINE PUSH API PARAMS -----'
+        return None
+    else:
+        return requests.post(endpoint, params=payload, headers=headers)
+
+
+def publish_line_message(message, to, authority_id=None):
+    # check cutoff date in settings.py
+    if datetime.now() > get_line_notify_cutoff_date():
+        return publish_line_message_via_push_api(message, to, authority_id)
+    else:
+        # check for allow authorities that use for testing
+        if settings.LINE_NOTIFICATION_TEST_AUTHORITIES:
+            if authority_id in settings.LINE_NOTIFICATION_TEST_AUTHORITIES:
+                return publish_line_message_via_push_api(message, to, authority_id)
+
     token = to
     if to.startswith('line:'):
         token = to.replace('line:', '')
