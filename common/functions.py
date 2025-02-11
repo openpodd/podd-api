@@ -539,13 +539,26 @@ def get_line_notify_cutoff_date():
 
 
 def publish_line_message_via_push_api(message, to, authority_id=None, report_id=None, report_type_name=None, notification_id=None):
+    """
+    Publish a message to a LINE group via the LINE Messaging API.
+
+    Args:
+        message (str): The message to be sent.
+        to (str): The invite number maybe prefixed with 'line:'.
+        authority_id (int, optional): The ID of the authority sending the message.
+        report_id (int, optional): The ID of the report associated with the message.
+        report_type_name (str, optional): The name of the report type.
+        notification_id (int, optional): The ID of the notification.
+
+    Returns:
+        Response: The response from the LINE Messaging API, or None if notifications are disabled or the group is not found.
+    """
     from notifications.models import LineMessageGroup
 
     invite_number = to
     if to.startswith('line:'):
         invite_number = to.replace('line:', '')
 
-    endpoint = settings.LINE_MESSAGING_API_ENDPOINT
     try:
         lmg = LineMessageGroup.objects.get(invite_number=invite_number, is_cancelled=False)
     except LineMessageGroup.DoesNotExist:
@@ -588,12 +601,13 @@ def publish_line_message_via_push_api(message, to, authority_id=None, report_id=
         'Authorization': 'Bearer %s' % (settings.LINE_NOTIFICATION_ACCESS_TOKEN,)
     }
     if settings.NOTIFICATION_DISABLED:
-        print '------ LINE PUSH API PARAMS ------'
-        print payload
-        print '------ /LINE PUSH API PARAMS -----'
+        print('------ LINE PUSH API PARAMS ------')
+        print (payload)
+        print ('------ /LINE PUSH API PARAMS -----')
         return None
     else:
-        return requests.post(endpoint, params=payload, headers=headers)
+        endpoint = settings.LINE_MESSAGING_API_ENDPOINT    
+        return requests.post(endpoint, json=payload, headers=headers)
 
 
 def publish_line_message(message, to, authority_id=None, report_id=None, report_type_name=None, notification_id=None):
