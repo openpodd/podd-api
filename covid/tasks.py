@@ -178,4 +178,4 @@ def daily_notify_authority():
         if line_token is not None and cnt > 0:
             msg = 'สรุปการเฝ้าระวังโรคติดเชื้อโควิด-19 วันที่ %s link: https://api.cmonehealth.org/covid/summary/%s/?date=%s' % (
                 yesterday_str, authority.id, yesterday_str)
-            publish_line_message(msg, line_token)
+            publish_line_message(msg, line_token, authority.id)

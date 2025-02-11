@@ -539,7 +539,7 @@ class Notification(DomainMixin):
             elif self.anonymous_send == self.LINE_NOTIFICATION_ONLY:
                 message = self.render_message('sms')
                 if self.notification_authority and self.notification_authority.authority and self.report:
-                    response = publish_line_message(message, self.to, self.notification_authority.authority.id, self.report.id, self.report.type.name)
+                    response = publish_line_message(message, self.to, self.notification_authority.authority.id, self.report.id, self.report.type.name, self.id)
                 else:
                     response = publish_line_message(message, self.to)
                 if response:
@@ -604,3 +604,14 @@ class LineMessageGroup(models.Model):
             return cls.generate_invite_number()
         else:
             return no
+
+
+class LineMessageGroupStat(models.Model):
+    authority = models.ForeignKey(Authority, related_name='line_message_group_stat_authority')
+    invite_number = models.CharField(max_length=10)
+    report_type_name = models.CharField(max_length=255, blank=True)
+    report = models.ForeignKey('reports.Report', related_name='line_message_group_stat_report', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    year = models.IntegerField()
+    month = models.IntegerField()
+    notification = models.ForeignKey('Notification', related_name='line_message_group_stat_notification', null=True, blank=True)

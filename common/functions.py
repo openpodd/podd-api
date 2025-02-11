@@ -17,6 +17,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.core.mail import EmailMultiAlternatives
+from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
@@ -537,7 +538,7 @@ def get_line_notify_cutoff_date():
     return cutoff_date
 
 
-def publish_line_message_via_push_api(message, to, authority_id=None, report_id=None, report_type_name=None):
+def publish_line_message_via_push_api(message, to, authority_id=None, report_id=None, report_type_name=None, notification_id=None):
     from notifications.models import LineMessageGroup
 
     invite_number = to
@@ -549,6 +550,19 @@ def publish_line_message_via_push_api(message, to, authority_id=None, report_id=
         lmg = LineMessageGroup.objects.get(invite_number=invite_number, is_cancelled=False)
     except LineMessageGroup.DoesNotExist:
         return
+    
+    # create Stat via LineMessageGroupStat
+    from notifications.models import LineMessageGroupStat
+    today = timezone.now()
+    LineMessageGroupStat.objects.create(
+        invite_number=lmg.invite_number,
+        authority_id=authority_id,
+        report_type_name=report_type_name,
+        report_id=report_id,
+        notification_id=notification_id,
+        year=today.year,
+        month=today.month,
+    )
 
     payload = {
         'to': lmg.group_id,
@@ -572,15 +586,15 @@ def publish_line_message_via_push_api(message, to, authority_id=None, report_id=
         return requests.post(endpoint, params=payload, headers=headers)
 
 
-def publish_line_message(message, to, authority_id=None, report_id=None, report_type_name=None):
+def publish_line_message(message, to, authority_id=None, report_id=None, report_type_name=None, notification_id=None):
     # check cutoff date in settings.py
     if datetime.now() > get_line_notify_cutoff_date():
-        return publish_line_message_via_push_api(message, to, authority_id, report_id, report_type_name)
+        return publish_line_message_via_push_api(message, to, authority_id, report_id, report_type_name, notification_id)
     else:
         # check for allow authorities that use for testing
         if settings.LINE_NOTIFICATION_TEST_AUTHORITIES:
             if authority_id in settings.LINE_NOTIFICATION_TEST_AUTHORITIES:
-                return publish_line_message_via_push_api(message, to, authority_id, report_id, report_type_name)
+                return publish_line_message_via_push_api(message, to, authority_id, report_id, report_type_name, notification_id)
 
     token = to
     if to.startswith('line:'):
