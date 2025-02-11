@@ -550,10 +550,20 @@ def publish_line_message_via_push_api(message, to, authority_id=None, report_id=
         lmg = LineMessageGroup.objects.get(invite_number=invite_number, is_cancelled=False)
     except LineMessageGroup.DoesNotExist:
         return
-    
+
+    today = timezone.now()
+    # check LineMessageGroupCtrl, if this authority_id is Active or not
+    if settings.LINE_NOTIFICATION_USE_AUTHORITY_CONTROL:
+        from notifications.models import LineMessageGroupCtrl
+        try:
+            lmg_ctrl = LineMessageGroupCtrl.objects.get(authority_id=authority_id,
+                start_date__lte=today,
+                end_date__gte=today,)
+        except LineMessageGroupCtrl.DoesNotExist:
+            return
+
     # create Stat via LineMessageGroupStat
     from notifications.models import LineMessageGroupStat
-    today = timezone.now()
     LineMessageGroupStat.objects.create(
         invite_number=lmg.invite_number,
         authority_id=authority_id,

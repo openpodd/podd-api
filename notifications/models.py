@@ -615,3 +615,9 @@ class LineMessageGroupStat(models.Model):
     year = models.IntegerField()
     month = models.IntegerField()
     notification = models.ForeignKey('Notification', related_name='line_message_group_stat_notification', null=True, blank=True)
+
+
+class LineMessageGroupCtrl(models.Model):
+    authority = models.ForeignKey(Authority, related_name='line_message_group_ctrl_authority')
+    start_date = models.DateField()
+    end_date = models.DateField()

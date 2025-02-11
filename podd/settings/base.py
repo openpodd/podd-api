@@ -424,3 +424,4 @@ GOOGLE_STATIC_MAP_API_KEY = ''
 LINE_NOTIFICATION_CUTOFF_DATE = '2025-03-31 23:59:59' # UTC Time if using on production
 LINE_NOTIFICATION_TEST_AUTHORITIES = [] # authorities id that use for testing before cut off period
 LINE_NOTIFICATION_ACCESS_TOKEN = 'OVERRIDE'
+LINE_NOTIFICATION_USE_AUTHORITY_CONTROL = True # use LineMessageGroupCtrl to control notification
