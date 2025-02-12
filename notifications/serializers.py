@@ -6,7 +6,7 @@ from django.forms import widgets
 from rest_framework import serializers
 from accounts.serializers import AttachCanEditSerializer, UserSerializer
 
-from notifications.models import Notification, NotificationTemplate, NotificationAuthority, LineMessageGroup
+from notifications.models import LineMessageGroupStat, Notification, NotificationTemplate, NotificationAuthority, LineMessageGroup
 from reports.models import ReportType
 from reports.serializers import ReportSerializer
 

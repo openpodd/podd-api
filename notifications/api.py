@@ -1,7 +1,7 @@
 import json
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils import timezone
 
 from rest_framework import status, viewsets, filters
@@ -15,7 +15,7 @@ from common.api import ParentModelMixin
 
 from notifications import tasks
 from notifications.functions import import_notification_excel
-from notifications.models import Notification, NotificationTemplate, NotificationAuthority, LineMessageGroup
+from notifications.models import LineMessageGroupStat, Notification, NotificationTemplate, NotificationAuthority, LineMessageGroup
 from notifications.serializers import NotificationSerializer, NotificationTemplateSerializer, \
     NotificationAuthoritySerializer, AuthorityNotificationTemplateSerializer, \
     AuthorityNotificationTemplateFullSerializer, LineMessageGroupSerializer
@@ -287,3 +287,29 @@ class LineMessageGroupViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_403_FORBIDDEN)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+
+class LineMessageGroupStatViewSet(viewsets.GenericViewSet):
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated, )
+
+    @list_route(methods=['get'])
+    def count_stats(self, request):
+        user = self.request.user
+        authority_id = user.authority_users.first().id
+        queryset = LineMessageGroupStat.objects.filter(authority_id=authority_id)
+
+        year = self.request.QUERY_PARAMS.get('year', None)
+        if year:
+            queryset = queryset.filter(year=year)
+
+        month = self.request.QUERY_PARAMS.get('month', None)
+        if month:
+            queryset = queryset.filter(month=month)
+
+        # return count group by invite_number and report_type_name
+        data = queryset.values('year', 'month', 'invite_number', 'report_type_name').annotate(number_of_messages=Count('id'))
+
+        return Response(data)
+
+        

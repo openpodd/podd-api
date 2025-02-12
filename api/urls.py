@@ -158,6 +158,10 @@ urlpatterns = patterns('',
     url(r'^reportLaboratoryFiles/(?P<file_id>\d+)/', 'reports.api.delete_file_to_laboratory', name='delete_file_to_laboratory'),
     url(r'^reportLaboratoryFiles/', 'reports.api.upload_file_to_laboratory', name='upload_file_to_laboratory'),
 
+    url(r'^lineMessageGroupStats/count-stats/', notifications_api.LineMessageGroupStatViewSet.as_view({
+        'get': 'count_stats'
+    }), name='line_message_group_stat_count_stats'),
+
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^test-dodd/(?P<report_id>\d+)/', 'dodd.views.test_link_report', name='test_dodd'),
     url(r'^covid/monitoring/', 'covid.views.list_monitoring', name='covid_list'),
