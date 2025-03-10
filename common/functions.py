@@ -562,6 +562,7 @@ def publish_line_message_via_push_api(message, to, authority_id=None, report_id=
     try:
         lmg = LineMessageGroup.objects.get(invite_number=invite_number, is_cancelled=False)
     except LineMessageGroup.DoesNotExist:
+        print('LINE group not found for invite number: %s' % invite_number)
         return
 
     today = timezone.now()

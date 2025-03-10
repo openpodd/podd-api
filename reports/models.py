@@ -1063,7 +1063,7 @@ class Report(AbstractCachedModel, DomainMixin):
                                     receive_user = '@[%s]' % user.username
 
                             # Detect phone number for send sms
-                            elif len(clean_tels) > 0:
+                            elif re.match(r'^\+?(\d{1,4}[\s-]?)?(\(?\d{1,3}?\)?[\s-]?)?[\d\s-]{3,}$/', to) and len(clean_tels) > 0:
                                 clean_phone_number = clean_tels[0]
                                 notification_data['to'] = clean_phone_number
                                 notification_data['original_to'] = to
