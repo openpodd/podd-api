@@ -89,7 +89,7 @@ six==1.8.0
 sqlparse==0.3.0
 unicodecsv==0.9.4
 uritemplate==3.0.0
-urllib3==1.22
+urllib3==1.26.5
 uuid==1.30
 xlrd==0.9.4
 xlwt==0.7.5
