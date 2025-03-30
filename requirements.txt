@@ -75,7 +75,7 @@ py2neo==3
 pyasn1==0.4.8
 pyasn1-modules==0.0.5
 pycparser==2.19
-pyOpenSSL==0.15.1
+pyOpenSSL==17.5.0
 -e git+https://github.com/pphetra/pyth.git@02f7f92b4bf2cc2846ce1b90884f9105cb7a105c#egg=pyth
 python-dateutil==2.2
 pytz==2014.9
